@@ -1,0 +1,58 @@
+
+body.light {
+    --bg: #fff;
+    --bgSecondary: #fff;
+    --bgSecondary-hover: #121212;
+    --blockBg: #f8f8f8;
+    --textNormal: #121212;
+    --textNormal-hover: #fff;
+    --textSecondary: #666;
+    --textActive: #fff;
+    --textTips: #ccc;
+    --textLink: #005cc5;
+    --textHover: #ff502c;
+    --highLightIcon: #f87a60;
+    --highLightBg: #fff5f5;
+    --highLightBg-hover: #f7e8e8;
+    --highLightText: #ff502c;
+    --boxShadow: 0px 3px 15px 0px #dadada;
+    --boxShadow-action: 0 -1px 3px rgba(18, 18, 18, 0.1);
+    --borderColor: #e7e7e7;
+    --mdLinearGradient: linear-gradient(-180deg, rgba(255, 255, 255, 0) 0%, #fff 70%);
+    --menuMaskBg: rgba(255, 255, 255, 0.9);
+    --messageItem-hover: #f3f3f3;
+    --md-keyword: rgb(215, 58, 73);
+    --md-string: rgb(3, 47, 98);
+    --md-attribute: rgb(0, 92, 197);
+    --md-comment: rgb(153, 153, 136);
+    --md-builtIn: rgb(111, 66, 193);
+  }
+  
+  body.dark {
+    --bg: #18191a;
+    --bgSecondary: #242526;
+    --bgSecondary-hover: #18191a;
+    --blockBg: #3a3b3c;
+    --textNormal: #d2d2d2;
+    --textNormal-hover: #fff;
+    --textSecondary: #c7c7c7;
+    --textActive: #121212;
+    --textTips: #ccc;
+    --textLink: #2d88ff;
+    --textHover: #2d88ff;
+    --highLightIcon: #f87a60;
+    --highLightBg: #fff5f5;
+    --highLightBg-hover: #f7e8e8;
+    --highLightText: #ff502c;
+    --boxShadow: 0px 3px 15px 0px #121212;
+    --boxShadow-action: 0 -1px 1px rgba(133, 133, 133, 0.1);
+    --borderColor: #3a3b3c;
+    --mdLinearGradient: linear-gradient(-180deg, rgba(36, 37, 38, 0) 0%, #242526 70%);
+    --menuMaskBg: rgba(18, 18, 18, 0.95);
+    --messageItem-hover: #18191a;
+    --md-keyword: rgb(255, 123, 114);
+    --md-string: rgb(165, 214, 255);
+    --md-attribute: rgb(121, 192, 255);
+    --md-comment: rgb(139, 148, 158);
+    --md-builtIn: rgb(255, 166, 87);
+  }
