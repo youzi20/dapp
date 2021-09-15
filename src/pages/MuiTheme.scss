@@ -1,0 +1,28 @@
+.MuiButton-text {
+    padding: 0 !important;
+}
+
+.MuiTooltip-tooltip {
+    font-family     : "Montserrat", sans-serif !important;
+    max-width       : none !important;
+    margin          : 4px 0 !important;
+    padding         : 0 !important;
+    background-color: inherit !important;
+}
+
+.MuiButton-root {
+    border-radius: 0 !important;
+}
+
+.MuiButton-root.Mui-disabled {
+    color: inherit !important;
+}
+
+.MuiButtonBase-root.Mui-disabled {
+    pointer-events: inherit !important;
+    cursor        : inherit !important;
+}
+
+.MuiPopover-paper {
+    background: none !important;
+}
