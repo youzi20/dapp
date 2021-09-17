@@ -10,7 +10,7 @@ import { getWei, abiEncode } from '../../utils';
 
 const offchainData = ["0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", 0, 0, 0];
 
-export const useBoost = (fromAddress: string | null, toAddress: string | null, amount: string | null, apy: number | null) => {
+export const useBoost = (tokenAddressArray: string[] | null, amount: string | null, minPrice: string | null, apy: number | null) => {
     const { account } = useWeb3ReactCore();
     const address = useAddress();
 
@@ -18,13 +18,15 @@ export const useBoost = (fromAddress: string | null, toAddress: string | null, a
     const uniswapAddress = useTokenAddress("UNISWAP_WRAPPER");
     const smartWalletContract = useSmartWalletContract(address);
 
+    const [fromAddress, toAddress] = tokenAddressArray ?? [];
+
     // console.log("smartWalletContract", smartWalletContract);
 
     const { address: USER_HANDLE_OTHER_ADDRESS, abi: USER_HANDLE_OTHER_ABI } = useAddressAndABI("USER_HANDLE_OTHER");
 
     const uniswapWrapper = useMemo(() => fromAddress && toAddress ? abiEncode(["address[]"], [[fromAddress, toAddress]]) : "", [fromAddress, toAddress]);
 
-    const exchangeData = [fromAddress, toAddress, getWei(amount ? amount : "0"), 0, 0, 400, account, uniswapAddress, uniswapWrapper, offchainData];
+    const exchangeData = [fromAddress, toAddress, getWei(amount ?? "0"), 0, getWei(minPrice ?? "0"), 400, account, uniswapAddress, uniswapWrapper, offchainData];
 
     const userHandleBoostEncode = useFuncEncode(USER_HANDLE_OTHER_ABI, "boost", fromAddress && toAddress && amount && apy ? [marketAddress, exchangeData, apy, 0, 1] : []);
 
@@ -41,13 +43,15 @@ export const useBoost = (fromAddress: string | null, toAddress: string | null, a
     }
 }
 
-export const useRepay = (fromAddress: string | null, toAddress: string | null, amount: string | null, apy: number | null) => {
+export const useRepay = (tokenAddressArray: string[] | null, amount: string | null, apy: number | null) => {
     const { account } = useWeb3ReactCore();
     const address = useAddress();
 
     const marketAddress = useTokenAddress("AAVE_MARKET");
     const uniswapAddress = useTokenAddress("UNISWAP_WRAPPER");
     const smartWalletContract = useSmartWalletContract(address);
+
+    const [fromAddress, toAddress] = tokenAddressArray ?? [];
 
     // console.log("smartWalletContract", smartWalletContract);
 

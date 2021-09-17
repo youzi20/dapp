@@ -30,6 +30,10 @@ export function useAddress(): string | null {
     return useAppSelector((state: AppState) => state.user.address);
 }
 
+export function useUserInfo(): any {
+    return useAppSelector((state: AppState) => state.user.dataInfo);
+}
+
 export function useState(): UserState {
     return useAppSelector((state: AppState) => state.user);
 }

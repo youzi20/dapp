@@ -5,8 +5,7 @@ import { JsonRpcSigner, Web3Provider } from '@ethersproject/providers';
 import { AbiCoder } from '@ethersproject/abi';
 import { formatUnits, parseUnits } from '@ethersproject/units';
 
-type Unit = "wei" | "kwei" | "mwei" | "gwei" | "szabo" | "finney" | "ether";
-
+import { Unit, HandleTheme } from '../types';
 
 export function getNumber(value: number | string, unit?: Unit | number): number {
     return parseFloat(formatUnits(value, unit ?? "ether"));
@@ -112,10 +111,11 @@ export function fullNumber(num: number) {
     const str = String(num);
     if (!/e/i.test(str)) { return str; };
 
-    return num.toFixed(18).replace(/\.?0+$/, "");
+
+    console.log(num, num.toFixed(20).replace(/\.?[0-9]{2}0*$/, ""));
+
+    return num.toFixed(20).replace(/\.?[0-9]{2}0*$/, "");
 }
-
-
 
 export function ethToPrice(count: number, ethPrice: number): [number, string] {
     if (!count) return [0, "$"];
@@ -195,17 +195,28 @@ export function getBoostMax(value: number, ratio: number, isFirst?: boolean): nu
     }
 }
 
-export function getRepayMax(from: any, to: any, price: number): number {
-    if (!from || !to || !price) return 0;
+export function getRepayMax(from: any, to: any): number {
+    if (!from || !to) return 0;
 
-    const { priceETH: fromEthPrice, amount: fromAmount } = from;
+    const { priceETH: fromEthPrice, amount: fromAmount, price } = from;
     const { priceETH: toEthPrice } = to;
 
     if (fromEthPrice <= toEthPrice) return fromAmount;
 
-    return toEthPrice / price * 1.02;
+    var max = 0;
+
+    return (max = toEthPrice / price * 1.02) > fromAmount ? fromAmount : max;
 }
 
 export function getWithdrawMax() {
 
+}
+
+export function getHandleTheme(type: HandleTheme) {
+    switch (type) {
+        case "Boost":
+            return "#318D70";
+        case "Repay":
+            return "#C26E5C";
+    }
 }

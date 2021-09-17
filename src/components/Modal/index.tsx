@@ -40,7 +40,6 @@ background-color: var(--modal-title);
 
 const ModalBody = styled.div`
 padding: 30px 20px;
-border-bottom: 5px solid var(--theme);
 background: var(--modal-body);
 `;
 
@@ -63,6 +62,7 @@ float: right;
 
 interface ButtonInterface {
     text?: string
+    disabled?: boolean
     loading?: boolean
     onClick?: () => void
 }
@@ -92,6 +92,7 @@ const ModalWrap: React.FC<ModalContainerInterface> = ({ children, title, width, 
                 </Button>
                 <Button
                     theme="primary"
+                    disabled={confirmButtonProps?.disabled}
                     loading={confirmButtonProps?.loading}
                     onClick={confirmButtonProps?.onClick}
                 >

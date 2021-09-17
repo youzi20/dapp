@@ -239,7 +239,7 @@ const Info: React.FC<{
     const price = useEthPrice();
     const [collateral, liquidation] = useLiquidationInfo() || [];
 
-    console.log("dataInfo", dataInfo);
+    // console.log("dataInfo", dataInfo);
 
 
     return <Wrapper>

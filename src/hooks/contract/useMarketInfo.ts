@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 
 import { useMarketContract } from "./index";
 import { useTokenAddress } from "./hooks";
@@ -30,30 +30,30 @@ export const useMarketData = () => {
         dispatch(updateMarketStatus(MarketStatusEnums.LOADING));
 
         try {
-            const markets = await marketInfoContract.getAaveMarketInfo(marketAddress);
+            const market = await marketInfoContract.getAaveMarketInfo(marketAddress);
 
-            const data = markets.map((
+            const data = market.map((
                 { totalSupply, totalBorrow, supplyRate, liquidationRatio, collateralFactor, borrowRateVariable, borrowRateStable, availableLiquidity, price,
                     symbol, aTokenAddress, underlyingTokenAddress, usageAsCollateralEnabled, stableBorrowRateEnabled, borrowinEnabled }: any
             ) => ({
+                symbol: symbol.toLocaleUpperCase(),
                 totalSupply: getNumber(totalSupply),
                 totalBorrow: getNumber(totalBorrow),
-                supplyRate: getNumber(supplyRate, 25),
-                liquidationRatio: getNumber(liquidationRatio, 2),
-                collateralFactor: getNumber(collateralFactor, 2),
-                borrowRateVariable: getNumber(borrowRateVariable, 25),
-                borrowRateStable: getNumber(borrowRateStable, 25),
+                supplyRate: getNumber(supplyRate, 27),
+                liquidationRatio: getNumber(liquidationRatio, 4),
+                collateralFactor: getNumber(collateralFactor, 4),
+                borrowRateVariable: getNumber(borrowRateVariable, 27),
+                borrowRateStable: getNumber(borrowRateStable, 27),
                 availableLiquidity: getNumber(availableLiquidity, "wei"),
                 price: getNumber(price),
-                symbol: symbol.toLocaleUpperCase(),
                 aTokenAddress,
                 underlyingTokenAddress,
                 usageAsCollateralEnabled,
                 stableBorrowRateEnabled,
                 borrowinEnabled
-            }))
+            }));
 
-            // console.log(data);
+            console.log("use", market, data);
 
             dispatch(updateMaeketData(data));
             dispatch(updateMarketStatus(MarketStatusEnums.SUCCESS));
@@ -84,14 +84,16 @@ export const useUserData = () => {
             const ratio = await marketInfoContract.getRatio(marketAddress, address);
 
             const data = loan.filter((item: any) => item.symbol).map((
-                { amount, ltv, priceETH, rate, loanType, symbol, tokenAddr, user }: any
+                { amount, priceETH, rate, loanType, symbol }: any
             ) => ({
+                loanType,
+                symbol: symbol.toLocaleUpperCase(),
                 amount: getNumber(amount),
-                ltv: getNumber(ltv, 2),
                 priceETH: getNumber(priceETH),
-                rate: getNumber(rate, 25),
-                loanType, symbol, tokenAddr, user
-            }))
+                rate: getNumber(rate, 27),
+            }));
+
+            console.log("use", data);
 
             const { totalCollateralETH, totalDebtETH, availableBorrowsETH, currentLiquidationThreshold, ltv, healthFactor } = account;
 
@@ -111,6 +113,39 @@ export const useUserData = () => {
 
             console.error(error);
         }
+    }
+}
+
+export const useTokenPrice = (tokens: string[] | null) => {
+    const [loading, setLoading] = useState(false);
+    const [prices, setPrices] = useState();
+
+    const marketAddress = useTokenAddress("AAVE_MARKET");
+
+    const marketInfoContract = useMarketContract();
+
+    const getTokenPrice = async () => {
+        if (!marketInfoContract || !tokens?.length) return;
+        setLoading(true);
+
+        try {
+            const prices = await marketInfoContract.getPrices(marketAddress, tokens);
+
+            setPrices(prices.map((item: number) => getNumber(item)));
+            setLoading(false);
+        } catch (error) {
+            setLoading(false);
+            console.error(error);
+        }
+    }
+
+    useEffect(() => {
+        getTokenPrice();
+    }, [tokens, marketInfoContract]);
+
+    return {
+        loading,
+        prices
     }
 }
 
