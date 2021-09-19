@@ -7,12 +7,16 @@ import { formatUnits, parseUnits } from '@ethersproject/units';
 
 import { Unit, HandleTheme } from '../types';
 
-export function getNumber(value: number | string, unit?: Unit | number): number {
-    return parseFloat(formatUnits(value, unit ?? "ether"));
+export function stringAndNumber(value: number | string): [string, number] {
+    return typeof value === "number" ? [String(value), value] : [value, Number(value)];
 }
 
 export function getRatio(value: number): string {
-    return number2fixed(value, 3) + "%";
+    return (number2fixed(value, 2) ?? "0") + "%";
+}
+
+export function getFormatNumber(value: number | string, unit?: Unit | number) {
+    return formatUnits(value, unit ?? "ether");
 }
 
 export function getWei(value: any, unit?: Unit) {
@@ -41,21 +45,24 @@ export function numberUnit(num: number): [number, string | null] {
         return [num / 1e9, "B"];
     } else if (num > 1e6) {
         return [num / 1e6, "M"];
+    } else if (num > 1e3) {
+        return [num / 1e3, "K"];
     } else {
         return [num, null]
     }
 }
 
-export function numberDelimiter(num: number) {
-    if (num > 1) {
-        const str = String(num);
+export function numberDelimiter(value?: string) {
+    if (!value) return null;
 
-        const [integer, decimal] = str.split(".");
+    if (Number(value) > 1e3) {
+        const [integer, decimal] = value.split(".");
 
         const integerSplit = [];
 
-        let j = integer.length, i = j - 3;
-        for (; i > 0; i -= 3) {
+        let i, j;
+        for (j = integer.length, i = j - 3; i > 0; i -= 3) {
+
             integerSplit.unshift(integer.substring(i, j));
             j = i;
         }
@@ -64,77 +71,84 @@ export function numberDelimiter(num: number) {
 
         return integerSplit.join(",") + (decimal ? "." + decimal : "");
     } else {
-        return fullNumber(num);
+        return fullNumber(value);
     }
 }
 
-export function numberRuler(num: number) {
+export function numberRuler(num: string | number) {
+    if (typeof num === "string") num = Number(num);
+
     const [amount, unit] = numberUnit(num);
 
-    let fixedAmount: number | string = number2fixed(amount);
+    return number2fixed(fullNumber(amount)) + (unit ?? "");
+}
 
-    if (fixedAmount > 1e3) {
-        fixedAmount = numberDelimiter(fixedAmount);
+export function number2fixed(value: string | number, len?: number) {
+    if (!value) return null;
+
+    if (typeof value === "number") value = String(value);
+
+    var [integer, decimal] = value.split(/\./);
+
+    if (!decimal) return value;
+
+    if (len) {
+        decimal = decimal.substring(0, len);
+    } else if (Math.abs(Number(value)) >= 1) {
+        decimal = decimal.substring(0, 2);
     } else {
-        fixedAmount = fullNumber(fixedAmount);
+        decimal = decimal.substring(0, 4);
     }
 
-    return fixedAmount + (unit ?? "");
+    if (/^0+$/.test(decimal)) return integer;
+
+    return `${integer}.${decimal}`;
 }
 
-export function number2fixed(value: number, len?: number) {
-    if (!value) return 0;
+export function fullNumber(value: string | number, exact?: boolean) {
+    const [valueStr, valueNum] = stringAndNumber(value);
 
-    const str = fullNumber(value);
-
-    let fixedNumber: string = str,
-        index = str.indexOf(".");
-
-    if (index >= 0) {
-        if (len) {
-            fixedNumber = str.substring(0, index + len);
-        } else if (Math.abs(value) >= 1) {
-            fixedNumber = str.substring(0, index + 3);
-        } else {
-            fixedNumber = str.substring(0, index + 5);
-        }
-    }
-
-    return parseFloat(fixedNumber);
-}
-
-export function fullNumber(num: number) {
     //处理非数字
-    if (isNaN(num)) { return "NaN" };
+    if (isNaN(valueNum)) return "NaN";
 
     //处理不需要转换的数字
-    const str = String(num);
-    if (!/e/i.test(str)) { return str; };
+    if (!/e/i.test(valueStr)) return valueStr;
 
+    const strArr = valueStr.split(/[.\e]/);
 
-    console.log(num, num.toFixed(20).replace(/\.?[0-9]{2}0*$/, ""));
+    if (strArr.length === 3) {
+        var [integer, decimal, power] = strArr;
+    } else {
+        var [integer, power] = strArr;
+    }
 
-    return num.toFixed(20).replace(/\.?[0-9]{2}0*$/, "");
+    const powerNum = Number(power);
+
+    if (powerNum > 0) {
+        return `${integer}${decimal ?? ""}${"0".repeat(Math.abs(powerNum) - decimal?.length ?? 0)}`;
+    } else {
+        return `0.${"0".repeat(Math.abs(powerNum) - integer?.length ?? 0)}${integer}${decimal ?? ""}`;
+    }
 }
 
-export function ethToPrice(count: number, ethPrice: number): [number, string] {
-    if (!count) return [0, "$"];
-    if (!ethPrice) return [count, "ETH"];
 
-    return [count * ethPrice, "$"];
+export function ethToPrice(count: number, price: number): string[] {
+    if (!count) return ["0", "$"];
+    if (!price) return [String(count), "ETH"];
+
+    return [fullNumber(count * price), "$"];
 }
 
-export function ethToPriceTips(count: number, ethPrice: number | null): (number | string)[] {
-    if (!count) return [0, 0, "$"];
-    if (!ethPrice) return [numberRuler(count), numberDelimiter(count), "ETH"];
+export function ethToPriceTips(count: string | number, price: number | null): string[] {
+    if (!count) return ["0", "0", "$"];
 
-    const price = ethToPrice(count, ethPrice);
+    const [countStr, countNum] = stringAndNumber(count);
 
-    const fixedPrice = numberRuler(price[0]);
+    if (!price) return [numberRuler(count), numberDelimiter(countStr) ?? "", "ETH"];
 
-    const textPrice = numberDelimiter(price[0]);
+    const [num, unit] = ethToPrice(countNum, price);
 
-    return [fixedPrice, textPrice, "$"];
+    return [numberRuler(num), numberDelimiter(num) ?? "", unit];
 }
 
 export function isAddress(value: any): string | false {
@@ -189,7 +203,7 @@ export function getBoostMax(value: number, ratio: number, isFirst?: boolean): nu
         return value + getBoostMax(value, ratio);
     } else {
         const val = value * ratio;
-        if (val <= 0.001) return 0;
+        if (val <= 1e-5) return 0;
 
         return val + getBoostMax(val, ratio);
     }
@@ -217,6 +231,14 @@ export function getHandleTheme(type: HandleTheme) {
         case "Boost":
             return "#318D70";
         case "Repay":
+            return "#C26E5C";
+        case "Supply":
+            return "#318D70";
+        case "Withdraw":
+            return "#C26E5C";
+        case "Borrow":
+            return "#318D70";
+        case "Payback":
             return "#C26E5C";
     }
 }

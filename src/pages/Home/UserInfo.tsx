@@ -18,16 +18,15 @@ import { EmptyLoading } from '../../components/Empty';
 import { useBuild, useProxies } from '../../hooks/contract/useUserInfo';
 
 import { WalletStatusEnums, useState as useWalletState } from '../../state/wallet';
-import { UserStatusEnums, useState as useUserState } from '../../state/user';
+import { UserStatusEnums, useState as useUserState, useUserInfo } from '../../state/user';
 import { useEthPrice, useLiquidationInfo } from '../../state/market';
 
 import { Font, Flex, TextOverflowWrapper } from '../../styled';
 
-import { ethToPriceTips, getRatio, number2fixed } from '../../utils';
+import { getRatio, ethToPriceTips, number2fixed } from '../../utils';
 
 import SupplyPercentage from './SupplyPercentage';
 import LoanPercentage from './LoanPercentage';
-
 
 SwiperCore.use([Pagination]);
 
@@ -155,7 +154,6 @@ const Create = () => {
     const proxies = useProxies();
 
     const handleBuild = () => {
-
         if (status !== WalletStatusEnums.SUCEESS) {
             message.error(t`请先连接钱包`);
             return;
@@ -163,27 +161,23 @@ const Create = () => {
 
         setLoading(true);
 
-        build()
-            .then(res => {
-                res.wait()
-                    .then((res: any) => {
-                        setLoading(false);
+        build().then(res => {
+            res.wait().then((res: any) => {
+                setLoading(false);
 
-                        message.success(t`创建成功`);
+                message.success(t`创建成功`);
 
-                        proxies();
-                    })
-                    .catch((error: any) => {
-                        message.error(error.message);
-                        console.error(error);
-                        setLoading(false);
-                    });
-            })
-            .catch((error: any) => {
+                proxies();
+            }).catch((error: any) => {
                 message.error(error.message);
                 console.error(error);
                 setLoading(false);
             });
+        }).catch((error: any) => {
+            message.error(error.message);
+            console.error(error);
+            setLoading(false);
+        });
     }
 
     return <Wrapper>
@@ -233,14 +227,13 @@ const LabelItem: React.FC<{
 const Info: React.FC<{
     address: string | null
 }> = ({ address }) => {
-    const { dataInfo } = useUserState();
-    const { totalCollateralETH, totalDebtETH, availableBorrowsETH, ratio } = dataInfo ?? {};
-
+    const userInfo = useUserInfo();
     const price = useEthPrice();
     const [collateral, liquidation] = useLiquidationInfo() || [];
 
-    // console.log("dataInfo", dataInfo);
+    const { totalCollateralETH, totalDebtETH, availableBorrowsETH, ratio } = userInfo ?? {};
 
+    console.log("UserInfo", userInfo);
 
     return <Wrapper>
         <WalletHeader>
@@ -281,12 +274,11 @@ const Info: React.FC<{
                             </>}
                             quantity={<Tips text={ratio * 100}>
                                 <Flex>
-                                    {ratio ?
-                                        <>
-                                            <TextOverflowWrapper>{number2fixed(ratio * 100, 3)}</TextOverflowWrapper>
-                                            <span>%</span>
-                                        </>
-                                        : "-"}</Flex>
+                                    {ratio ? <>
+                                        <TextOverflowWrapper>{number2fixed(ratio * 100)}</TextOverflowWrapper>
+                                        <span>%</span>
+                                    </> : "-"}
+                                </Flex>
                             </Tips>}
                         />
                     </HighlightedWrapper>
@@ -301,7 +293,7 @@ const Info: React.FC<{
                             <SwiperSlideWrapper>
                                 <LabelItem
                                     label={<><TipsInfo text={t`您可以借贷的最大金额。`} /> <span><Trans>贷款限额:</Trans></span></>}
-                                    quantity={<TipsPrice price={ethToPriceTips(totalDebtETH + availableBorrowsETH, price)} />}
+                                    quantity={<TipsPrice price={ethToPriceTips(Number(totalDebtETH) + Number(availableBorrowsETH), price)} />}
                                 />
                                 <LabelItem
                                     label={<span><Trans>剩余可借款额:</Trans></span>}

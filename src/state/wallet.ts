@@ -19,7 +19,7 @@ export enum WalletBalancesEnums {
 interface WalletState {
     readonly status: WalletStatusEnums
     readonly balancesStatus: WalletBalancesEnums
-    readonly balances: number
+    readonly balances?: string
     readonly network?: string
     readonly error?: string | React.ReactNode
 }
@@ -27,12 +27,11 @@ interface WalletState {
 const initialState: WalletState = {
     status: WalletStatusEnums.OFFLINE,
     balancesStatus: WalletBalancesEnums.FINISH,
-    balances: 0
 }
 
 export const updateStatus = createAction<WalletStatusEnums>('wallet/updateStatus');
 export const updateBalancesStatus = createAction<WalletBalancesEnums>('wallet/updateBalancesStatus');
-export const updateETHBalances = createAction<number>('wallet/updateETHBalances');
+export const updateETHBalances = createAction<string>('wallet/updateETHBalances');
 export const updateNetwork = createAction<string>('wallet/updateNetwork');
 export const updateError = createAction<string | React.ReactNode>('wallet/updateError');
 
@@ -40,7 +39,7 @@ export function useState(): WalletState {
     return useAppSelector((state: AppState) => state.wallet);
 }
 
-export function useETHBalances(): number {
+export function useETHBalances(): string | undefined {
     return useAppSelector((state: AppState) => state.wallet.balances)
 }
 

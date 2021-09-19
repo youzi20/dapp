@@ -2,7 +2,7 @@ import { useAppDispatch } from '../../state/hooks';
 
 import { WalletBalancesEnums, updateBalancesStatus, updateETHBalances } from '../../state/wallet';
 
-import { getNumber } from '../../utils';
+import { getFormatNumber } from '../../utils';
 
 import useWeb3ReactCore from './useWeb3ReactCore';
 
@@ -16,7 +16,10 @@ export const useEthBalances = () => {
         library
             .getBalance(account)
             .then((balance: any) => {
-                dispatch(updateETHBalances(getNumber(balance)));
+
+                console.log("1", getFormatNumber(balance));
+
+                dispatch(updateETHBalances(getFormatNumber(balance)));
                 dispatch(updateBalancesStatus(WalletBalancesEnums.FINISH));
             })
             .catch((error: any) => {

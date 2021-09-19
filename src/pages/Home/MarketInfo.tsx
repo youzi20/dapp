@@ -20,13 +20,22 @@ import { getRatio, numberRuler, fullNumber, ethToPriceTips } from '../../utils';
 
 import CoinIcon from './CoinIcon';
 
+interface MarketInterface {
+    price: string
+    symbol: string
+    amount: string
+    totalSupply: string
+    totalBorrow: string
+}
+
+
 const Title = styled.div`
 margin: 25px 0;
 `;
 
 const renderCoinIcon = (value: any) => <CoinIcon name={value} />;
 const renderRatioText = (value: number) => getRatio(value * 100);
-const renderAmountTips = (value: number) => <Flex><Tips text={fullNumber(value)} ><div>{numberRuler(value)}</div></Tips></Flex>;
+const renderAmountTips = ({ symbol, amount }: MarketInterface) => <Flex><Tips text={fullNumber(amount)} ><div>{numberRuler(amount)} {symbol}</div></Tips></Flex>;
 const renderRatioTips = (value: number) => {
     const ratio = value * 100;
 
@@ -35,13 +44,16 @@ const renderRatioTips = (value: number) => {
 const renderRatioDisabledTips = (value: number) => {
     return <Flex><Tips text={t`不可用`} ><div style={{ opacity: 0.5 }}>{getRatio(value * 100)}</div></Tips></Flex>
 };
-const renderPriceTips = (value: number, price: number | null) => <Flex><TipsPrice price={ethToPriceTips(value, price)} /></Flex>;
-const renderSupplyTips = ({ price: ethPrice, totalSupply }: any, price: number | null) => <Flex><TipsPrice price={ethToPriceTips(ethPrice * totalSupply, price)} /></Flex>;
-const renderApplyTips = ({ price: ethPrice, symbol, totalSupply, totalBorrow }: any, price: number | null) => {
-    const ratio = getRatio(totalBorrow / totalSupply * 100);
-    const circulate = totalSupply - totalBorrow;
+const renderPriceTips = (value: string, price: number | null) => <Flex><TipsPrice price={ethToPriceTips(value, price)} /></Flex>;
+const renderSupplyTips = ({ price: ethPrice, totalSupply }: MarketInterface, price: number | null) => <Flex><TipsPrice price={ethToPriceTips(Number(ethPrice) * Number(totalSupply), price)} /></Flex>;
+const renderApplyTips = ({ price: ethPrice, symbol, totalSupply, totalBorrow }: MarketInterface, price: number | null) => {
+    const supply = Number(totalSupply);
+    const borrow = Number(totalBorrow);
 
-    const [priceStr, _, priceUnit] = ethToPriceTips(ethPrice * circulate, price);
+    const ratio = getRatio(borrow / supply * 100);
+    const circulate = supply - borrow;
+
+    const [priceStr, _, priceUnit] = ethToPriceTips(Number(ethPrice) * circulate, price);
 
     const amount = numberRuler(circulate);
 
@@ -65,7 +77,7 @@ const MarketInfo = () => {
     const supplyData = useMemo(() => supplyMap ? Object.values(supplyMap) : null, [supplyMap]);
     const borrowData = useMemo(() => borrowMap ? Object.values(borrowMap) : null, [borrowMap]);
 
-    console.log("MarketInfo", marketData, supplyData);
+    console.log("MarketInfo", marketData, supplyData, borrowData);
 
     return <>
         {supplyData ? <>
@@ -74,7 +86,7 @@ const MarketInfo = () => {
             </Title>
             <Table dataSource={supplyData ?? []} loading={loanStatus === MarketStatusEnums.LOADING}>
                 <TableColumn width="196px" title={t`资产`} dataKey="symbol" render={renderCoinIcon} />
-                <TableColumn width="168px" title={t`已供应`} dataKey="amount" render={renderAmountTips} />
+                <TableColumn width="168px" title={t`已供应`} render={(_, __, value) => renderAmountTips(value)} />
                 <TableColumn width="196px" title={t`已供应($)`} dataKey="priceETH" render={(value) => renderPriceTips(value, price)} />
                 <TableColumn width="190px" title={t`供应 APY`} dataKey="rate" render={renderRatioTips} />
                 <TableColumn width="120px" title={t`抵押因素`} dataKey="collateralFactor" render={renderRatioText} />
@@ -88,7 +100,7 @@ const MarketInfo = () => {
             </Title>
             <Table dataSource={borrowData ?? []} loading={loanStatus === MarketStatusEnums.LOADING}>
                 <TableColumn width="140px" title={t`资产`} dataKey="symbol" render={renderCoinIcon} />
-                <TableColumn width="160px" title={t`已借贷`} dataKey="amount" render={renderAmountTips} />
+                <TableColumn width="160px" title={t`已借贷`} render={(_, __, value) => renderAmountTips(value)} />
                 <TableColumn width="170px" title={t`已借贷($)`} dataKey="priceETH" render={(value) => renderPriceTips(value, price)} />
                 <TableColumn width="140px" title={t`贷款 APY`} dataKey="rate" render={renderRatioTips} />
                 <TableColumn width="160px" title={t`Interest Rate`} dataKey="loanType" render={(value) => value === 2 ? t`Stable` : t`Variable`} />

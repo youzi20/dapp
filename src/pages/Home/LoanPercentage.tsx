@@ -51,9 +51,9 @@ const LoanPercentage = ({ theme }: { theme: string[] }) => {
     const percentPrice = useMemo(() => {
         if (!totalDebtETH || !availableBorrowsETH) return "";
 
-        const [s, n, u] = ethToPriceTips(totalDebtETH + availableBorrowsETH, price ?? 1);
+        // const [s, n, u] = ethToPriceTips(totalDebtETH + availableBorrowsETH, price);
 
-        return u === "ETH" ? `${n} ${s}` : `${u}${s}`;
+        // return u === "ETH" ? `${n} ${s}` : `${u}${s}`;
     }, [price, totalDebtETH, availableBorrowsETH]);
 
     return <PercentageGraphConetnt>

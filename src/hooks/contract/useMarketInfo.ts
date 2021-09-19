@@ -15,7 +15,7 @@ import {
     updateLoanStatus
 } from '../../state/market';
 
-import { getNumber, getRatio } from "../../utils";
+import { getFormatNumber, getRatio } from "../../utils";
 
 export const useMarketData = () => {
     const dispatch = useAppDispatch();
@@ -37,15 +37,15 @@ export const useMarketData = () => {
                     symbol, aTokenAddress, underlyingTokenAddress, usageAsCollateralEnabled, stableBorrowRateEnabled, borrowinEnabled }: any
             ) => ({
                 symbol: symbol.toLocaleUpperCase(),
-                totalSupply: getNumber(totalSupply),
-                totalBorrow: getNumber(totalBorrow),
-                supplyRate: getNumber(supplyRate, 27),
-                liquidationRatio: getNumber(liquidationRatio, 4),
-                collateralFactor: getNumber(collateralFactor, 4),
-                borrowRateVariable: getNumber(borrowRateVariable, 27),
-                borrowRateStable: getNumber(borrowRateStable, 27),
-                availableLiquidity: getNumber(availableLiquidity, "wei"),
-                price: getNumber(price),
+                totalSupply: getFormatNumber(totalSupply),
+                totalBorrow: getFormatNumber(totalBorrow),
+                supplyRate: getFormatNumber(supplyRate, 27),
+                liquidationRatio: getFormatNumber(liquidationRatio, 4),
+                collateralFactor: getFormatNumber(collateralFactor, 4),
+                borrowRateVariable: getFormatNumber(borrowRateVariable, 27),
+                borrowRateStable: getFormatNumber(borrowRateStable, 27),
+                availableLiquidity: getFormatNumber(availableLiquidity, "wei"),
+                price: getFormatNumber(price),
                 aTokenAddress,
                 underlyingTokenAddress,
                 usageAsCollateralEnabled,
@@ -59,7 +59,6 @@ export const useMarketData = () => {
             dispatch(updateMarketStatus(MarketStatusEnums.SUCCESS));
         } catch (error) {
             dispatch(updateMarketStatus(MarketStatusEnums.ERROR));
-
             console.error(error);
         }
     }
@@ -88,29 +87,27 @@ export const useUserData = () => {
             ) => ({
                 loanType,
                 symbol: symbol.toLocaleUpperCase(),
-                amount: getNumber(amount),
-                priceETH: getNumber(priceETH),
-                rate: getNumber(rate, 27),
+                amount: getFormatNumber(amount),
+                priceETH: getFormatNumber(priceETH),
+                rate: getFormatNumber(rate, 27),
             }));
 
             console.log("use", data);
 
-            const { totalCollateralETH, totalDebtETH, availableBorrowsETH, currentLiquidationThreshold, ltv, healthFactor } = account;
+            const { totalCollateralETH, totalDebtETH, availableBorrowsETH, currentLiquidationThreshold, healthFactor } = account;
 
             dispatch(updateDataInfo({
-                totalCollateralETH: getNumber(totalCollateralETH),
-                availableBorrowsETH: getNumber(availableBorrowsETH),
-                totalDebtETH: getNumber(totalDebtETH),
-                currentLiquidationThreshold: getNumber(currentLiquidationThreshold, "wei"),
-                ltv: getRatio(ltv),
-                healthFactor: getNumber(healthFactor),
-                ratio: getNumber(ratio),
+                totalCollateralETH: getFormatNumber(totalCollateralETH),
+                availableBorrowsETH: getFormatNumber(availableBorrowsETH),
+                totalDebtETH: getFormatNumber(totalDebtETH),
+                currentLiquidationThreshold: getFormatNumber(currentLiquidationThreshold, "wei"),
+                healthFactor: getFormatNumber(healthFactor),
+                ratio: getFormatNumber(ratio),
             }));
             dispatch(updateLoanData(data));
             dispatch(updateLoanStatus(MarketStatusEnums.SUCCESS));
         } catch (error) {
             dispatch(updateLoanStatus(MarketStatusEnums.ERROR));
-
             console.error(error);
         }
     }
@@ -131,7 +128,7 @@ export const useTokenPrice = (tokens: string[] | null) => {
         try {
             const prices = await marketInfoContract.getPrices(marketAddress, tokens);
 
-            setPrices(prices.map((item: number) => getNumber(item)));
+            setPrices(prices.map((item: number) => getFormatNumber(item)));
             setLoading(false);
         } catch (error) {
             setLoading(false);
@@ -164,8 +161,8 @@ export const useMarketInit = (status: boolean) => {
             .then((body) => {
                 return body.json()
             })
-            .then(res => {
-                dispatch(updateEthPrice(res[0]));
+            .then(([res]) => {
+                dispatch(updateEthPrice(res));
             });
     }
 

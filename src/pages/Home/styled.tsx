@@ -205,9 +205,11 @@ cursor: pointer;
 `;
 
 export const InputMax: React.FC<{
-    max: number
+    max?: string
 }> = ({ max }) => {
-    return <Tips text={fullNumber(max)}><InputMaxWrapper>{`(${t`最大值`} ${numberRuler(max)})`}</InputMaxWrapper></Tips>
+    return max ?
+        <Tips text={fullNumber(max)}><InputMaxWrapper>{`(${t`最大值`} ${numberRuler(max)})`}</InputMaxWrapper></Tips> :
+        <>{t`加载中~`}</>;
 }
 
 export const SelectEmpty: React.FC<{

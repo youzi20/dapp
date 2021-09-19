@@ -8,8 +8,6 @@ import { useAppDispatch, useAppSelector } from './hooks';
 
 import { useState as useUserState } from './user';
 
-import { getNumber } from '../utils';
-
 export enum MarketStatusEnums {
     INIT,
     LOADING,
@@ -323,16 +321,17 @@ export const marketReducer = createReducer(initialState, (builder) =>
         .addCase(updateEthPrice, (state, action) => {
             state.ethPrice = action.payload;
         })
-        .addCase(updateMaeketData, (state, action) => {
-            state.marketData = [...action.payload];
-        })
         .addCase(updateMarketStatus, (state, action) => {
             state.marketStatus = action.payload;
         })
-        .addCase(updateLoanData, (state, action) => {
-            state.loanData = [...action.payload];
-        })
         .addCase(updateLoanStatus, (state, action) => {
             state.loanStatus = action.payload;
+        })
+        .addCase(updateMaeketData, (state, action) => {
+            state.marketData = [...action.payload];
+        })
+        .addCase(updateLoanData, (state, action) => {
+            console.log(action.payload);
+            state.loanData = [...action.payload];
         })
 )

@@ -96,16 +96,11 @@ export const Borrow = () => {
 
     return <>
         <Handle
-            // theme="#C379FF"
-            theme="#318D70"
-            max={max}
-            label={<Font {...labelStyle}>
-                <Flex alignItems="center">
-                    <TipsInfo text={t`从Aave中借贷。在借款前您需要储蓄资产作为抵押物。`} />
-                    <span><Trans>借币：</Trans></span>
-                </Flex>
-            </Font>}
-            rightText={!max && max !== 0 ? t`加载中~` : <InputMax max={max} />}
+            type="Borrow"
+            // max={max}
+            labelText={<Trans>借币：</Trans>}
+            labelTips={<Trans>从Aave中借贷。在借款前您需要储蓄资产作为抵押物。</Trans>}
+            // rightText={!max && max !== 0 ? t`加载中~` : <InputMax max={max} />}
             coins={coins ?? {}}
             inputValue={amount ?? ""}
             selectValue={token ?? ""}
@@ -217,15 +212,10 @@ export const Payback = () => {
 
     return <Handle
         isAuthorize
-        // theme="#F2C94C"
-        theme="#C26E5C"
+        type="Payback"
         max={max}
-        label={<Font {...labelStyle}>
-            <Flex alignItems="center">
-                <TipsInfo text={t`还贷资产。`} />
-                <span><Trans>还币：</Trans></span>
-            </Flex>
-        </Font>}
+        labelText={<Trans>还币：</Trans>}
+        labelTips={<Trans>还贷资产。</Trans>}
         rightText={loading ? t`加载中~` : <InputMax max={max} />}
         coins={coins ?? {}}
         inputValue={amount ?? ""}

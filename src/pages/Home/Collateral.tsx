@@ -11,8 +11,6 @@ import { StatusEnums as TokenStatusEnums, useTokenBalances } from '../../hooks/c
 import { useSupplyCoins, useSupplyMap, useCoinAddress } from '../../state/market';
 import { useState as useWalletState, WalletStatusEnums } from '../../state/wallet';
 
-import { Font, Flex } from '../../styled';
-
 import { getWithdrawMax } from "../../utils";
 
 import Handle from "./Handle";
@@ -33,7 +31,7 @@ export const Supply = () => {
     const deposit = useDeposit(address, amount);
     const reload = useReload();
 
-    const coins = useMemo(() => supplyCoins ? ["ETH", ...supplyCoins] : [], [supplyCoins])
+    const coins = useMemo(() => supplyCoins ? ["ETH", ...supplyCoins] : [], [supplyCoins]);
 
     const handleClick = async () => {
         setLoadingButton(true);
@@ -63,19 +61,14 @@ export const Supply = () => {
     const max = token === "ETH" ? ethBalances : supplayBalances;
     const loading = token === "ETH" ? ethStatus === WalletStatusEnums.LOADING : supplyStatus === TokenStatusEnums.LOADING;
 
-    const labelStyle = { fontSize: "16px", color: "rgba(255, 255, 255, .5)" };
+    console.log("max", max);
 
     return <Handle
         isAuthorize
-        // theme="#C379FF"
-        theme="#318D70"
+        type="Supply"
         max={max}
-        label={<Font {...labelStyle}>
-            <Flex alignItems="center">
-                <TipsInfo text={t`储蓄您的资产开始赚取收益。`} />
-                <span><Trans>质押：</Trans></span>
-            </Flex>
-        </Font>}
+        labelText={<Trans>质押：</Trans>}
+        labelTips={<Trans>储蓄您的资产开始赚取收益。</Trans>}
         rightText={loading ? t`加载中~` : <InputMax max={max} />}
         coins={coins}
         inputValue={amount ?? ""}
@@ -142,22 +135,15 @@ const Withdraw = () => {
         }
     }, [supplyMap]);
 
-    const labelStyle = { fontSize: "16px", color: "rgba(255, 255, 255, .5)" };
-
     // getWithdrawMax(supplyMap,);
     console.log("supplyMap", supplyMap);
 
     return <Handle
-        // theme="#F2C94C"
-        theme="#C26E5C"
-        max={max}
-        label={<Font {...labelStyle}>
-            <Flex alignItems="center">
-                <TipsInfo text={t`从您的Aave储蓄中提取资产。`} />
-                <span><Trans>减少质押：</Trans></span>
-            </Flex>
-        </Font>}
-        rightText={max ? <InputMax max={max} /> : ""}
+        type="Withdraw"
+        // max={max}
+        labelText={<Trans>减少质押：</Trans>}
+        labelTips={<Trans>从您的Aave储蓄中提取资产。</Trans>}
+        // rightText={max ? <InputMax max={max} /> : ""}
         coins={coins ?? {}}
         inputValue={amount ?? ""}
         selectValue={token ?? ""}

@@ -84,7 +84,7 @@ const WalletInfo: React.FC<{
                     <Font fontSize="12px">{network}</Font>
                 </WalletNetwork> : ""}
 
-                {balances || balances === 0 ?
+                {balances ?
                     <WalletAccount>
                         <Font fontSize="12px" color="#939DA7">{number2fixed(balances) + " ETH"}</Font>
                     </WalletAccount> : ""}

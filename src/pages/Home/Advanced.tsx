@@ -24,7 +24,7 @@ import {
 } from '../../state/market';
 
 import { Font, Flex } from '../../styled';
-import { numberRuler, fullNumber, getBoostMax, getRepayMax, getHandleTheme, getNumber, numberDelimiter } from "../../utils";
+import { numberRuler, fullNumber, getBoostMax, getRepayMax, getHandleTheme, getFormatNumber, numberDelimiter } from "../../utils";
 import { HandleTheme } from "../../types";
 
 
@@ -53,7 +53,7 @@ const SelectRender: React.FC<{
 
 const Handle: React.FC<{
     type: HandleTheme
-    max: number
+    max: string
     labelText: string | React.ReactNode
     labelTips: string | React.ReactNode
     coins: any[][]
@@ -95,19 +95,20 @@ const Handle: React.FC<{
 
         const [fromCoins, toCoins] = coins;
 
+        const theme = useMemo(() => getHandleTheme(type), [type]);
+
         const isDisabled = (() => {
             if (!coins.length) {
                 return { tips: t`暂无可操作币种`, disabled: true }
             } else if (!value) {
                 return { tips: t`未输入值`, disabled: true }
-            } else if (Number(value) > max) {
+            } else if (Number(value) > Number(max)) {
                 return { tips: t`数值大于最大值`, disabled: true }
             } else if (Number(value) <= 0) {
                 return { tips: t`数值不能小于0`, disabled: true }
             } else return { tips: "", disabled: false }
         })();
 
-        const theme = useMemo(() => getHandleTheme(type), [type]);
 
         const handleInputChange = (value: any) => {
             setValue(value);
@@ -203,7 +204,7 @@ const Boost = () => {
 
     const { availableBorrowsETH } = useUserInfo() ?? {};
 
-    const { price: fromPrice, stableBorrowRateEnabled } = useTokenInfo(tokens ? tokens[0] : null) ?? {};
+    const { price, stableBorrowRateEnabled } = useTokenInfo(tokens ? tokens[0] : null) ?? {};
     const { collateralFactor } = useTokenInfo(tokens ? tokens[1] : null) ?? {};
 
     const reload = useReload();
@@ -226,18 +227,18 @@ const Boost = () => {
     }, [stableCoins, otherCoins]);
 
     const max = useMemo(() =>
-        availableBorrowsETH && collateralFactor && fromPrice ?
-            getBoostMax(availableBorrowsETH, collateralFactor * 10e-3, true) / fromPrice : 0,
-        [availableBorrowsETH, collateralFactor, fromPrice]);
+        availableBorrowsETH && collateralFactor && price ?
+            fullNumber(getBoostMax(Number(availableBorrowsETH), Number(collateralFactor), true) / price) : undefined,
+        [availableBorrowsETH, collateralFactor, price]);
 
     return <>
         <Handle
             type="Boost"
-            max={max}
+            max={max ?? "0"}
             labelText={<Trans>加杠杆：</Trans>}
             labelTips={<Trans>在单笔交易中完成增加债务购买更多抵押品 <br />并将其添加到储蓄中这三个步骤。</Trans>}
             leftText={tokens ? t`Borrow ${tokens[0]} → Swap → Supply ${tokens[1]}` : ""}
-            rightText={!max ? t`加载中~` : <InputMax max={max} />}
+            rightText={<InputMax max={max} />}
             coins={[stableCoins, otherCoins]}
             selectText={[t`借币`, t`质押`]}
             inputValue={amount ?? ""}
@@ -283,8 +284,8 @@ const BoostModal: React.FC<{
         if (!fromPrice || !toPrice || !amount) return null;
 
         const amountNumber = Number(amount);
+        const amountTips = numberDelimiter(amount);
         const amountCount = numberRuler(amountNumber);
-        const amountTips = numberDelimiter(amountNumber);
 
         const tokenCount = fromPrice * amountNumber / toPrice;
         const fromCount = numberRuler(toPrice / fromPrice);
@@ -295,7 +296,7 @@ const BoostModal: React.FC<{
 
     const boost = useBoost(tokenAddressArray, amount, null, apy);
 
-    console.log("BoostModal", priceLoading, fromPrice, toPrice, tradeInfo);
+    // console.log("BoostModal", priceLoading, fromPrice, toPrice, tradeInfo);
 
     const handle = () => {
         setLoading(true);
@@ -402,18 +403,20 @@ const Repay = () => {
         }
     }, [supplyCoins, boorowCoins]);
 
-    const max = useMemo(() => fromToeknInfo && toToeknInfo ? getRepayMax(fromToeknInfo, toToeknInfo) : 0, [fromToeknInfo, toToeknInfo]);
+    const max = useMemo(() =>
+        fromToeknInfo && toToeknInfo ? fullNumber(getRepayMax(fromToeknInfo, toToeknInfo)) : undefined,
+        [fromToeknInfo, toToeknInfo]);
 
     // console.log("tokens", borrowMap, fromToeknInfo, toToeknInfo, fromPrice, max);
 
     return <>
         <Handle
             type="Repay"
-            max={max}
+            max={max ?? "0"}
             labelText={<Trans>减杠杆：</Trans>}
             labelTips={<Trans>在单笔交易中完成取出储蓄抵押品<br />以购买借入资产并偿还债务三个步骤。</Trans>}
             leftText={tokens ? t`Withdraw ${from} ${from === symbol ? "" : "→ Swap"} → Payback ${symbol}` : ""}
-            rightText={!max ? t`加载中~` : <InputMax max={max} />}
+            rightText={<InputMax max={max} />}
             coins={[supplyCoins, boorowCoins]}
             selectText={[t`减少质押`, t`还币`]}
             inputValue={amount ?? ""}
@@ -459,8 +462,8 @@ const RepayModal: React.FC<{
         if (!fromPrice || !toPrice || !amount) return null;
 
         const amountNumber = Number(amount);
+        const amountTips = numberDelimiter(amount);
         const amountCount = numberRuler(amountNumber);
-        const amountTips = numberDelimiter(amountNumber);
 
         const tokenCount = fromPrice * amountNumber / toPrice;
         const fromCount = numberRuler(toPrice / fromPrice);
@@ -531,12 +534,14 @@ const RepayModal: React.FC<{
 
                     <Tips text={`${tradeInfo.fromCount} ${from}/${to} = ${tradeInfo.toCount} ${to}/${from}`}><span> {tradeInfo.fromCount} {from + "/" + to} </span></Tips>
                 </Font>
+                <Font fontSize="14px" color="#939DA7">
+                    <Tips text={<Trans>If debt is fully paid off by Repay, the remainder of the <br /> Repay amount will be returned to your wallet as DAI</Trans>}>
+                        <span><Trans>(Remainder of collateral will be returned as {to})</Trans></span>
+                    </Tips>
+                </Font>
             </> : <EmptyLoading />}
     </Modal>
 }
-
-
-
 
 const Advanced = () => {
     return <TabPanelGrid>

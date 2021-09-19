@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Trans, t } from "@lingui/macro";
 
-import Tips from "../../components/Tips";
+import Tips, { TipsInfo } from "../../components/Tips";
 import Button from "../../components/Button";
 import Select from '../../components/Select';
 import { message } from "../../components/Message";
@@ -12,13 +12,17 @@ import { useState as useUserState } from "../../state/user";
 
 import { Font, Flex } from '../../styled';
 
+import { fullNumber, getHandleTheme } from "../../utils";
+
+import { HandleTheme } from "../../types";
+
 import { HandleText, HandleWrapper, InputControl, SelectControl, SelectEmpty } from './styled';
 
-import { fullNumber } from "../../utils";
-
 const Handle: React.FC<{
-    max: number
-    label: string | React.ReactNode
+    type: HandleTheme
+    max?: string
+    labelText: string | React.ReactNode
+    labelTips: string | React.ReactNode
     coins: any[]
     theme?: string
     leftText?: string | React.ReactNode
@@ -37,8 +41,9 @@ const Handle: React.FC<{
     onSelectChange?: (value: string | null) => void
 
 }> = ({
-    theme,
-    label,
+    type,
+    labelText,
+    labelTips,
     max,
     leftText,
     rightText,
@@ -61,9 +66,12 @@ const Handle: React.FC<{
         const [symbol] = token ? token.split("_") : [];
 
         const { allowance } = useAllowance(symbol, reload);
+
+        const theme = useMemo(() => getHandleTheme(type), [type]);
+
         const approve = useApprove(symbol !== "ETH" ? symbol : null);
 
-        const isShowAuthorizeBtn = isAuthorize && token && token !== "ETH" && allowance < Number(value);
+        const isShowAuthorizeBtn = isAuthorize && token && token !== "ETH" && (!allowance || Number(allowance) < Number(value));
 
         console.log("allowance", allowance);
 
@@ -74,7 +82,7 @@ const Handle: React.FC<{
                 return { tips: t`暂无可操作币种`, disabled: true }
             } else if (!value) {
                 return { tips: t`未输入值`, disabled: true }
-            } else if (Number(value) > max) {
+            } else if (Number(value) > Number(max)) {
                 return { tips: t`数值大于最大值`, disabled: true }
             } else if (Number(value) <= 0) {
                 return { tips: t`数值不能小于0`, disabled: true }
@@ -131,13 +139,20 @@ const Handle: React.FC<{
         return <div>
             <HandleText>
                 <Font fontSize="13px" color="#939DA7">{leftText}</Font>
-                <Font fontSize="13px" color="#939DA7" onClick={() => handleInputChange(fullNumber(max))}>{rightText}</Font>
+                {/* <Font fontSize="13px" color="#939DA7" onClick={() => handleInputChange(fullNumber(max))}>{rightText}</Font> */}
             </HandleText>
             <HandleWrapper theme={theme}>
                 <InputControl theme={theme}>
                     <label>
                         <Flex alignItems="center">
-                            <div className="input-label">{label}</div>
+                            <div className="input-label">
+                                <Font {...{ fontSize: "16px", color: "rgba(255, 255, 255, .5)" }}>
+                                    <Flex alignItems="center">
+                                        <TipsInfo text={labelTips} />
+                                        <span>{labelText}</span>
+                                    </Flex>
+                                </Font>
+                            </div>
                             <input disabled={loading || buttonProps?.loading} type="number" placeholder="0" value={value ?? ""} onChange={(e: any) => handleInputChange(e.target.value)} />
                         </Flex>
                     </label>
