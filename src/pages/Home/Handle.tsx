@@ -37,9 +37,8 @@ const Handle: React.FC<{
         loading?: boolean
         click?: () => void
     }
-    onInputChange?: (value: string | null) => void
-    onSelectChange?: (value: string | null) => void
-
+    onInputChange?: (value: string | undefined) => void
+    onSelectChange?: (value: string) => void
 }> = ({
     type,
     labelText,
@@ -59,23 +58,24 @@ const Handle: React.FC<{
         const [value, setValue] = useState<string | null>(null);
         const [token, setToken] = useState<string | null>(null);
         const [loading, setLoading] = useState<boolean>(false);
-        const [reload, setReload] = useState(0);
 
         const { address } = useUserState();
 
         const [symbol] = token ? token.split("_") : [];
 
-        const { allowance } = useAllowance(symbol, reload);
+        const approve = useApprove(symbol !== "ETH" ? symbol : null);
+
+        const { allowance, reload: reloadAllowance } = useAllowance(symbol);
+
+        // console.log("allowance", allowance);
 
         const theme = useMemo(() => getHandleTheme(type), [type]);
 
-        const approve = useApprove(symbol !== "ETH" ? symbol : null);
+        const isShowAuthorizeBtn = useMemo(() =>
+            isAuthorize && token && token !== "ETH" && Number(allowance) < Number(value)
+            , [isAuthorize, token, value, allowance]);
 
-        const isShowAuthorizeBtn = isAuthorize && token && token !== "ETH" && (!allowance || Number(allowance) < Number(value));
-
-        console.log("allowance", allowance);
-
-        const isDisabled = (() => {
+        const isDisabled = useMemo(() => {
             if (isShowAuthorizeBtn) {
                 return { tips: t`需要先进行授权操作`, disabled: true }
             } else if (!coins.length) {
@@ -87,7 +87,7 @@ const Handle: React.FC<{
             } else if (Number(value) <= 0) {
                 return { tips: t`数值不能小于0`, disabled: true }
             } else return { tips: "", disabled: false }
-        })();
+        }, [isShowAuthorizeBtn, coins, value, max]);
 
         const handleInputChange = (value: any) => {
             setValue(value);
@@ -110,7 +110,7 @@ const Handle: React.FC<{
                             console.log(res);
                             message.success(t`授权成功`);
                             setLoading(false);
-                            setReload(reload + 1);
+                            reloadAllowance();
                         }).catch((error: any) => {
                             message.error(error.message);
                             console.error(error);
@@ -139,7 +139,7 @@ const Handle: React.FC<{
         return <div>
             <HandleText>
                 <Font fontSize="13px" color="#939DA7">{leftText}</Font>
-                {/* <Font fontSize="13px" color="#939DA7" onClick={() => handleInputChange(fullNumber(max))}>{rightText}</Font> */}
+                <Font fontSize="13px" color="#939DA7" onClick={() => handleInputChange(max)}>{rightText}</Font>
             </HandleText>
             <HandleWrapper theme={theme}>
                 <InputControl theme={theme}>

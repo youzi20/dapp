@@ -16,15 +16,14 @@ export enum MarketStatusEnums {
 }
 
 interface MarketState {
-    readonly ethPrice: number | null,
     readonly marketData: any[]
     readonly marketStatus: MarketStatusEnums
     readonly loanData: any[]
     readonly loanStatus: MarketStatusEnums
+    readonly ethPrice?: number,
 }
 
 const initialState: MarketState = {
-    ethPrice: null,
     marketData: [],
     marketStatus: MarketStatusEnums.INIT,
     loanData: [],
@@ -32,14 +31,14 @@ const initialState: MarketState = {
 }
 
 export const updateState = createAction<MarketState | undefined>('market/updateState');
-export const updateEthPrice = createAction<number | null>('market/updateEthPrice');
+export const updateEthPrice = createAction<number | undefined>('market/updateEthPrice');
 export const updateMaeketData = createAction<any[]>('market/updateMaeketData');
 export const updateMarketStatus = createAction<MarketStatusEnums>('market/updateMarketStatus');
 export const updateLoanData = createAction<any[]>('market/updateLoanData');
 export const updateLoanStatus = createAction<MarketStatusEnums>('market/updateLoanStatus');
 
 
-export function useEthPrice(): number | null {
+export function useEthPrice(): number | undefined {
     return useAppSelector((state: AppState) => state.market.ethPrice);
 }
 
@@ -164,11 +163,11 @@ export function useOtherCoins() {
     }, [marketMap]);
 }
 
-export function useCoinAddress(token?: string | null): string | null {
+export function useCoinAddress(token?: string | null): string {
     const marketMap = useMarketMap();
 
     return useMemo(() => {
-        if (!marketMap || !token) return null;
+        if (!marketMap || !token) return;
 
         if (token === "ETH") {
             return "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
@@ -178,11 +177,11 @@ export function useCoinAddress(token?: string | null): string | null {
     }, [token, marketMap]);
 }
 
-export function useCoinAddressArray(tokens?: string[]): string[] | null {
+export function useCoinAddressArray(tokens?: string[]): string[] | undefined {
     const marketMap = useMarketMap();
 
     return useMemo(() => {
-        if (!marketMap || !tokens || !tokens?.length) return null;
+        if (!marketMap || !tokens || !tokens?.length) return;
 
         return tokens.map(item => {
             if (item === "ETH") {
@@ -194,7 +193,7 @@ export function useCoinAddressArray(tokens?: string[]): string[] | null {
     }, [tokens, marketMap]);
 }
 
-export function useTokenInfo(token: TokenMapKey | string | null): any {
+export function useTokenInfo(token?: TokenMapKey | string): any {
     const marketMap = useMarketMap();
 
     return useMemo(() => token && marketMap ? marketMap[token] : null, [token, marketMap]);

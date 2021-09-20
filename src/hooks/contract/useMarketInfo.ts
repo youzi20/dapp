@@ -113,7 +113,7 @@ export const useUserData = () => {
     }
 }
 
-export const useTokenPrice = (tokens: string[] | null) => {
+export const useTokenPrice = (tokens?: string[]) => {
     const [loading, setLoading] = useState(false);
     const [prices, setPrices] = useState();
 

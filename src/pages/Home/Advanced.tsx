@@ -10,8 +10,9 @@ import { message } from "../../components/Message";
 
 import { useReload } from "../../hooks/contract/reload";
 import { useBoost, useRepay } from '../../hooks/contract/handle';
+import { useTokenPrice } from "../../hooks/contract/useMarketInfo";
 
-import { useState as useUserState, useUserInfo } from "../../state/user";
+import { useUserInfo } from "../../state/user";
 import {
     useStableCoins,
     useOtherCoins,
@@ -19,12 +20,10 @@ import {
     useBorrowMap,
     useCoinAddressArray,
     useTokenInfo,
-    useSupplyTokenInfo,
-    useBoorowTokenInfo
 } from '../../state/market';
 
 import { Font, Flex } from '../../styled';
-import { numberRuler, fullNumber, getBoostMax, getRepayMax, getHandleTheme, getFormatNumber, numberDelimiter } from "../../utils";
+import { numberRuler, fullNumber, getBoostMax, getRepayMax, getHandleTheme, numberDelimiter } from "../../utils";
 import { HandleTheme } from "../../types";
 
 
@@ -39,7 +38,6 @@ import {
     SelectOptionItem,
     APYSelect
 } from './styled';
-import { useTokenPrice } from "../../hooks/contract/useMarketInfo";
 
 const SelectRender: React.FC<{
     value: string
@@ -69,7 +67,7 @@ const Handle: React.FC<{
         loading?: boolean
         click?: () => void
     }
-    onInputChange?: (value: string | null) => void
+    onInputChange?: (value?: string) => void
     onSelectChange?: (value: (string | null)[]) => void
 
 }> = ({
@@ -97,7 +95,7 @@ const Handle: React.FC<{
 
         const theme = useMemo(() => getHandleTheme(type), [type]);
 
-        const isDisabled = (() => {
+        const isDisabled = useMemo(() => {
             if (!coins.length) {
                 return { tips: t`暂无可操作币种`, disabled: true }
             } else if (!value) {
@@ -107,8 +105,7 @@ const Handle: React.FC<{
             } else if (Number(value) <= 0) {
                 return { tips: t`数值不能小于0`, disabled: true }
             } else return { tips: "", disabled: false }
-        })();
-
+        }, [coins, value, max]);
 
         const handleInputChange = (value: any) => {
             setValue(value);
@@ -135,7 +132,7 @@ const Handle: React.FC<{
         return <div>
             <HandleText>
                 <Font fontSize="13px" color="#939DA7">{leftText}</Font>
-                <Font fontSize="13px" color="#939DA7" onClick={() => handleInputChange(fullNumber(max))}>{rightText}</Font>
+                <Font fontSize="13px" color="#939DA7" onClick={() => handleInputChange(max)}>{rightText}</Font>
             </HandleText>
             <HandleWrapper theme={theme}>
                 <InputControl theme={theme}>
@@ -197,15 +194,22 @@ const Handle: React.FC<{
 const Boost = () => {
     const [open, setOpen] = useState<boolean>(false);
     const [tokens, setTokens] = useState<string[]>();
-    const [amount, setAmount] = useState<string | null>(null);
+    const [amount, setAmount] = useState<string>();
 
     const stableCoins = useStableCoins() ?? [];
     const otherCoins = useOtherCoins() ?? [];
 
     const { availableBorrowsETH } = useUserInfo() ?? {};
 
-    const { price, stableBorrowRateEnabled } = useTokenInfo(tokens ? tokens[0] : null) ?? {};
-    const { collateralFactor } = useTokenInfo(tokens ? tokens[1] : null) ?? {};
+    const [from, to] = tokens ?? [];
+
+    const { price, stableBorrowRateEnabled } = useTokenInfo(from) ?? {};
+    const { collateralFactor } = useTokenInfo(to) ?? {};
+
+    const max = useMemo(() =>
+        availableBorrowsETH && collateralFactor && price ?
+            fullNumber(getBoostMax(Number(availableBorrowsETH), Number(collateralFactor), true) / price) : undefined,
+        [availableBorrowsETH, collateralFactor, price]);
 
     const reload = useReload();
 
@@ -217,7 +221,7 @@ const Boost = () => {
 
     const handleReload = () => {
         reload();
-        setAmount(null);
+        setAmount(undefined);
     }
 
     useEffect(() => {
@@ -225,11 +229,6 @@ const Boost = () => {
             setTokens([stableCoins[0], otherCoins[0]])
         }
     }, [stableCoins, otherCoins]);
-
-    const max = useMemo(() =>
-        availableBorrowsETH && collateralFactor && price ?
-            fullNumber(getBoostMax(Number(availableBorrowsETH), Number(collateralFactor), true) / price) : undefined,
-        [availableBorrowsETH, collateralFactor, price]);
 
     return <>
         <Handle
@@ -263,13 +262,13 @@ const Boost = () => {
 
 const BoostModal: React.FC<{
     open: boolean
-    amount: string | null
+    amount?: string
     tokens?: string[]
     stable?: boolean
     onClose: () => void
     onReload: () => void
 }> = ({ open, amount, tokens, stable, onClose, onReload }) => {
-    const [apy, setApy] = useState<number | null>(null);
+    const [apy, setApy] = useState<number>();
     const [loading, setLoading] = useState<boolean>(false);
 
     const [from, to] = tokens ?? [];
@@ -294,7 +293,7 @@ const BoostModal: React.FC<{
         return { amountCount, amountTips, tokenCount, fromCount, toCount }
     }, [amount, fromPrice, toPrice]);
 
-    const boost = useBoost(tokenAddressArray, amount, null, apy);
+    const boost = useBoost(tokenAddressArray, amount, undefined, apy);
 
     // console.log("BoostModal", priceLoading, fromPrice, toPrice, tradeInfo);
 
@@ -367,7 +366,7 @@ const BoostModal: React.FC<{
 const Repay = () => {
     const [open, setOpen] = useState<boolean>(false);
     const [tokens, setTokens] = useState<(string)[]>();
-    const [amount, setAmount] = useState<string | null>(null);
+    const [amount, setAmount] = useState<string>();
 
     const supplyMap = useSupplyMap();
     const borrowMap = useBorrowMap();
@@ -383,8 +382,13 @@ const Repay = () => {
 
     console.log("Repay", tokens, fromToeknInfo, toToeknInfo);
 
-    const reload = useReload();
+    const max = useMemo(() =>
+        fromToeknInfo && toToeknInfo ?
+            getRepayMax(fromToeknInfo, toToeknInfo) :
+            undefined,
+        [fromToeknInfo, toToeknInfo]);
 
+    const reload = useReload();
 
     const handleClick = () => {
         if (!tokens || !amount) return;
@@ -394,7 +398,7 @@ const Repay = () => {
 
     const handleReload = () => {
         reload();
-        setAmount(null);
+        setAmount(undefined);
     }
 
     useEffect(() => {
@@ -402,12 +406,6 @@ const Repay = () => {
             setTokens([supplyCoins[0], boorowCoins[0].value])
         }
     }, [supplyCoins, boorowCoins]);
-
-    const max = useMemo(() =>
-        fromToeknInfo && toToeknInfo ? fullNumber(getRepayMax(fromToeknInfo, toToeknInfo)) : undefined,
-        [fromToeknInfo, toToeknInfo]);
-
-    // console.log("tokens", borrowMap, fromToeknInfo, toToeknInfo, fromPrice, max);
 
     return <>
         <Handle
@@ -419,7 +417,7 @@ const Repay = () => {
             rightText={<InputMax max={max} />}
             coins={[supplyCoins, boorowCoins]}
             selectText={[t`减少质押`, t`还币`]}
-            inputValue={amount ?? ""}
+            inputValue={amount}
             selectValue={tokens}
             selectOptionItemRender={<SelectOptionItem />}
             buttonProps={{
@@ -442,8 +440,8 @@ const Repay = () => {
 
 const RepayModal: React.FC<{
     open: boolean
-    amount: string | null
     apy: string | null
+    amount?: string
     tokens?: string[]
     onClose: () => void
     onReload: () => void
@@ -472,7 +470,7 @@ const RepayModal: React.FC<{
         return { amountCount, amountTips, tokenCount, fromCount, toCount }
     }, [amount, fromPrice, toPrice]);
 
-    const repay = useRepay(tokenAddressArray, amount, Number(apy) - 1);
+    const repay = useRepay(tokenAddressArray, amount, undefined, Number(apy) - 1);
 
     console.log(priceLoading, fromPrice, toPrice, tradeInfo);
 

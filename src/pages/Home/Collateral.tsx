@@ -1,37 +1,49 @@
 import { useState, useEffect, useMemo } from "react";
 import { Trans, t } from "@lingui/macro";
 
-import { TipsInfo } from "../../components/Tips";
 import { message } from "../../components/Message";
 
 import { useReload } from "../../hooks/contract/reload";
 import { useDeposit, useWithdraw } from '../../hooks/contract/handle';
 import { StatusEnums as TokenStatusEnums, useTokenBalances } from '../../hooks/contract/erc20';
 
+import { useUserInfo } from "../../state/user";
 import { useSupplyCoins, useSupplyMap, useCoinAddress } from '../../state/market';
 import { useState as useWalletState, WalletStatusEnums } from '../../state/wallet';
 
-import { getWithdrawMax } from "../../utils";
+import { fullNumber, getWithdrawMax } from "../../utils";
 
 import Handle from "./Handle";
 
 import { TabPanelGrid, InputMax } from './styled';
 
 export const Supply = () => {
-    const [token, setToken] = useState<string | null>("ETH");
-    const [amount, setAmount] = useState<string | null>(null);
+    const [token, setToken] = useState<string>("ETH");
+    const [amount, setAmount] = useState<string>();
     const [loadingButton, setLoadingButton] = useState<boolean>();
-    const [reloadCount, setReload] = useState(0);
+
+    const supply = useSupplyCoins();
+    const supplyCoins = useMemo(() => supply?.length ? ["ETH", ...supply] : [], [supply])
 
     const { status: ethStatus, balances: ethBalances } = useWalletState();
-    const { status: supplyStatus, balance: supplayBalances } = useTokenBalances(token === "ETH" ? null : token, reloadCount);
+    const { status: supplyStatus, balance: supplayBalances, reload: reloadTokenBalances } = useTokenBalances(token === "ETH" ? null : token);
+
+    const max = useMemo(() => {
+        if (token == "ETH" && ethBalances) {
+            return fullNumber(ethBalances);
+        } else if (token !== "ETH" && supplayBalances) {
+            return fullNumber(supplayBalances);
+        }
+        return "0";
+    }, [token, ethBalances, supplayBalances]);
+
+    const loading = token === "ETH" ? ethStatus === WalletStatusEnums.LOADING : supplyStatus === TokenStatusEnums.LOADING;
+
+    console.log(max, supplayBalances);
 
     const address = useCoinAddress(token);
-    const supplyCoins = useSupplyCoins();
     const deposit = useDeposit(address, amount);
     const reload = useReload();
-
-    const coins = useMemo(() => supplyCoins ? ["ETH", ...supplyCoins] : [], [supplyCoins]);
 
     const handleClick = async () => {
         setLoadingButton(true);
@@ -43,9 +55,9 @@ export const Supply = () => {
                 message.success(t`操作成功`);
 
                 setLoadingButton(false);
-                setAmount(null);
-                setReload(reloadCount + 1);
+                setAmount(undefined);
                 reload();
+                reloadTokenBalances();
             }).catch((error: any) => {
                 setLoadingButton(false);
                 message.error(error.message);
@@ -58,11 +70,6 @@ export const Supply = () => {
         });
     }
 
-    const max = token === "ETH" ? ethBalances : supplayBalances;
-    const loading = token === "ETH" ? ethStatus === WalletStatusEnums.LOADING : supplyStatus === TokenStatusEnums.LOADING;
-
-    console.log("max", max);
-
     return <Handle
         isAuthorize
         type="Supply"
@@ -70,9 +77,9 @@ export const Supply = () => {
         labelText={<Trans>质押：</Trans>}
         labelTips={<Trans>储蓄您的资产开始赚取收益。</Trans>}
         rightText={loading ? t`加载中~` : <InputMax max={max} />}
-        coins={coins}
+        coins={supplyCoins}
         inputValue={amount ?? ""}
-        selectValue={token ?? ""}
+        selectValue={token}
         buttonProps={{
             text: t`质押`,
             theme: "buy",
@@ -84,20 +91,21 @@ export const Supply = () => {
     />
 }
 
-
 const Withdraw = () => {
-    const [token, setToken] = useState<string | null>(null);
-    const [amount, setAmount] = useState<string | null>(null);
+    const [token, setToken] = useState<string>();
+    const [amount, setAmount] = useState<string>();
     const [loadingButton, setLoadingButton] = useState<boolean>();
-    const [max, setMax] = useState(0);
 
     const supplyMap = useSupplyMap();
-    const address = useCoinAddress(token);
+    const supplyCoins = useMemo(() => supplyMap ? Object.keys(supplyMap) : [], [supplyMap]);
 
+    const { totalCollateralETH, totalDebtETH } = useUserInfo() ?? {};
+
+    const max = useMemo(() => supplyMap && token ? getWithdrawMax(supplyMap, token, totalCollateralETH, totalDebtETH) : "0", [supplyMap, token]);
+
+    const address = useCoinAddress(token);
     const withdraw = useWithdraw(address, amount);
     const reload = useReload();
-
-    const coins = useMemo(() => supplyMap ? Object.keys(supplyMap) : [], [supplyMap]);
 
     const handleClick = () => {
         setLoadingButton(true);
@@ -109,7 +117,7 @@ const Withdraw = () => {
                 message.success(t`操作成功`);
 
                 setLoadingButton(false);
-                setAmount(null);
+                setAmount(undefined);
                 reload();
             }).catch((error: any) => {
                 setLoadingButton(false);
@@ -124,29 +132,20 @@ const Withdraw = () => {
     }
 
     useEffect(() => {
-        if (supplyMap && coins.length) {
-            if (!token) {
-                const coin = coins[0];
-                setToken(coin);
-                setMax(supplyMap[coin].amount)
-            } else {
-                setMax(supplyMap[token].amount);
-            }
-        }
-    }, [supplyMap]);
+        if (supplyCoins?.length && !token) setToken(supplyCoins[0]);
+    }, [supplyCoins]);
 
-    // getWithdrawMax(supplyMap,);
     console.log("supplyMap", supplyMap);
 
     return <Handle
         type="Withdraw"
-        // max={max}
+        max={max}
         labelText={<Trans>减少质押：</Trans>}
         labelTips={<Trans>从您的Aave储蓄中提取资产。</Trans>}
-        // rightText={max ? <InputMax max={max} /> : ""}
-        coins={coins ?? {}}
+        rightText={<InputMax max={max} />}
+        coins={supplyCoins}
         inputValue={amount ?? ""}
-        selectValue={token ?? ""}
+        selectValue={token}
         buttonProps={{
             text: t`减少质押`,
             theme: "sell",

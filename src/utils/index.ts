@@ -38,7 +38,7 @@ export function accountSplit(account?: string | null): string {
     return start + "..." + end;
 }
 
-export function numberUnit(num: number): [number, string | null] {
+export function numberUnit(num: number): [number, string | undefined] {
     if (num > 1e12) {
         return [num / 1e12, "T"];
     } else if (num > 1e9) {
@@ -48,12 +48,22 @@ export function numberUnit(num: number): [number, string | null] {
     } else if (num > 1e3) {
         return [num / 1e3, "K"];
     } else {
-        return [num, null]
+        return [num, undefined]
     }
 }
 
+export function numberRuler(value?: string | number) {
+    if (!value) return;
+
+    if (typeof value === "string") value = Number(value);
+
+    const [amount, unit] = numberUnit(value);
+
+    return (number2fixed(amount) ?? "") + (unit ?? "");
+}
+
 export function numberDelimiter(value?: string) {
-    if (!value) return null;
+    if (!value) return;
 
     if (Number(value) > 1e3) {
         const [integer, decimal] = value.split(".");
@@ -75,16 +85,8 @@ export function numberDelimiter(value?: string) {
     }
 }
 
-export function numberRuler(num: string | number) {
-    if (typeof num === "string") num = Number(num);
-
-    const [amount, unit] = numberUnit(num);
-
-    return number2fixed(fullNumber(amount)) + (unit ?? "");
-}
-
-export function number2fixed(value: string | number, len?: number) {
-    if (!value) return null;
+export function number2fixed(value?: string | number, len?: number) {
+    if (!value) return "0";
 
     if (typeof value === "number") value = String(value);
 
@@ -94,10 +96,12 @@ export function number2fixed(value: string | number, len?: number) {
 
     if (len) {
         decimal = decimal.substring(0, len);
-    } else if (Math.abs(Number(value)) >= 1) {
+    } else if (Math.abs(Number(value)) >= 1e-2) {
         decimal = decimal.substring(0, 2);
-    } else {
+    } else if (Math.abs(Number(value)) >= 1e-4) {
         decimal = decimal.substring(0, 4);
+    } else {
+        decimal = "0";
     }
 
     if (/^0+$/.test(decimal)) return integer;
@@ -105,13 +109,15 @@ export function number2fixed(value: string | number, len?: number) {
     return `${integer}.${decimal}`;
 }
 
-export function fullNumber(value: string | number, exact?: boolean) {
+export function fullNumber(value?: string | number, exact?: boolean) {
+    if (!value) return;
+
     const [valueStr, valueNum] = stringAndNumber(value);
 
-    //处理非数字
+    if (valueNum === 0) return "0";
+
     if (isNaN(valueNum)) return "NaN";
 
-    //处理不需要转换的数字
     if (!/e/i.test(valueStr)) return valueStr;
 
     const strArr = valueStr.split(/[.\e]/);
@@ -131,24 +137,23 @@ export function fullNumber(value: string | number, exact?: boolean) {
     }
 }
 
-
-export function ethToPrice(count: number, price: number): string[] {
+export function ethToPrice(count?: number, price?: number): string[] {
     if (!count) return ["0", "$"];
     if (!price) return [String(count), "ETH"];
 
-    return [fullNumber(count * price), "$"];
+    return [fullNumber(count * price) ?? "", "$"];
 }
 
-export function ethToPriceTips(count: string | number, price: number | null): string[] {
+export function ethToPriceTips(count?: string | number, price?: number): string[] {
     if (!count) return ["0", "0", "$"];
 
     const [countStr, countNum] = stringAndNumber(count);
 
-    if (!price) return [numberRuler(count), numberDelimiter(countStr) ?? "", "ETH"];
+    if (!price) return [numberDelimiter(number2fixed(countStr)) ?? "", numberDelimiter(countStr) ?? "", "ETH"];
 
     const [num, unit] = ethToPrice(countNum, price);
 
-    return [numberRuler(num), numberDelimiter(num) ?? "", unit];
+    return [numberDelimiter(number2fixed(num)) ?? "", numberDelimiter(num) ?? "", unit];
 }
 
 export function isAddress(value: any): string | false {
@@ -209,21 +214,29 @@ export function getBoostMax(value: number, ratio: number, isFirst?: boolean): nu
     }
 }
 
-export function getRepayMax(from: any, to: any): number {
-    if (!from || !to) return 0;
-
+export function getRepayMax(from: any, to: any) {
     const { priceETH: fromEthPrice, amount: fromAmount, price } = from;
     const { priceETH: toEthPrice } = to;
 
     if (fromEthPrice <= toEthPrice) return fromAmount;
 
-    var max = 0;
+    const max = toEthPrice / price * 1.02;
 
-    return (max = toEthPrice / price * 1.02) > fromAmount ? fromAmount : max;
+    return fullNumber(max > fromAmount ? fromAmount : max);
 }
 
-export function getWithdrawMax() {
+export function getWithdrawMax(supplyMap: any, token: string, totalCollateral: number, totalDebt: number) {
+    const totalSupply = Object.values(supplyMap).reduce((prev: number, item: any) => {
+        if (item.symbol === token) return prev;
 
+        return prev + item.priceETH * item.liquidationRatio;
+    }, 0);
+
+    const { amount, price, priceETH, liquidationRatio } = supplyMap[token];
+
+    if (totalSupply >= totalDebt) return amount;
+
+    return fullNumber((priceETH - (totalDebt - totalSupply) / liquidationRatio * 1.01) / price);
 }
 
 export function getHandleTheme(type: HandleTheme) {

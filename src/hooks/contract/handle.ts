@@ -10,7 +10,7 @@ import { getWei, abiEncode } from '../../utils';
 
 const offchainData = ["0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", 0, 0, 0];
 
-export const useBoost = (tokenAddressArray: string[] | null, amount: string | null, minPrice: string | null, apy: number | null) => {
+export const useBoost = (tokenAddressArray?: string[], amount?: string, minPrice?: string, apy?: number) => {
     const { account } = useWeb3ReactCore();
     const address = useAddress();
 
@@ -43,7 +43,7 @@ export const useBoost = (tokenAddressArray: string[] | null, amount: string | nu
     }
 }
 
-export const useRepay = (tokenAddressArray: string[] | null, amount: string | null, apy: number | null) => {
+export const useRepay = (tokenAddressArray?: string[], amount?: string, minPrice?: string, apy?: number) => {
     const { account } = useWeb3ReactCore();
     const address = useAddress();
 
@@ -59,7 +59,7 @@ export const useRepay = (tokenAddressArray: string[] | null, amount: string | nu
 
     const uniswapWrapper = useMemo(() => fromAddress && toAddress ? abiEncode(["address[]"], [[fromAddress, toAddress]]) : "", [fromAddress, toAddress]);
 
-    const exchangeData = [fromAddress, toAddress, getWei(amount ? amount : "0"), 0, 0, 400, account, uniswapAddress, uniswapWrapper, offchainData];
+    const exchangeData = [fromAddress, toAddress, getWei(amount ? amount : "0"), 0, getWei(minPrice ?? "0"), 400, account, uniswapAddress, uniswapWrapper, offchainData];
 
     // console.log(exchangeData);
 
@@ -79,7 +79,7 @@ export const useRepay = (tokenAddressArray: string[] | null, amount: string | nu
 }
 
 
-export const useDeposit = (aaveAddress: string | null, amount: string | null) => {
+export const useDeposit = (aaveAddress?: string, amount?: string) => {
     const address = useAddress();
 
     const marketAddress = useTokenAddress("AAVE_MARKET");
@@ -115,7 +115,7 @@ export const useDeposit = (aaveAddress: string | null, amount: string | null) =>
     }
 }
 
-export const useWithdraw = (aaveAddress: string | null, amount: string | null) => {
+export const useWithdraw = (aaveAddress?: string, amount?: string) => {
     const address = useAddress();
 
     const marketAddress = useTokenAddress("AAVE_MARKET");
@@ -138,7 +138,7 @@ export const useWithdraw = (aaveAddress: string | null, amount: string | null) =
     }
 }
 
-export const useBorrow = (aaveAddress: string | null, amount: string | null, apy: number | null) => {
+export const useBorrow = (aaveAddress?: string, amount?: string, apy?: number) => {
     const address = useAddress();
 
     const marketAddress = useTokenAddress("AAVE_MARKET");
@@ -160,7 +160,7 @@ export const useBorrow = (aaveAddress: string | null, amount: string | null, apy
     }
 }
 
-export const usePayback = (aaveAddress: string | null, amount: string | null, apy: number | null) => {
+export const usePayback = (aaveAddress?: string, amount?: string, apy?: number) => {
     const address = useAddress();
 
     const marketAddress = useTokenAddress("AAVE_MARKET");

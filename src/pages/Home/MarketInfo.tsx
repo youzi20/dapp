@@ -16,7 +16,7 @@ import {
 
 import { Font, Flex } from '../../styled';
 
-import { getRatio, numberRuler, fullNumber, ethToPriceTips } from '../../utils';
+import { getRatio, numberRuler, fullNumber, ethToPriceTips, ethToPrice, numberDelimiter } from '../../utils';
 
 import CoinIcon from './CoinIcon';
 
@@ -41,24 +41,28 @@ const renderRatioTips = (value: number) => {
 
     return <Flex><Tips text={fullNumber(ratio)} ><div>{getRatio(ratio)}</div></Tips></Flex>;
 };
-const renderRatioDisabledTips = (value: number) => {
-    return <Flex><Tips text={t`不可用`} ><div style={{ opacity: 0.5 }}>{getRatio(value * 100)}</div></Tips></Flex>
+const renderRatioDisabledTips = (value: number) => <Flex><Tips text={t`不可用`} ><div style={{ opacity: 0.5 }}>{getRatio(value * 100)}</div></Tips></Flex>;
+const renderPriceTips = (value: string, price?: number) => <Flex><TipsPrice price={ethToPriceTips(value, price)} /></Flex>;
+const renderSupplyTips = ({ price: ethPrice, totalSupply, symbol }: MarketInterface, price?: number) => {
+    const [priceStr, priceUnit] = ethToPrice(Number(ethPrice) * Number(totalSupply), price);
+
+    // if (symbol === "UNI") debugger;
+
+    return <Flex><TipsPrice price={[numberRuler(fullNumber(priceStr)), numberDelimiter(fullNumber(priceStr)), priceUnit]} /></Flex>
 };
-const renderPriceTips = (value: string, price: number | null) => <Flex><TipsPrice price={ethToPriceTips(value, price)} /></Flex>;
-const renderSupplyTips = ({ price: ethPrice, totalSupply }: MarketInterface, price: number | null) => <Flex><TipsPrice price={ethToPriceTips(Number(ethPrice) * Number(totalSupply), price)} /></Flex>;
-const renderApplyTips = ({ price: ethPrice, symbol, totalSupply, totalBorrow }: MarketInterface, price: number | null) => {
+const renderApplyTips = ({ price: ethPrice, symbol, totalSupply, totalBorrow }: MarketInterface, price?: number) => {
     const supply = Number(totalSupply);
     const borrow = Number(totalBorrow);
 
     const ratio = getRatio(borrow / supply * 100);
     const circulate = supply - borrow;
 
-    const [priceStr, _, priceUnit] = ethToPriceTips(Number(ethPrice) * circulate, price);
+    const [priceStr, priceUnit] = ethToPrice(Number(ethPrice) * circulate, price);
 
     const amount = numberRuler(circulate);
 
     return <Flex justifyContent="flex-end">
-        <Tips text={`市场流动性: ${amount} ${symbol} (${priceUnit ?? ""}${priceStr})`} >
+        <Tips text={`市场流动性: ${amount} ${symbol} (${priceUnit ?? ""}${numberRuler(priceStr)})`} >
             <div>{ratio}</div>
         </Tips>
     </Flex>

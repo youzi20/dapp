@@ -13,6 +13,10 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
+#: src/pages/Home/Advanced.tsx
+msgid "(Remainder of collateral will be returned as {to})"
+msgstr "(Remainder of collateral will be returned as {to})"
+
 #: src/pages/Home/Debt.tsx
 msgid "<0>Stable</0> would be a good choice if you need to plan around a non-volatile rate over a longer period of time.<1/><2/><3>Variable</3> is based on the supply and demand for the selected asset on Aave and is re-calculated every second, meaning the rate will be lower when there is less demand for the asset.<4/><5/>You can also switch between the two rates at any point in the future."
 msgstr "<0>Stable</0> would be a good choice if you need to plan around a non-volatile rate over a longer period of time.<1/><2/><3>Variable</3> is based on the supply and demand for the selected asset on Aave and is re-calculated every second, meaning the rate will be lower when there is less demand for the asset.<4/><5/>You can also switch between the two rates at any point in the future."
@@ -24,6 +28,10 @@ msgstr "Borrow {0} → Swap → Supply {1}"
 #: src/pages/Home/MarketInfo.tsx
 msgid "Change interest rate"
 msgstr "Change interest rate"
+
+#: src/pages/Home/Advanced.tsx
+msgid "If debt is fully paid off by Repay, the remainder of the <0/> Repay amount will be returned to your wallet as DAI"
+msgstr "If debt is fully paid off by Repay, the remainder of the <0/> Repay amount will be returned to your wallet as DAI"
 
 #: src/pages/Home/MarketInfo.tsx
 msgid "Interest Rate"
@@ -133,10 +141,6 @@ msgstr "债务"
 msgid "做多"
 msgstr "做多"
 
-#: src/pages/Home/Advanced.tsx
-msgid "偿还是使用储蓄的 {from} 还款 {symbol} 债务。这降低了您的杠杆，<0/>但也降低了您的借贷能力，让您的仓位更安全。"
-msgstr "偿还是使用储蓄的 {from} 还款 {symbol} 债务。这降低了您的杠杆，<0/>但也降低了您的借贷能力，让您的仓位更安全。"
-
 #: src/pages/Home/UserInfo.tsx
 msgid "储蓄余额:"
 msgstr "储蓄余额:"
@@ -159,6 +163,10 @@ msgstr "减少质押："
 #: src/pages/Home/Advanced.tsx
 msgid "减杠杆"
 msgstr "减杠杆"
+
+#: src/pages/Home/Advanced.tsx
+msgid "减杠杆是使用储蓄的 {from} 还款 {to} 债务。这降低了您的杠杆，<0/> 但也降低了您的借贷能力，让您的仓位更安全。"
+msgstr "减杠杆是使用储蓄的 {from} 还款 {to} 债务。这降低了您的杠杆，<0/> 但也降低了您的借贷能力，让您的仓位更安全。"
 
 #: src/pages/Home/Advanced.tsx
 msgid "减杠杆："
@@ -203,11 +211,9 @@ msgid "加杠杆："
 msgstr "加杠杆："
 
 #: src/components/Empty/index.tsx
-#: src/pages/Home/Advanced.tsx
-#: src/pages/Home/Advanced.tsx
 #: src/pages/Home/Collateral.tsx
 #: src/pages/Home/Debt.tsx
-#: src/pages/Home/Debt.tsx
+#: src/pages/Home/styled.tsx
 msgid "加载中~"
 msgstr "加载中~"
 

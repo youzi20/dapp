@@ -15,7 +15,7 @@ export enum StatusEnums {
     ERROR,
 }
 
-export const useTokenBalances = (token: TokenMapKey | string | null, reload: number | null) => {
+export const useTokenBalances = (token: TokenMapKey | string | null) => {
     const { account } = useWeb3ReactCore();
 
     const [status, setStaus] = useState<StatusEnums>(StatusEnums.FINISH);
@@ -33,8 +33,6 @@ export const useTokenBalances = (token: TokenMapKey | string | null, reload: num
         try {
             const balance = await erc20Contract.balanceOf(account);
 
-            console.log("1", getFormatNumber(balance));
-
             setBalance(getFormatNumber(balance));
             setStaus(StatusEnums.FINISH);
         } catch (error) {
@@ -46,9 +44,9 @@ export const useTokenBalances = (token: TokenMapKey | string | null, reload: num
 
     useEffect(() => {
         getTokenBalance();
-    }, [erc20Contract, token, reload]);
+    }, [erc20Contract, token]);
 
-    return { status, balance };
+    return { status, balance, reload: getTokenBalance };
 };
 
 
@@ -66,7 +64,7 @@ export const useApprove = (token: string | null) => {
     }
 }
 
-export const useAllowance = (token: string | null, reload: number | null) => {
+export const useAllowance = (token: string | null) => {
     const { address } = useUserState();
     const { account } = useWeb3ReactCore();
     const [allowance, setAllowance] = useState<string>();
@@ -75,7 +73,7 @@ export const useAllowance = (token: string | null, reload: number | null) => {
 
     // console.log("erc20Contract", erc20Contract);
 
-    const allowanceValue = async () => {
+    const getAllowanceValue = async () => {
         if (!erc20Contract || !address || !account || !token) return;
 
         try {
@@ -87,8 +85,8 @@ export const useAllowance = (token: string | null, reload: number | null) => {
     }
 
     useEffect(() => {
-        allowanceValue();
-    }, [erc20Contract, token, reload]);
+        getAllowanceValue();
+    }, [erc20Contract, token]);
 
-    return { allowance };
+    return { allowance, reload: getAllowanceValue };
 }

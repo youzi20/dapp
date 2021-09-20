@@ -8,7 +8,7 @@ import { IconWrapper } from '../../components/Icon';
 import { OptionItemWrapper } from '../../components/Select';
 
 import { Font, Flex } from '../../styled';
-import { getRatio, numberRuler, fullNumber, } from '../../utils';
+import { getRatio, number2fixed } from '../../utils';
 
 export const TabPanelGrid = styled.div`
 display: grid;
@@ -208,7 +208,7 @@ export const InputMax: React.FC<{
     max?: string
 }> = ({ max }) => {
     return max ?
-        <Tips text={fullNumber(max)}><InputMaxWrapper>{`(${t`最大值`} ${numberRuler(max)})`}</InputMaxWrapper></Tips> :
+        <Tips text={max}><InputMaxWrapper>{`(${t`最大值`} ${number2fixed(max, 2)})`}</InputMaxWrapper></Tips> :
         <>{t`加载中~`}</>;
 }
 

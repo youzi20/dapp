@@ -55,23 +55,24 @@ export const TipsInfo: React.FC<{
 export const TipsPrice: React.FC<{
     price: (number | string | undefined)[]
 }> = ({ price }) => {
-    const [s, n, u] = price;
+    const [priceStr, priceTips, unit] = price;
 
-    const Util = () => <span>{u}</span>;
-    const Text = () => <TextOverflowWrapper>{s}</TextOverflowWrapper>;
+    const Util = () => <span>{unit}</span>;
+    const Text = () => <TextOverflowWrapper>{priceStr ?? ""}</TextOverflowWrapper>;
 
-    return <Tips text={n}>
+    return <Tips text={priceTips}>
         <Flex>
-            {s ? (u === "ETH" ?
-                <>
-                    <Text />
-                    <Util />
-                </> :
-                <>
-                    <Util />
-                    <Text />
-                </>
-            ) : "-"}
+            {priceStr ?
+                (unit === "ETH" ?
+                    <>
+                        <Text />
+                        <Util />
+                    </> :
+                    <>
+                        <Util />
+                        <Text />
+                    </>)
+                : "-"}
         </Flex>
     </Tips>
 }
