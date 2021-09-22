@@ -52,7 +52,7 @@ export const useSmartWalletContract = (address: string | null) => {
     return useContract("SMART_WALLET", address);
 }
 
-export const useERC20Contract = (token: TokenMapKey | string | null) => {
+export const useERC20Contract = (token?: TokenMapKey | string | null) => {
     const address = useTokenAddress(token);
 
     return useContract("ERC20", address);

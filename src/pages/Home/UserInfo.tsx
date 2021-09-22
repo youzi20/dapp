@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { Trans, t } from '@lingui/macro';
 
@@ -20,13 +20,14 @@ import { useBuild, useProxies } from '../../hooks/contract/useUserInfo';
 import { WalletStatusEnums, useState as useWalletState } from '../../state/wallet';
 import { UserStatusEnums, useState as useUserState, useUserInfo } from '../../state/user';
 import { useEthPrice, useLiquidationInfo } from '../../state/market';
+import { useState as useAfterState, useAfterUserInfo } from '../../state/after';
 
-import { Font, Flex, TextOverflowWrapper } from '../../styled';
+import { Font, Flex, Grid, TextOverflowWrapper } from '../../styled';
 
-import { getRatio, ethToPriceTips, number2fixed } from '../../utils';
+import { getRatio, ethToPriceTips, number2fixed, getHandleTheme } from '../../utils';
 
 import SupplyPercentage from './SupplyPercentage';
-import LoanPercentage from './LoanPercentage';
+import BorrowPercentage from './BorrowPercentage';
 
 SwiperCore.use([Pagination]);
 
@@ -92,10 +93,19 @@ align-items: center;
 `;
 
 const SwiperWrapper = styled(Swiper)`
+display: flex;
+flex-direction: column-reverse;
+justify-content: center;
 width: 280px;
 margin: 0;
 
+.swiper-wrapper {
+    height: auto;
+}
+
 .swiper-pagination {
+    position: relative;
+    bottom: 0;
     text-align: right;
 
     .swiper-pagination-bullet {
@@ -164,19 +174,17 @@ const Create = () => {
         build().then(res => {
             res.wait().then((res: any) => {
                 setLoading(false);
-
                 message.success(t`创建成功`);
-
                 proxies();
             }).catch((error: any) => {
+                setLoading(false);
                 message.error(error.message);
                 console.error(error);
-                setLoading(false);
             });
         }).catch((error: any) => {
+            setLoading(false);
             message.error(error.message);
             console.error(error);
-            setLoading(false);
         });
     }
 
@@ -198,42 +206,92 @@ const Create = () => {
     </Wrapper>
 }
 
+interface LabelProps {
+    text: string | React.ReactNode
+    tips?: string | React.ReactNode
+}
+
+const Label = ({ text, tips }: LabelProps) => {
+    return <Flex alignItems="center">
+        {tips && <TipsInfo text={tips} />}
+        <span>{text}</span>
+    </Flex>
+}
+
+const Ratio = ({ ratio }: { ratio: number | null }) => {
+    return ratio ? <Tips text={ratio * 100}>
+        <Flex>
+            <TextOverflowWrapper>{number2fixed(ratio * 100)}</TextOverflowWrapper>
+            <span>%</span>
+        </Flex>
+    </Tips> : <>-</>
+}
+
 const DataItem: React.FC<{
     label: string | React.ReactNode
     quantity: string | number | React.ReactNode
     className?: string
-}> = ({ label, quantity, className }) => {
+    color?: string
+    after?: boolean
+    afterValue?: string | React.ReactNode
+}> = ({ className, label, quantity, color, after, afterValue }) => {
 
     return <DataItemWrapper className={className}>
-        <Font fontSize="14px" color="rgba(255, 255, 255, .5)">
-            <Flex alignItems="center">{label}</Flex>
-        </Font>
-        <Font fontSize="42px" color="#fff">{quantity ?? 0}</Font>
+        <Font fontSize="14px" color="#939DA7">{label}</Font>
+        <Font fontSize="42px" color="#fff">{quantity}</Font>
+
+        {after && <Grid template="repeat(2, max-content)" columGap="5px" alignItems="center">
+            <Font fontSize="14px" color="rgba(255, 255, 255, .5)"><Trans>之后</Trans>:</Font>
+            <Font fontSize="20px" color={color}>{afterValue}</Font>
+        </Grid>}
     </DataItemWrapper>
 }
 
 const LabelItem: React.FC<{
     label: string | React.ReactNode
     quantity: string | number | React.ReactNode
-}> = ({ label, quantity }) => {
+    color?: string
+    after?: boolean
+    afterValue?: string | React.ReactNode
+}> = ({ label, quantity, color, after, afterValue }) => {
     return <LabelItemWrapper>
-        <Font fontSize="14px" color="rgba(255, 255, 255, .5)">
-            <Flex alignItems="center">{label}</Flex>
-        </Font>
-        <Font fontSize="25px" color="#fff" style={{ display: "flex", justifyContent: "flex-end" }}>{quantity ?? 0}</Font>
+        <Font fontSize="14px" color="rgba(255, 255, 255, .5)">{label}</Font>
+        <Font fontSize="25px" color="#fff" style={{ display: "flex", justifyContent: "flex-end" }}>{quantity}</Font>
+
+        {after && <>
+            <Font fontSize="14px" color="rgba(255, 255, 255, .5)"><Trans>之后</Trans>:</Font>
+            <Font fontSize="15px" color={color} style={{ display: "flex", justifyContent: "flex-end" }}>{afterValue}</Font>
+        </>}
     </LabelItemWrapper>
 }
 
 const Info: React.FC<{
     address: string | null
 }> = ({ address }) => {
-    const userInfo = useUserInfo();
     const price = useEthPrice();
-    const [collateral, liquidation] = useLiquidationInfo() || [];
+    const [borrowETH, liquidationETH] = useLiquidationInfo() || [];
 
-    const { totalCollateralETH, totalDebtETH, availableBorrowsETH, ratio } = userInfo ?? {};
+    const { type, loading } = useAfterState();
+    const color = useMemo(() => getHandleTheme(type), [type]);
+
+    let userInfo;
+    const { totalCollateralETH, totalDebtETH, availableBorrowsETH, ratio } = userInfo = useUserInfo() ?? {};
+
+    const {
+        totalCollateralETH: afterTotalCollateralETH,
+        totalDebtETH: afterTotalDebtETH,
+        totalBorrowETH,
+        totalLiquidationETH,
+    } = useAfterUserInfo() ?? {};
 
     console.log("UserInfo", userInfo);
+
+    const liquidationRatio = useMemo(() => borrowETH && liquidationETH ? borrowETH / liquidationETH * 100 : null, [borrowETH, liquidationETH]);
+
+    const afterRatio = useMemo(() => totalBorrowETH && totalLiquidationETH ? totalLiquidationETH / totalBorrowETH : null, [totalBorrowETH, totalLiquidationETH]);
+    const afterLiquidationRatio = useMemo(() => totalBorrowETH && totalLiquidationETH ? totalBorrowETH / totalLiquidationETH * 100 : null, [totalBorrowETH, totalLiquidationETH]);
+
+    const afterProps = { color, after: Boolean(type) };
 
     return <Wrapper>
         <WalletHeader>
@@ -243,43 +301,31 @@ const Info: React.FC<{
             <SupplyBalance>
                 <DataBoxWrapper>
                     <DataItem
-                        label={<>
-                            <TipsInfo text={t`您提供的抵押品总数。`} />
-                            <span><Trans>储蓄余额:</Trans></span>
-                        </>}
+                        label={<Label text={t`储蓄余额:`} tips={t`您提供的抵押品总数。`} />}
                         quantity={<TipsPrice price={ethToPriceTips(totalCollateralETH, price)} />}
+                        afterValue={<TipsPrice price={ethToPriceTips(afterTotalCollateralETH, price)} />}
+                        {...afterProps}
                     />
                 </DataBoxWrapper>
 
                 <GraphBoxWrapper>
-                    <Font fontSize="20px" color="#939DA7" lineHeight="32px"><Trans>Supply composition:</Trans></Font>
-
                     <SupplyPercentage theme={["#36b4c4", "#0e8c9c"]} />
                 </GraphBoxWrapper>
             </SupplyBalance>
             <BorrowBlance>
                 <DataBoxWrapper>
                     <DataItem
-                        label={<>
-                            <TipsInfo text={t`您的借贷资金总额。`} />
-                            <span><Trans>贷款总额:</Trans></span>
-                        </>}
+                        label={<Label text={t`贷款总额:`} tips={t`您的借贷资金总额。`} />}
                         quantity={<TipsPrice price={ethToPriceTips(totalDebtETH, price)} />}
+                        afterValue={<TipsPrice price={ethToPriceTips(afterTotalDebtETH, price)} />}
+                        {...afterProps}
                     />
                     <HighlightedWrapper>
                         <DataItem
-                            label={<>
-                                <TipsInfo text={t`您的借款限额与借贷资金的比率低于${getRatio(collateral / liquidation * 100)}将被清算。`} />
-                                <span><Trans>安全比率 (最小值 100%):</Trans></span>
-                            </>}
-                            quantity={<Tips text={ratio * 100}>
-                                <Flex>
-                                    {ratio ? <>
-                                        <TextOverflowWrapper>{number2fixed(ratio * 100)}</TextOverflowWrapper>
-                                        <span>%</span>
-                                    </> : "-"}
-                                </Flex>
-                            </Tips>}
+                            label={<Label text={t`安全比率 (最小值 100%):`} tips={liquidationRatio ? t`您的借款限额与借贷资金的比率低于${getRatio(liquidationRatio)}将被清算。` : ""} />}
+                            quantity={<Ratio ratio={ratio} />}
+                            afterValue={<Ratio ratio={afterRatio} />}
+                            {...afterProps}
                         />
                     </HighlightedWrapper>
 
@@ -292,30 +338,32 @@ const Info: React.FC<{
                         <SwiperSlide>
                             <SwiperSlideWrapper>
                                 <LabelItem
-                                    label={<><TipsInfo text={t`您可以借贷的最大金额。`} /> <span><Trans>贷款限额:</Trans></span></>}
+                                    label={<Label text={t`贷款限额:`} tips={t`您可以借贷的最大金额。`} />}
                                     quantity={<TipsPrice price={ethToPriceTips(Number(totalDebtETH) + Number(availableBorrowsETH), price)} />}
+                                    afterValue={<TipsPrice price={ethToPriceTips(totalBorrowETH, price)} />}
+                                    {...afterProps}
                                 />
                                 <LabelItem
-                                    label={<span><Trans>剩余可借款额:</Trans></span>}
+                                    label={<Label text={t`剩余可借款额:`} />}
                                     quantity={<TipsPrice price={ethToPriceTips(availableBorrowsETH, price)} />}
+                                    afterValue={<TipsPrice price={ethToPriceTips(totalBorrowETH - afterTotalDebtETH, price)} />}
+                                    {...afterProps}
                                 />
                             </SwiperSlideWrapper>
                         </SwiperSlide>
                         <SwiperSlide>
                             <SwiperSlideWrapper>
                                 <LabelItem
-                                    label={<>
-                                        <TipsInfo text={t`Safety ratio below which your position will face liquidation.`} />
-                                        <span><Trans>Liquidation ratio:</Trans></span>
-                                    </>}
-                                    quantity={<Tips text={collateral / liquidation * 100}><div>{getRatio(collateral / liquidation * 100)}</div></Tips>}
+                                    label={<Label text={t`Liquidation ratio:`} tips={t`Safety ratio below which your position will face liquidation.`} />}
+                                    quantity={<Tips text={liquidationRatio}><div>{liquidationRatio ? getRatio(liquidationRatio) : "-"}</div></Tips>}
+                                    afterValue={<Tips text={afterLiquidationRatio}><div>{afterLiquidationRatio ? getRatio(afterLiquidationRatio) : "-"}</div></Tips>}
+                                    {...afterProps}
                                 />
                                 <LabelItem
-                                    label={<>
-                                        <TipsInfo text={t`Value of borrowed funds above which your position will face liquidation.`} />
-                                        <span><Trans>Liquidation limit:</Trans></span>
-                                    </>}
-                                    quantity={<TipsPrice price={ethToPriceTips(liquidation, price)} />}
+                                    label={<Label text={t`Liquidation limit:`} tips={t`Value of borrowed funds above which your position will face liquidation.`} />}
+                                    quantity={<TipsPrice price={ethToPriceTips(liquidationETH, price)} />}
+                                    afterValue={<TipsPrice price={ethToPriceTips(totalLiquidationETH, price)} />}
+                                    {...afterProps}
                                 />
                             </SwiperSlideWrapper>
                         </SwiperSlide>
@@ -323,8 +371,7 @@ const Info: React.FC<{
                 </DataBoxWrapper>
 
                 <GraphBoxWrapper>
-                    <Font fontSize="20px" color="#939DA7" lineHeight="32px"><Trans>已使用借款额度:</Trans></Font>
-                    <LoanPercentage theme={["#68b3eb", "#3b9de7"]} />
+                    <BorrowPercentage theme={["#68b3eb", "#3b9de7"]} />
                 </GraphBoxWrapper>
             </BorrowBlance>
         </WalletBody>

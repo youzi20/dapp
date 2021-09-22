@@ -4,6 +4,7 @@ import { save, load } from 'redux-localstorage-simple';
 import { walletReducer as wallet } from './wallet';
 import { userReducer as user } from './user';
 import { marketReducer as market } from './market';
+import { afterReducer as after } from './after';
 import { langReducer as lang } from './lang';
 
 const PERSISTED_KEYS: string[] = ['lang'];
@@ -13,6 +14,7 @@ const store = configureStore({
         wallet,
         user,
         market,
+        after,
         lang
     },
     middleware: (getDefaultMiddleware) =>

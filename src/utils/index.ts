@@ -5,7 +5,7 @@ import { JsonRpcSigner, Web3Provider } from '@ethersproject/providers';
 import { AbiCoder } from '@ethersproject/abi';
 import { formatUnits, parseUnits } from '@ethersproject/units';
 
-import { Unit, HandleTheme } from '../types';
+import { Unit, HandleType } from '../types';
 
 export function stringAndNumber(value: number | string): [string, number] {
     return typeof value === "number" ? [String(value), value] : [value, Number(value)];
@@ -151,9 +151,9 @@ export function ethToPriceTips(count?: string | number, price?: number): string[
 
     if (!price) return [numberDelimiter(number2fixed(countStr)) ?? "", numberDelimiter(countStr) ?? "", "ETH"];
 
-    const [num, unit] = ethToPrice(countNum, price);
+    const [priceStr, priceUnit] = ethToPrice(countNum, price);
 
-    return [numberDelimiter(number2fixed(num)) ?? "", numberDelimiter(num) ?? "", unit];
+    return [numberDelimiter(number2fixed(priceStr)) ?? "", numberDelimiter(priceStr) ?? "", priceUnit];
 }
 
 export function isAddress(value: any): string | false {
@@ -239,7 +239,7 @@ export function getWithdrawMax(supplyMap: any, token: string, totalCollateral: n
     return fullNumber((priceETH - (totalDebt - totalSupply) / liquidationRatio * 1.01) / price);
 }
 
-export function getHandleTheme(type: HandleTheme) {
+export function getHandleTheme(type?: HandleType) {
     switch (type) {
         case "Boost":
             return "#318D70";
@@ -253,5 +253,7 @@ export function getHandleTheme(type: HandleTheme) {
             return "#318D70";
         case "Payback":
             return "#C26E5C";
+        default:
+            return undefined;
     }
 }

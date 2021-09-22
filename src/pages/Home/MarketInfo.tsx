@@ -13,10 +13,11 @@ import {
     useSupplyMap,
     useBorrowMap
 } from '../../state/market';
+import { useAfterSupplyMap, useAfterBorrowMap } from '../../state/after';
 
 import { Font, Flex } from '../../styled';
 
-import { getRatio, numberRuler, fullNumber, ethToPriceTips, ethToPrice, numberDelimiter } from '../../utils';
+import { getRatio, numberDelimiter, numberRuler, fullNumber, ethToPriceTips, ethToPrice } from '../../utils';
 
 import CoinIcon from './CoinIcon';
 
@@ -28,9 +29,12 @@ interface MarketInterface {
     totalBorrow: string
 }
 
+const Wrapper = styled.div`
+margin: 25px 0 45px;
+`;
 
 const Title = styled.div`
-margin: 25px 0;
+margin-bottom: 25px;
 `;
 
 const renderCoinIcon = (value: any) => <CoinIcon name={value} />;
@@ -43,10 +47,8 @@ const renderRatioTips = (value: number) => {
 };
 const renderRatioDisabledTips = (value: number) => <Flex><Tips text={t`不可用`} ><div style={{ opacity: 0.5 }}>{getRatio(value * 100)}</div></Tips></Flex>;
 const renderPriceTips = (value: string, price?: number) => <Flex><TipsPrice price={ethToPriceTips(value, price)} /></Flex>;
-const renderSupplyTips = ({ price: ethPrice, totalSupply, symbol }: MarketInterface, price?: number) => {
+const renderSupplyTips = ({ price: ethPrice, totalSupply }: MarketInterface, price?: number) => {
     const [priceStr, priceUnit] = ethToPrice(Number(ethPrice) * Number(totalSupply), price);
-
-    // if (symbol === "UNI") debugger;
 
     return <Flex><TipsPrice price={[numberRuler(fullNumber(priceStr)), numberDelimiter(fullNumber(priceStr)), priceUnit]} /></Flex>
 };
@@ -81,12 +83,16 @@ const MarketInfo = () => {
     const supplyData = useMemo(() => supplyMap ? Object.values(supplyMap) : null, [supplyMap]);
     const borrowData = useMemo(() => borrowMap ? Object.values(borrowMap) : null, [borrowMap]);
 
-    console.log("MarketInfo", marketData, supplyData, borrowData);
+    const afterSupplyMap = useAfterSupplyMap();
+    const afterBorrowMap = useAfterBorrowMap();
+
+
+    console.log("MarketInfo", marketData, supplyData, borrowData, afterSupplyMap, afterBorrowMap);
 
     return <>
-        {supplyData ? <>
+        {supplyData ? <Wrapper>
             <Title>
-                <Font fontSize="20px" fontWeight="700"><Trans>供应中</Trans></Font>
+                <Font fontSize="20px"><Trans>供应中</Trans></Font>
             </Title>
             <Table dataSource={supplyData ?? []} loading={loanStatus === MarketStatusEnums.LOADING}>
                 <TableColumn width="196px" title={t`资产`} dataKey="symbol" render={renderCoinIcon} />
@@ -96,11 +102,11 @@ const MarketInfo = () => {
                 <TableColumn width="120px" title={t`抵押因素`} dataKey="collateralFactor" render={renderRatioText} />
                 <TableColumn width="100px" align="right" title={t`抵押物`} />
             </Table>
-        </> : ""}
+        </Wrapper> : ""}
 
-        {borrowData ? <>
+        {borrowData ? <Wrapper>
             <Title>
-                <Font fontSize="20px" fontWeight="700"><Trans>贷款中</Trans></Font>
+                <Font fontSize="20px"><Trans>贷款中</Trans></Font>
             </Title>
             <Table dataSource={borrowData ?? []} loading={loanStatus === MarketStatusEnums.LOADING}>
                 <TableColumn width="140px" title={t`资产`} dataKey="symbol" render={renderCoinIcon} />
@@ -111,28 +117,30 @@ const MarketInfo = () => {
                 <TableColumn width="190px" title={t`Change interest rate`} />
                 <TableColumn width="100px" align="right" title={t`限制`} dataKey="ratio" render={renderRatioText} />
             </Table>
-        </> : ""}
+        </Wrapper> : ""}
 
-        <Title>
-            <Flex justifyContent="space-between">
-                <Font fontSize="20px" fontWeight="700"><Trans>市场信息</Trans></Font>
-                {/* <div>仅显示自有资产</div> */}
-            </Flex>
-        </Title>
-        <Table dataSource={marketData} loading={marketStatus === MarketStatusEnums.LOADING}>
-            <TableColumn width="120px" title={t`资产`} dataKey="symbol" render={renderCoinIcon} />
-            <TableColumn width="120px" title={t`价格`} dataKey="price" render={(value) => renderPriceTips(value, price)} />
-            <TableColumn width="120px" title={t`供应 APY`} dataKey="supplyRate" render={renderRatioTips} />
-            <TableColumn width="120px" title={t`抵押因素`} dataKey="collateralFactor" render={renderRatioText} />
-            <TableColumn width="190px" title={t`Variable B. APY`} dataKey="borrowRateVariable" render={renderRatioTips} />
-            <TableColumn width="160px" title={t`Stable B. APY`} dataKey="borrowRateStable"
-                render={(value, _, { stableBorrowRateEnabled }) =>
-                    stableBorrowRateEnabled ? renderRatioTips(value) : renderRatioDisabledTips(value)
-                }
-            />
-            <TableColumn width="120px" title={t`市场规模`} dataKey="totalSupply" render={(_, __, data) => renderSupplyTips(data, price)} />
-            <TableColumn width="110px" align="right" title={t`利用率`} render={(_, __, data) => renderApplyTips(data, price)} />
-        </Table>
+        <Wrapper>
+            <Title>
+                <Flex justifyContent="space-between">
+                    <Font fontSize="20px"><Trans>市场信息</Trans></Font>
+                    {/* <div>仅显示自有资产</div> */}
+                </Flex>
+            </Title>
+            <Table dataSource={marketData} loading={marketStatus === MarketStatusEnums.LOADING}>
+                <TableColumn width="120px" title={t`资产`} dataKey="symbol" render={renderCoinIcon} />
+                <TableColumn width="120px" title={t`价格`} dataKey="price" render={(value) => renderPriceTips(value, price)} />
+                <TableColumn width="120px" title={t`供应 APY`} dataKey="supplyRate" render={renderRatioTips} />
+                <TableColumn width="120px" title={t`抵押因素`} dataKey="collateralFactor" render={renderRatioText} />
+                <TableColumn width="190px" title={t`Variable B. APY`} dataKey="borrowRateVariable" render={renderRatioTips} />
+                <TableColumn width="160px" title={t`Stable B. APY`} dataKey="borrowRateStable"
+                    render={(value, _, { stableBorrowRateEnabled }) =>
+                        stableBorrowRateEnabled ? renderRatioTips(value) : renderRatioDisabledTips(value)
+                    }
+                />
+                <TableColumn width="120px" title={t`市场规模`} dataKey="totalSupply" render={(_, __, data) => renderSupplyTips(data, price)} />
+                <TableColumn width="110px" align="right" title={t`利用率`} render={(_, __, data) => renderApplyTips(data, price)} />
+            </Table>
+        </Wrapper>
     </>
 }
 

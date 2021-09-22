@@ -35,7 +35,7 @@ export const useAddressAndABI = (key: ContractMapKey) => {
     return useMemo(() => chainId ? { address: address ? address[chainId] : "", abi } : {}, [chainId]);
 }
 
-export const useTokenAddress = (key: TokenMapKey | string | null) => {
+export const useTokenAddress = (key?: TokenMapKey | string | null) => {
     const { chainId } = useWeb3ReactCore();
 
     const addressMap = useMemo(() => key && tokenMap.hasOwnProperty(key) ? tokenMap[key] : null, [key]);

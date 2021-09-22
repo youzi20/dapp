@@ -15,7 +15,7 @@ import {
     updateLoanStatus
 } from '../../state/market';
 
-import { getFormatNumber, getRatio } from "../../utils";
+import { getFormatNumber } from "../../utils";
 
 export const useMarketData = () => {
     const dispatch = useAppDispatch();
@@ -113,9 +113,9 @@ export const useUserData = () => {
     }
 }
 
-export const useTokenPrice = (tokens?: string[]) => {
+export const useTokenPrice = (tokens?: string[] | string) => {
     const [loading, setLoading] = useState(false);
-    const [prices, setPrices] = useState();
+    const [prices, setPrices] = useState<string[]>();
 
     const marketAddress = useTokenAddress("AAVE_MARKET");
 
@@ -126,7 +126,7 @@ export const useTokenPrice = (tokens?: string[]) => {
         setLoading(true);
 
         try {
-            const prices = await marketInfoContract.getPrices(marketAddress, tokens);
+            const prices = await marketInfoContract.getPrices(marketAddress, tokens instanceof Array ? tokens : [tokens]);
 
             setPrices(prices.map((item: number) => getFormatNumber(item)));
             setLoading(false);

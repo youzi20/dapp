@@ -16,9 +16,6 @@ export const useEthBalances = () => {
         library
             .getBalance(account)
             .then((balance: any) => {
-
-                console.log("1", getFormatNumber(balance));
-
                 dispatch(updateETHBalances(getFormatNumber(balance)));
                 dispatch(updateBalancesStatus(WalletBalancesEnums.FINISH));
             })

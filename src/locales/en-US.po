@@ -63,7 +63,7 @@ msgstr "Stable"
 msgid "Stable B. APY"
 msgstr "Stable B. APY"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/SupplyPercentage.tsx
 msgid "Supply composition:"
 msgstr "Supply composition:"
 
@@ -101,6 +101,13 @@ msgstr "with"
 #: src/pages/Home/UserInfo.tsx
 msgid "为了使用应用的高级功能，您首先需要创建一个智能钱包 —— 您的个人智能合约钱包可以使用高级功能。<0/>请注意，使用智能钱包，您将无法与其他 app 兼容。"
 msgstr "In order to use our advanced Aave features you first need to create a Smart wallet - <0/>your personal smart contract wallet that will enable usage of advanced features. <0/>Please note that by using the Smart wallet you lose compatibility with other apps."
+
+#: src/pages/Home/BorrowPercentage.tsx
+#: src/pages/Home/SupplyPercentage.tsx
+#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/UserInfo.tsx
+msgid "之后"
+msgstr "After"
 
 #: src/pages/Home/Debt.tsx
 msgid "从Aave中借贷。在借款前您需要储蓄资产作为抵押物。"
@@ -229,7 +236,7 @@ msgstr "Increases debt to buy more collateral and add it to <0/> your supply in 
 msgid "安全比率 (最小值 100%):"
 msgstr "Safety ratio (min 100%):"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/BorrowPercentage.tsx
 msgid "已使用借款额度:"
 msgstr "Borrow power used:"
 
@@ -257,7 +264,8 @@ msgstr "Market info"
 msgid "市场规模"
 msgstr "Market size"
 
-#: src/pages/Home/LoanPercentage.tsx
+#: src/pages/Home/BorrowPercentage.tsx
+#: src/pages/Home/BorrowPercentage.tsx
 msgid "总计 ({value})"
 msgstr "Total ({value})"
 
@@ -387,7 +395,8 @@ msgstr "Borrow Balance:"
 msgid "贷款限额:"
 msgstr "Borrow Limit:"
 
-#: src/pages/Home/LoanPercentage.tsx
+#: src/pages/Home/BorrowPercentage.tsx
+#: src/pages/Home/BorrowPercentage.tsx
 msgid "贷款限额: {percentPrice} ({value})"
 msgstr "Borrow Limit: {percentPrice} ({value})"
 

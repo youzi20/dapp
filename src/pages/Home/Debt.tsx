@@ -8,18 +8,21 @@ import Modal from "../../components/Modal";
 import { useReload } from "../../hooks/contract/reload";
 import { useBorrow, usePayback } from '../../hooks/contract/handle';
 import { StatusEnums as TokenStatusEnums, useTokenBalances } from '../../hooks/contract/erc20';
+import { useReloadAfter, useDebtAfter } from "../../hooks/after";
 
 import { useUserInfo } from "../../state/user";
 import { useBorrowCoins, useBorrowMap, useCoinAddress, useTokenInfo } from '../../state/market';
 import { useState as useWalletState, WalletStatusEnums } from '../../state/wallet';
+import { useState as useAfterState } from '../../state/after';
 
 import { Font } from '../../styled';
+
+import { fullNumber } from "../../utils";
 import { WARNING_SVG } from "../../utils/images";
+import { HandleType } from "../../types";
 
 import Handle from "./Handle";
-
 import { TabPanelGrid, InputMax, SelectOptionItem, APYSelect } from './styled';
-import { fullNumber } from "../../utils";
 
 const WarnWrapper = styled.div`
 display: grid;
@@ -32,7 +35,7 @@ border-radius: 3px;
 background-color: rgba(242,201,76,0.3);
 `;
 
-export const Borrow = () => {
+export const Borrow = ({ handle }: { handle: HandleType }) => {
     const [token, setToken] = useState<string>();
     const [amount, setAmount] = useState<string>();
     const [loadingButton, setLoadingButton] = useState<boolean>();
@@ -40,12 +43,15 @@ export const Borrow = () => {
     const [apy, setApy] = useState<number>();
 
     const { price, stableBorrowRateEnabled } = useTokenInfo(token) ?? {};
-
     const { availableBorrowsETH } = useUserInfo() ?? {};
-
-    const borrowCoins = useBorrowCoins();
+    const borrowCoins = useBorrowCoins() ?? [];
 
     const address = useCoinAddress(token);
+    useDebtAfter(handle, amount, token, address);
+    const { type } = useAfterState();
+
+    const max = useMemo(() => availableBorrowsETH && price ? fullNumber(availableBorrowsETH / price) : "0", [availableBorrowsETH, price]);
+
     const borrow = useBorrow(address, amount, apy);
     const reload = useReload();
 
@@ -84,7 +90,9 @@ export const Borrow = () => {
         if (borrowCoins?.length && !token) setToken(borrowCoins[0]);
     }, [borrowCoins]);
 
-    const max = useMemo(() => availableBorrowsETH && price ? fullNumber(availableBorrowsETH / price) : "0", [availableBorrowsETH, price]);
+    useEffect(() => {
+        if (type !== handle) setAmount(undefined);
+    }, [type]);
 
     return <>
         <Handle
@@ -142,18 +150,22 @@ export const Borrow = () => {
 }
 
 
-export const Payback = () => {
-    const [token, setToken] = useState<string | null>(null);
+export const Payback = ({ handle }: { handle: HandleType }) => {
+    const [token, setToken] = useState<string>();
     const [amount, setAmount] = useState<string>();
     const [loadingButton, setLoadingButton] = useState<boolean>();
 
     const [symbol, apy] = token ? token.split("_") : [];
 
+    const address = useCoinAddress(symbol);
+    useDebtAfter(handle, amount, token, address);
+    const { type } = useAfterState();
+
     const borrowMap = useBorrowMap();
     const boorowCoins = useMemo(() => borrowMap ? Object.entries(borrowMap).map(([key, item]) => ({ value: key, name: item.symbol, loanType: item.loanType })) : [], [borrowMap]);
 
     const { status: ethStatus, balances: ethBalances } = useWalletState();
-    const { status: supplyStatus, balance: supplayBalances, reload: reloadTokenBalances } = useTokenBalances(symbol === "ETH" ? null : symbol);
+    const { status: supplyStatus, balance: supplayBalances, reload: reloadTokenBalances } = useTokenBalances(symbol === "ETH" ? undefined : symbol);
 
     const max = useMemo(() => {
         if (token == "ETH" && ethBalances) {
@@ -166,7 +178,6 @@ export const Payback = () => {
 
     const loading = token === "ETH" ? ethStatus === WalletStatusEnums.LOADING : supplyStatus === TokenStatusEnums.LOADING;
 
-    const address = useCoinAddress(symbol);
     const payback = usePayback(address, amount, apy ? Number(apy) - 1 : undefined);
     const reload = useReload();
 
@@ -199,6 +210,10 @@ export const Payback = () => {
         if (boorowCoins?.length && !token) setToken(boorowCoins[0].value);
     }, [boorowCoins]);
 
+    useEffect(() => {
+        if (type !== handle) setAmount(undefined);
+    }, [type]);
+
     return <Handle
         isAuthorize
         type="Payback"
@@ -222,9 +237,15 @@ export const Payback = () => {
 }
 
 const Debt = () => {
+    const reload = useReloadAfter();
+
+    useEffect(() => {
+        reload();
+    }, []);
+
     return <TabPanelGrid>
-        <Borrow />
-        <Payback />
+        <Borrow handle="Borrow" />
+        <Payback handle="Payback" />
     </TabPanelGrid>
 }
 

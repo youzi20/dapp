@@ -63,7 +63,7 @@ msgstr "Stable"
 msgid "Stable B. APY"
 msgstr "Stable B. APY"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/SupplyPercentage.tsx
 msgid "Supply composition:"
 msgstr "Supply composition:"
 
@@ -101,6 +101,13 @@ msgstr "与"
 #: src/pages/Home/UserInfo.tsx
 msgid "为了使用应用的高级功能，您首先需要创建一个智能钱包 —— 您的个人智能合约钱包可以使用高级功能。<0/>请注意，使用智能钱包，您将无法与其他 app 兼容。"
 msgstr "为了使用应用的高级功能，您首先需要创建一个智能钱包 —— 您的个人智能合约钱包可以使用高级功能。<0/>请注意，使用智能钱包，您将无法与其他 app 兼容。"
+
+#: src/pages/Home/BorrowPercentage.tsx
+#: src/pages/Home/SupplyPercentage.tsx
+#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/UserInfo.tsx
+msgid "之后"
+msgstr "之后"
 
 #: src/pages/Home/Debt.tsx
 msgid "从Aave中借贷。在借款前您需要储蓄资产作为抵押物。"
@@ -237,7 +244,7 @@ msgstr "在单笔交易中完成增加债务购买更多抵押品 <0/>并将其�
 msgid "安全比率 (最小值 100%):"
 msgstr "安全比率 (最小值 100%):"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/BorrowPercentage.tsx
 msgid "已使用借款额度:"
 msgstr "已使用借款额度:"
 
@@ -265,7 +272,8 @@ msgstr "市场信息"
 msgid "市场规模"
 msgstr "市场规模"
 
-#: src/pages/Home/LoanPercentage.tsx
+#: src/pages/Home/BorrowPercentage.tsx
+#: src/pages/Home/BorrowPercentage.tsx
 msgid "总计 ({value})"
 msgstr "总计 ({value})"
 
@@ -395,7 +403,8 @@ msgstr "贷款总额:"
 msgid "贷款限额:"
 msgstr "贷款限额:"
 
-#: src/pages/Home/LoanPercentage.tsx
+#: src/pages/Home/BorrowPercentage.tsx
+#: src/pages/Home/BorrowPercentage.tsx
 msgid "贷款限额: {percentPrice} ({value})"
 msgstr "贷款限额: {percentPrice} ({value})"
 

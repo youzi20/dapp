@@ -15,7 +15,7 @@ export enum StatusEnums {
     ERROR,
 }
 
-export const useTokenBalances = (token: TokenMapKey | string | null) => {
+export const useTokenBalances = (token?: TokenMapKey | string) => {
     const { account } = useWeb3ReactCore();
 
     const [status, setStaus] = useState<StatusEnums>(StatusEnums.FINISH);

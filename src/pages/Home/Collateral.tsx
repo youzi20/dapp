@@ -7,26 +7,32 @@ import { useReload } from "../../hooks/contract/reload";
 import { useDeposit, useWithdraw } from '../../hooks/contract/handle';
 import { StatusEnums as TokenStatusEnums, useTokenBalances } from '../../hooks/contract/erc20';
 
+import { useReloadAfter, useCollateralAfter } from "../../hooks/after";
+
 import { useUserInfo } from "../../state/user";
 import { useSupplyCoins, useSupplyMap, useCoinAddress } from '../../state/market';
 import { useState as useWalletState, WalletStatusEnums } from '../../state/wallet';
+import { useState as useAfterState } from '../../state/after';
 
 import { fullNumber, getWithdrawMax } from "../../utils";
+import { HandleType } from "../../types";
 
 import Handle from "./Handle";
-
 import { TabPanelGrid, InputMax } from './styled';
 
-export const Supply = () => {
-    const [token, setToken] = useState<string>("ETH");
+export const Supply = ({ handle }: { handle: HandleType }) => {
+    const [token, setToken] = useState<string>();
     const [amount, setAmount] = useState<string>();
     const [loadingButton, setLoadingButton] = useState<boolean>();
 
-    const supply = useSupplyCoins();
-    const supplyCoins = useMemo(() => supply?.length ? ["ETH", ...supply] : [], [supply])
+    const supplyCoins = useSupplyCoins() ?? [];
+
+    const address = useCoinAddress(token);
+    useCollateralAfter(handle, amount, token, address);
+    const { type } = useAfterState();
 
     const { status: ethStatus, balances: ethBalances } = useWalletState();
-    const { status: supplyStatus, balance: supplayBalances, reload: reloadTokenBalances } = useTokenBalances(token === "ETH" ? null : token);
+    const { status: supplyStatus, balance: supplayBalances, reload: reloadTokenBalances } = useTokenBalances(token === "ETH" ? undefined : token);
 
     const max = useMemo(() => {
         if (token == "ETH" && ethBalances) {
@@ -39,9 +45,8 @@ export const Supply = () => {
 
     const loading = token === "ETH" ? ethStatus === WalletStatusEnums.LOADING : supplyStatus === TokenStatusEnums.LOADING;
 
-    console.log(max, supplayBalances);
+    // console.log(max, supplayBalances);
 
-    const address = useCoinAddress(token);
     const deposit = useDeposit(address, amount);
     const reload = useReload();
 
@@ -70,9 +75,17 @@ export const Supply = () => {
         });
     }
 
+    useEffect(() => {
+        if (!token && supplyCoins?.length) setToken(supplyCoins[0]);
+    }, [supplyCoins]);
+
+    useEffect(() => {
+        if (type !== handle) setAmount(undefined);
+    }, [type]);
+
     return <Handle
         isAuthorize
-        type="Supply"
+        type={handle}
         max={max}
         labelText={<Trans>质押：</Trans>}
         labelTips={<Trans>储蓄您的资产开始赚取收益。</Trans>}
@@ -91,7 +104,7 @@ export const Supply = () => {
     />
 }
 
-const Withdraw = () => {
+const Withdraw = ({ handle }: { handle: HandleType }) => {
     const [token, setToken] = useState<string>();
     const [amount, setAmount] = useState<string>();
     const [loadingButton, setLoadingButton] = useState<boolean>();
@@ -99,11 +112,14 @@ const Withdraw = () => {
     const supplyMap = useSupplyMap();
     const supplyCoins = useMemo(() => supplyMap ? Object.keys(supplyMap) : [], [supplyMap]);
 
+    const address = useCoinAddress(token);
+    useCollateralAfter(handle, amount, token, address);
+    const { type } = useAfterState();
+
     const { totalCollateralETH, totalDebtETH } = useUserInfo() ?? {};
 
     const max = useMemo(() => supplyMap && token ? getWithdrawMax(supplyMap, token, totalCollateralETH, totalDebtETH) : "0", [supplyMap, token]);
 
-    const address = useCoinAddress(token);
     const withdraw = useWithdraw(address, amount);
     const reload = useReload();
 
@@ -132,13 +148,15 @@ const Withdraw = () => {
     }
 
     useEffect(() => {
-        if (supplyCoins?.length && !token) setToken(supplyCoins[0]);
+        if (!token && supplyCoins?.length) setToken(supplyCoins[0]);
     }, [supplyCoins]);
 
-    console.log("supplyMap", supplyMap);
+    useEffect(() => {
+        if (type !== handle) setAmount(undefined);
+    }, [type]);
 
     return <Handle
-        type="Withdraw"
+        type={handle}
         max={max}
         labelText={<Trans>减少质押：</Trans>}
         labelTips={<Trans>从您的Aave储蓄中提取资产。</Trans>}
@@ -158,9 +176,15 @@ const Withdraw = () => {
 }
 
 const Collateral = () => {
+    const reload = useReloadAfter();
+
+    useEffect(() => {
+        reload();
+    }, []);
+
     return <TabPanelGrid>
-        <Supply />
-        <Withdraw />
+        <Supply handle="Supply" />
+        <Withdraw handle="Withdraw" />
     </TabPanelGrid>
 }
 

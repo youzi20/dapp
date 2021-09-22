@@ -20,10 +20,9 @@ export const PercentageGraphConetnt = styled.div`
 position: relative;
 `;
 
-export const PercentageGraphWrapper = styled.div<{ height?: any }>`
+export const PercentageGraphWrapper = styled.div<{ size?: "lg" | "sm" }>`
 display: flex;
-height: ${({ height }) => height ?? "40px"};
-margin: 22px 0;
+${({ size }) => size === "sm" ? "height: 8px; margin-bottom: 22px;" : "height: 38px; margin: 22px 0;"}
 border-radius: 3px;
 background-color: var(--percentage-bg);
 overflow: hidden;
@@ -46,20 +45,18 @@ width: 100%;
 justify-content: space-between;
 `;
 
-export const PercentagePointWrapper = styled.div<{ left?: number, color: string }> `
+export const PercentagePointWrapper = styled.div<{ left?: number, size?: "lg" | "sm", color: string }> `
 position: absolute;
-top: 22px;
-left: ${({ left }) => left ? getRatio(left * 100) : ""};
+left: ${({ left }) => left || left === 0 ? getRatio(left * 100) : ""};
+${({ size }) => size === "sm" ? "height: 8px;" : "top: 22px; height: 42px;"}
 width: 4px;
-height: 42px;
-margin-left: -4px;
 background: ${({ color }) => color};
 cursor: pointer;
 
 span {
     position: absolute;
-    top: 42px;
-    right: 0;
+    ${({ size }) => size === "sm" ? "top: 10px;" : "top: 42px;"}
+    ${({ left }) => left === 0 ? "left: 0;" : "right: 0;"};
     font-weight: 700;
     font-size: 14px;
     color: ${({ color }) => color};

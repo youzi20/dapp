@@ -59,11 +59,13 @@ export const Grid = styled.div<{
     template?: string
     columGap?: string
     rowGap?: string
+    alignItems?: 'start' | 'end' | 'center' | 'baseline' | 'stretch'
 }>`
 display: ${({ inline }) => inline ? "inline-grid" : "grid"};
 ${({ template }) => template ? `grid-template-columns: ${template};` : ''}
 ${({ columGap }) => columGap ? `grid-column-gap: ${columGap};` : ''}
-${({ rowGap }) => rowGap ? `grid-row-gap: ${rowGap};` : ''}
+${({ rowGap }) => rowGap ? `grid-row-gap: ${rowGap};` : ''} 
+${({ alignItems }) => alignItems ? `align-items: ${alignItems};` : ''}
 `;
 
 

@@ -14,12 +14,12 @@ import { Font, Flex } from '../../styled';
 
 import { fullNumber, getHandleTheme } from "../../utils";
 
-import { HandleTheme } from "../../types";
+import { HandleType } from "../../types";
 
 import { HandleText, HandleWrapper, InputControl, SelectControl, SelectEmpty } from './styled';
 
 const Handle: React.FC<{
-    type: HandleTheme
+    type: HandleType
     max?: string
     labelText: string | React.ReactNode
     labelTips: string | React.ReactNode

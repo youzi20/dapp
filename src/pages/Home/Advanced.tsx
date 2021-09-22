@@ -12,6 +12,8 @@ import { useReload } from "../../hooks/contract/reload";
 import { useBoost, useRepay } from '../../hooks/contract/handle';
 import { useTokenPrice } from "../../hooks/contract/useMarketInfo";
 
+import { useReloadAfter, useAdvancedAfter } from "../../hooks/after";
+
 import { useUserInfo } from "../../state/user";
 import {
     useStableCoins,
@@ -21,10 +23,11 @@ import {
     useCoinAddressArray,
     useTokenInfo,
 } from '../../state/market';
+import { useState as useAfterState } from "../../state/after";
 
 import { Font, Flex } from '../../styled';
-import { numberRuler, fullNumber, getBoostMax, getRepayMax, getHandleTheme, numberDelimiter } from "../../utils";
-import { HandleTheme } from "../../types";
+import { numberDelimiter, numberRuler, fullNumber, getBoostMax, getRepayMax, getHandleTheme } from "../../utils";
+import { HandleType } from "../../types";
 
 
 import {
@@ -50,7 +53,7 @@ const SelectRender: React.FC<{
 }
 
 const Handle: React.FC<{
-    type: HandleTheme
+    type: HandleType
     max: string
     labelText: string | React.ReactNode
     labelTips: string | React.ReactNode
@@ -115,13 +118,13 @@ const Handle: React.FC<{
         const handleSelectChange = (value: any) => {
             setTokens(value);
             onSelectChange && onSelectChange(value);
-        }
+        };
 
         useEffect(() => {
             if (inputValue !== value) {
                 setValue(inputValue ?? null);
             }
-        }, [inputValue])
+        }, [inputValue]);
 
         useEffect(() => {
             if (!selectValue || selectValue[0] !== from || selectValue[1] !== to) {
@@ -191,10 +194,14 @@ const Handle: React.FC<{
         </div>
     }
 
-const Boost = () => {
+const Boost = ({ handle }: { handle: HandleType }) => {
     const [open, setOpen] = useState<boolean>(false);
     const [tokens, setTokens] = useState<string[]>();
     const [amount, setAmount] = useState<string>();
+
+    const tokenAddressArray = useCoinAddressArray(tokens);
+    useAdvancedAfter(handle, amount, tokens, tokenAddressArray);
+    const { type } = useAfterState();
 
     const stableCoins = useStableCoins() ?? [];
     const otherCoins = useOtherCoins() ?? [];
@@ -230,9 +237,13 @@ const Boost = () => {
         }
     }, [stableCoins, otherCoins]);
 
+    useEffect(() => {
+        if (type !== handle) setAmount(undefined);
+    }, [type]);
+
     return <>
         <Handle
-            type="Boost"
+            type={handle}
             max={max ?? "0"}
             labelText={<Trans>加杠杆：</Trans>}
             labelTips={<Trans>在单笔交易中完成增加债务购买更多抵押品 <br />并将其添加到储蓄中这三个步骤。</Trans>}
@@ -253,7 +264,7 @@ const Boost = () => {
 
         {open &&
             <BoostModal
-                {...{ open, amount, tokens, stable: stableBorrowRateEnabled }}
+                {...{ open, amount, tokens, tokenAddressArray, stable: stableBorrowRateEnabled }}
                 onClose={() => setOpen(false)}
                 onReload={handleReload}
             />}
@@ -264,23 +275,25 @@ const BoostModal: React.FC<{
     open: boolean
     amount?: string
     tokens?: string[]
+    tokenAddressArray?: string[]
     stable?: boolean
     onClose: () => void
     onReload: () => void
-}> = ({ open, amount, tokens, stable, onClose, onReload }) => {
+}> = ({ open, amount, tokens, tokenAddressArray, stable, onClose, onReload }) => {
     const [apy, setApy] = useState<number>();
     const [loading, setLoading] = useState<boolean>(false);
 
-    const [from, to] = tokens ?? [];
-
-    const tokenAddressArray = useCoinAddressArray(tokens);
-
     const { loading: priceLoading, prices } = useTokenPrice(tokenAddressArray);
 
-    const [fromPrice, toPrice] = prices ?? [];
+    const [from, to] = tokens ?? [];
+
+    let [fromPrice, toPrice]: (number | string)[] = prices ?? [];
 
     const tradeInfo = useMemo(() => {
         if (!fromPrice || !toPrice || !amount) return null;
+
+        fromPrice = Number(fromPrice);
+        toPrice = Number(toPrice);
 
         const amountNumber = Number(amount);
         const amountTips = numberDelimiter(amount);
@@ -362,8 +375,7 @@ const BoostModal: React.FC<{
     </Modal>
 }
 
-
-const Repay = () => {
+const Repay = ({ handle }: { handle: HandleType }) => {
     const [open, setOpen] = useState<boolean>(false);
     const [tokens, setTokens] = useState<(string)[]>();
     const [amount, setAmount] = useState<string>();
@@ -376,17 +388,16 @@ const Repay = () => {
 
     const [from, to] = tokens ?? [];
     const [symbol, apy] = to ? to.split("_") : [];
+    const tokenCopy = useMemo(() => [from, symbol], [from, symbol]);
+
+    const tokenAddressArray = useCoinAddressArray(tokenCopy);
+    useAdvancedAfter(handle, amount, tokens, tokenAddressArray);
+    const { type } = useAfterState();
 
     const fromToeknInfo = supplyMap?.[from];
     const toToeknInfo = borrowMap?.[to];
 
-    console.log("Repay", tokens, fromToeknInfo, toToeknInfo);
-
-    const max = useMemo(() =>
-        fromToeknInfo && toToeknInfo ?
-            getRepayMax(fromToeknInfo, toToeknInfo) :
-            undefined,
-        [fromToeknInfo, toToeknInfo]);
+    const max = useMemo(() => fromToeknInfo && toToeknInfo ? getRepayMax(fromToeknInfo, toToeknInfo) : undefined, [fromToeknInfo, toToeknInfo]);
 
     const reload = useReload();
 
@@ -402,14 +413,16 @@ const Repay = () => {
     }
 
     useEffect(() => {
-        if (!tokens && supplyCoins.length && boorowCoins.length) {
-            setTokens([supplyCoins[0], boorowCoins[0].value])
-        }
+        if (!tokens && supplyCoins.length && boorowCoins.length) setTokens([supplyCoins[0], boorowCoins[0].value]);
     }, [supplyCoins, boorowCoins]);
+
+    useEffect(() => {
+        if (type !== handle) setAmount(undefined);
+    }, [type]);
 
     return <>
         <Handle
-            type="Repay"
+            type={handle}
             max={max ?? "0"}
             labelText={<Trans>减杠杆：</Trans>}
             labelTips={<Trans>在单笔交易中完成取出储蓄抵押品<br />以购买借入资产并偿还债务三个步骤。</Trans>}
@@ -431,7 +444,7 @@ const Repay = () => {
 
         {open &&
             <RepayModal
-                {...{ open, amount, tokens: [from, symbol], apy }}
+                {...{ open, amount, tokens: [from, symbol], tokenAddressArray, apy }}
                 onClose={() => setOpen(false)}
                 onReload={handleReload}
             />}
@@ -443,21 +456,23 @@ const RepayModal: React.FC<{
     apy: string | null
     amount?: string
     tokens?: string[]
+    tokenAddressArray?: string[]
     onClose: () => void
     onReload: () => void
-}> = ({ open, tokens, apy, amount, onClose, onReload }) => {
+}> = ({ open, apy, amount, tokens, tokenAddressArray, onClose, onReload }) => {
     const [loading, setLoading] = useState<boolean>(false);
 
     const [from, to] = tokens ?? [];
 
-    const tokenAddressArray = useCoinAddressArray(tokens);
-
     const { loading: priceLoading, prices } = useTokenPrice(tokenAddressArray);
 
-    const [fromPrice, toPrice] = prices ?? [];
+    let [fromPrice, toPrice]: (number | string)[] = prices ?? [];
 
     const tradeInfo = useMemo(() => {
         if (!fromPrice || !toPrice || !amount) return null;
+
+        fromPrice = Number(fromPrice);
+        toPrice = Number(toPrice);
 
         const amountNumber = Number(amount);
         const amountTips = numberDelimiter(amount);
@@ -472,7 +487,7 @@ const RepayModal: React.FC<{
 
     const repay = useRepay(tokenAddressArray, amount, undefined, Number(apy) - 1);
 
-    console.log(priceLoading, fromPrice, toPrice, tradeInfo);
+    // console.log("RepayModal", priceLoading, fromPrice, toPrice, tradeInfo);
 
     const handle = () => {
         setLoading(true);
@@ -542,9 +557,15 @@ const RepayModal: React.FC<{
 }
 
 const Advanced = () => {
+    const reload = useReloadAfter();
+
+    useEffect(() => {
+        reload();
+    }, []);
+
     return <TabPanelGrid>
-        <Boost />
-        <Repay />
+        <Boost handle="Boost" />
+        <Repay handle="Repay" />
     </TabPanelGrid>
 }
 
