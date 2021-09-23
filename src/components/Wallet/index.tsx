@@ -11,7 +11,7 @@ import { WalletStatusEnums, useState as useWalletState, useETHBalances } from '.
 
 import { Font, Flex, Grid, DropWrapper, DropOption } from '../../styled'
 
-import { accountSplit, number2fixed } from '../../utils';
+import { accountSplit, numberToFixed } from '../../utils';
 
 import SUPPORTED_WALLETS from './options';
 
@@ -86,7 +86,7 @@ const WalletInfo: React.FC<{
 
                 {balances ?
                     <WalletAccount>
-                        <Font fontSize="12px" color="#939DA7">{number2fixed(balances) + " ETH"}</Font>
+                        <Font fontSize="12px" color="#939DA7">{numberToFixed(balances) + " ETH"}</Font>
                     </WalletAccount> : ""}
             </Flex>
         </Flex>

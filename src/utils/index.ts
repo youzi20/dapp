@@ -12,7 +12,7 @@ export function stringAndNumber(value: number | string): [string, number] {
 }
 
 export function getRatio(value?: number): string {
-    return (number2fixed(fullNumber(value), 2) ?? "0") + "%";
+    return (numberToFixed(fullNumber(value), 2) ?? "0") + "%";
 }
 
 export function getFormatNumber(value: number | string, unit?: Unit | number) {
@@ -59,7 +59,7 @@ export function numberRuler(value?: string | number) {
 
     const [amount, unit] = numberUnit(value);
 
-    return (number2fixed(amount) ?? "") + (unit ?? "");
+    return (numberToFixed(amount) ?? "") + (unit ?? "");
 }
 
 export function numberDelimiter(value?: string) {
@@ -85,7 +85,7 @@ export function numberDelimiter(value?: string) {
     }
 }
 
-export function number2fixed(value?: string | number, len?: number) {
+export function numberToFixed(value?: string | number, len?: number) {
     if (!value) return "0";
 
     if (typeof value === "number") value = String(value);
@@ -149,11 +149,11 @@ export function ethToPriceTips(count?: string | number, price?: number): string[
 
     const [countStr, countNum] = stringAndNumber(count);
 
-    if (!price) return [numberDelimiter(number2fixed(countStr)) ?? "", numberDelimiter(countStr) ?? "", "ETH"];
+    if (!price) return [numberDelimiter(numberToFixed(countStr)) ?? "", numberDelimiter(countStr) ?? "", "ETH"];
 
     const [priceStr, priceUnit] = ethToPrice(countNum, price);
 
-    return [numberDelimiter(number2fixed(priceStr)) ?? "", numberDelimiter(priceStr) ?? "", priceUnit];
+    return [numberDelimiter(numberToFixed(priceStr)) ?? "", numberDelimiter(priceStr) ?? "", priceUnit];
 }
 
 export function isAddress(value: any): string | false {

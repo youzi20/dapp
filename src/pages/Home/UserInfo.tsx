@@ -24,7 +24,7 @@ import { useState as useAfterState, useAfterUserInfo } from '../../state/after';
 
 import { Font, Flex, Grid, TextOverflowWrapper } from '../../styled';
 
-import { getRatio, ethToPriceTips, number2fixed, getHandleTheme } from '../../utils';
+import { getRatio, ethToPriceTips, numberToFixed, getHandleTheme } from '../../utils';
 
 import SupplyPercentage from './SupplyPercentage';
 import BorrowPercentage from './BorrowPercentage';
@@ -221,7 +221,7 @@ const Label = ({ text, tips }: LabelProps) => {
 const Ratio = ({ ratio }: { ratio: number | null }) => {
     return ratio ? <Tips text={ratio * 100}>
         <Flex>
-            <TextOverflowWrapper>{number2fixed(ratio * 100)}</TextOverflowWrapper>
+            <TextOverflowWrapper>{numberToFixed(ratio * 100)}</TextOverflowWrapper>
             <span>%</span>
         </Flex>
     </Tips> : <>-</>
