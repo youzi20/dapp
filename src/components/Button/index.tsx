@@ -29,7 +29,7 @@ button:not(:disabled):hover .button-box{
 const ThemeList = {
     primary: ["#37B06F", "#239C5B", "#1A4A30", "#89A998"],
     gray: ["#61717E", "#7F8F9C", "#61717E", "#89939D"],
-    buy: ["#318D70", "#25b98b", "#61717E", "#89939D"],
+    buy: ["#318D70", "#14bd88", "#61717E", "#89939D"],
     sell: ["#C26E5C", "#ca604a", "#61717E", "#89939D"],
 }
 

@@ -50,7 +50,7 @@ export function useMarketMap(): { [k: string]: any } | null {
 
         const data: { [k: string]: any } = {};
 
-        market.forEach((item: any) => {
+        [...market].sort((a, b) => b.totalSupply - a.totalSupply).forEach((item: any) => {
             const { symbol, ...other } = item;
 
             if (symbol === "WETH") {

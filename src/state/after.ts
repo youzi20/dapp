@@ -122,10 +122,12 @@ export function useAfterBorrowMap() {
 
         const { symbol, amount, price } = borrow;
 
+
+
         if (borrowMap[symbol]) {
             const { amount: borrowAmount, price: borrowPrice, priceETH: borrowPriceETH, ...other } = borrowMap[symbol];
 
-            const totalAmount = Number(amount) + (isAdd(type) ? 1 : -1) * Number(borrowAmount);
+            const totalAmount = Number(borrowAmount) + (isAdd(type) ? 1 : -1) * Number(amount);
 
             borrowMap[symbol] = {
                 price,
@@ -186,6 +188,67 @@ export function useAfterBorrowRatio() {
     }, [userInfo, borrowMap]);
 }
 
+export function useAfterSupply() {
+    const supplyMap = useSupplyMap();
+    const afterSupplyMap = useAfterSupplyMap();
+
+    const { type, supply } = useAppSelector((state: AppState) => state.after);
+
+    return useMemo(() => {
+        if (!type || !supplyMap || !afterSupplyMap || !supply) return null;
+
+        const { symbol } = supply;
+
+        if (supplyMap[symbol]) {
+            return {
+                ...supplyMap[symbol],
+                after: { ...afterSupplyMap[symbol] }
+            };
+        }
+
+        return {
+            ...afterSupplyMap[symbol],
+            amount: "0",
+            priceETH: "0",
+            after: { ...afterSupplyMap[symbol] }
+        };
+    }, [supplyMap, afterSupplyMap, type, supply]);
+}
+
+export function useAfterBorrow() {
+    const borrowMap = useBorrowMap();
+    const afterBorrowMap = useAfterBorrowMap();
+    const borrowRatio = useAfterBorrowRatio();
+
+    const { type, borrow } = useAppSelector((state: AppState) => state.after);
+
+    return useMemo(() => {
+        if (!type || !borrowMap || !afterBorrowMap || !borrow || !borrowRatio) return null;
+
+        const { symbol } = borrow;
+
+        let ratio = 0;
+
+        borrowRatio.forEach((item) => {
+            if (item.symbol === symbol) ratio = item.ratio;
+        });
+
+
+        if (borrowMap[symbol]) {
+            return {
+                ...borrowMap[symbol],
+                after: { ratio, ...afterBorrowMap[symbol] }
+            };
+        }
+
+        return {
+            ...afterBorrowMap[symbol],
+            amount: "0",
+            priceETH: "0",
+            after: { ratio, ...afterBorrowMap[symbol] }
+        };
+    }, [borrowMap, afterBorrowMap, borrowRatio, type, borrow]);
+}
 
 export function useState(): AfterState {
     return useAppSelector((state: AppState) => state.after);

@@ -11,8 +11,8 @@ export function stringAndNumber(value: number | string): [string, number] {
     return typeof value === "number" ? [String(value), value] : [value, Number(value)];
 }
 
-export function getRatio(value: number): string {
-    return (number2fixed(value, 2) ?? "0") + "%";
+export function getRatio(value?: number): string {
+    return (number2fixed(fullNumber(value), 2) ?? "0") + "%";
 }
 
 export function getFormatNumber(value: number | string, unit?: Unit | number) {
@@ -240,20 +240,15 @@ export function getWithdrawMax(supplyMap: any, token: string, totalCollateral: n
 }
 
 export function getHandleTheme(type?: HandleType) {
-    switch (type) {
-        case "Boost":
-            return "#318D70";
-        case "Repay":
-            return "#C26E5C";
-        case "Supply":
-            return "#318D70";
-        case "Withdraw":
-            return "#C26E5C";
-        case "Borrow":
-            return "#318D70";
-        case "Payback":
-            return "#C26E5C";
-        default:
-            return undefined;
-    }
+    if (!type) return;
+
+    if (["Boost", "Supply", "Borrow"].indexOf(type) >= 0) return "#14bd88";
+    if (["Repay", "Withdraw", "Payback"].indexOf(type) >= 0) return "#cc5e47";
+}
+
+export function getTableTheme(type?: HandleType) {
+    if (!type) return;
+
+    if (["Boost", "Supply", "Borrow"].indexOf(type) >= 0) return ["#1e5a48", "#14bd88"];
+    if (["Repay", "Withdraw", "Payback"].indexOf(type) >= 0) return ["#714238", "#cc5e47"];
 }

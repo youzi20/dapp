@@ -13,11 +13,11 @@ import {
     useSupplyMap,
     useBorrowMap
 } from '../../state/market';
-import { useAfterSupplyMap, useAfterBorrowMap } from '../../state/after';
+import { useState as useAfterState, useAfterSupply, useAfterBorrow } from '../../state/after';
 
 import { Font, Flex } from '../../styled';
 
-import { getRatio, numberDelimiter, numberRuler, fullNumber, ethToPriceTips, ethToPrice } from '../../utils';
+import { getRatio, numberDelimiter, numberRuler, fullNumber, ethToPriceTips, ethToPrice, getTableTheme } from '../../utils';
 
 import CoinIcon from './CoinIcon';
 
@@ -40,13 +40,13 @@ margin-bottom: 25px;
 const renderCoinIcon = (value: any) => <CoinIcon name={value} />;
 const renderRatioText = (value: number) => getRatio(value * 100);
 const renderAmountTips = ({ symbol, amount }: MarketInterface) => <Flex><Tips text={fullNumber(amount)} ><div>{numberRuler(amount)} {symbol}</div></Tips></Flex>;
+const renderPriceTips = (value: string, price?: number) => <Flex><TipsPrice price={ethToPriceTips(value, price)} /></Flex>;
 const renderRatioTips = (value: number) => {
     const ratio = value * 100;
 
     return <Flex><Tips text={fullNumber(ratio)} ><div>{getRatio(ratio)}</div></Tips></Flex>;
 };
 const renderRatioDisabledTips = (value: number) => <Flex><Tips text={t`不可用`} ><div style={{ opacity: 0.5 }}>{getRatio(value * 100)}</div></Tips></Flex>;
-const renderPriceTips = (value: string, price?: number) => <Flex><TipsPrice price={ethToPriceTips(value, price)} /></Flex>;
 const renderSupplyTips = ({ price: ethPrice, totalSupply }: MarketInterface, price?: number) => {
     const [priceStr, priceUnit] = ethToPrice(Number(ethPrice) * Number(totalSupply), price);
 
@@ -73,6 +73,9 @@ const renderApplyTips = ({ price: ethPrice, symbol, totalSupply, totalBorrow }: 
 const MarketInfo = () => {
     const { marketStatus, loanStatus } = useMatketState();
 
+    const { type, loading } = useAfterState();
+    const [bg, color] = useMemo(() => getTableTheme(type), [type]) ?? [];
+
     const price = useEthPrice();
 
     const marketMap = useMarketMap();
@@ -83,19 +86,24 @@ const MarketInfo = () => {
     const supplyData = useMemo(() => supplyMap ? Object.values(supplyMap) : null, [supplyMap]);
     const borrowData = useMemo(() => borrowMap ? Object.values(borrowMap) : null, [borrowMap]);
 
-    const afterSupplyMap = useAfterSupplyMap();
-    const afterBorrowMap = useAfterBorrowMap();
+    const afterSupply = useAfterSupply();
+    const afterBorrow = useAfterBorrow();
 
-
-    console.log("MarketInfo", marketData, supplyData, borrowData, afterSupplyMap, afterBorrowMap);
+    console.log("MarketInfo", marketData, supplyData, borrowData, afterSupply, afterBorrow);
 
     return <>
         {supplyData ? <Wrapper>
             <Title>
                 <Font fontSize="20px"><Trans>供应中</Trans></Font>
             </Title>
-            <Table dataSource={supplyData ?? []} loading={loanStatus === MarketStatusEnums.LOADING}>
-                <TableColumn width="196px" title={t`资产`} dataKey="symbol" render={renderCoinIcon} />
+            <Table
+                dataSource={supplyData ?? []}
+                afterSource={afterSupply}
+                afterBg={bg}
+                afterColor={color}
+                loading={loanStatus === MarketStatusEnums.LOADING}
+            >
+                <TableColumn first width="196px" title={t`资产`} dataKey="symbol" render={renderCoinIcon} />
                 <TableColumn width="168px" title={t`已供应`} render={(_, __, value) => renderAmountTips(value)} />
                 <TableColumn width="196px" title={t`已供应($)`} dataKey="priceETH" render={(value) => renderPriceTips(value, price)} />
                 <TableColumn width="190px" title={t`供应 APY`} dataKey="rate" render={renderRatioTips} />
@@ -108,8 +116,14 @@ const MarketInfo = () => {
             <Title>
                 <Font fontSize="20px"><Trans>贷款中</Trans></Font>
             </Title>
-            <Table dataSource={borrowData ?? []} loading={loanStatus === MarketStatusEnums.LOADING}>
-                <TableColumn width="140px" title={t`资产`} dataKey="symbol" render={renderCoinIcon} />
+            <Table
+                dataSource={borrowData ?? []}
+                afterSource={afterBorrow}
+                afterBg={bg}
+                afterColor={color}
+                loading={loanStatus === MarketStatusEnums.LOADING}
+            >
+                <TableColumn first width="140px" title={t`资产`} dataKey="symbol" render={renderCoinIcon} />
                 <TableColumn width="160px" title={t`已借贷`} render={(_, __, value) => renderAmountTips(value)} />
                 <TableColumn width="170px" title={t`已借贷($)`} dataKey="priceETH" render={(value) => renderPriceTips(value, price)} />
                 <TableColumn width="140px" title={t`贷款 APY`} dataKey="rate" render={renderRatioTips} />
