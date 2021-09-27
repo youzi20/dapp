@@ -8,5 +8,5 @@ yarn.lock
 package-lock.json
 
 
-home
-home.pub
+/home
+/home.pub
