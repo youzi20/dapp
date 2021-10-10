@@ -74,12 +74,17 @@ export function useSupplyMap(): { [k: string]: any } | null {
         const data: { [k: string]: any } = {};
 
         supply.forEach((item: any) => {
-            const { symbol } = item;
+            let { symbol, ...other } = item;
+
+            if (symbol === "WETH") {
+                symbol = "ETH";
+            }
 
             const { price, collateralFactor, liquidationRatio } = marketMap[symbol];
 
             data[symbol] = {
-                ...item,
+                ...other,
+                symbol,
                 price,
                 collateralFactor,
                 liquidationRatio,
@@ -178,13 +183,13 @@ export function useOtherCoins() {
     }, [marketMap]);
 }
 
-export function useCoinAddress(token?: string | null): string {
+export function useCoinAddress(token?: string | null, isAave?: boolean): string {
     const marketMap = useMarketMap();
 
     return useMemo(() => {
         if (!marketMap || !token) return;
 
-        if (token === "ETH") {
+        if (token === "ETH" && !isAave) {
             return "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
         }
 
@@ -241,8 +246,12 @@ export function useLiquidationInfo() {
     return useMemo(() => {
         if (!marketMap || !supplyMap) return null;
 
-        return Object.values(supplyMap).reduce(([borrowETH, liquidationETH], current) => {
-            const { symbol, priceETH } = current;
+        return Object.values(supplyMap).reduce((prev, current) => {
+            const [borrowETH, liquidationETH] = prev;
+            const { symbol, priceETH, usageAsCollateralEnableds } = current;
+
+            if (!usageAsCollateralEnableds) return prev;
+
             const { collateralFactor, liquidationRatio } = marketMap[symbol];
 
             return [borrowETH + priceETH * collateralFactor, liquidationETH + priceETH * liquidationRatio]

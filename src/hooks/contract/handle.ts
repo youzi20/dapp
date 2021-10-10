@@ -8,6 +8,50 @@ import { useWeb3ReactCore } from "../wallet";
 import { useAddress } from "../../state/user";
 import { getWei, abiEncode } from '../../utils';
 
+export const useEnabled = (aaveAddress: string, enabled: boolean) => {
+    const address = useAddress();
+
+    const marketAddress = useTokenAddress("AAVE_MARKET");
+    const smartWalletContract = useSmartWalletContract(address);
+
+    const { address: USER_HANDLE_ADDRESS, abi: USER_HANDLE_ABI } = useAddressAndABI("USER_HANDLE");
+
+    const userHandleEnabledEncode = useFuncEncode(USER_HANDLE_ABI, "setUserUseReserveAsCollateral", aaveAddress ? [marketAddress, aaveAddress, enabled] : []);
+
+    return () => {
+        if (!smartWalletContract) return;
+
+        try {
+            return smartWalletContract.execute(USER_HANDLE_ADDRESS, userHandleEnabledEncode);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+}
+
+export const useSwapRate = (aaveAddress: string, borrowRate: number) => {
+    const address = useAddress();
+
+    const marketAddress = useTokenAddress("AAVE_MARKET");
+    const smartWalletContract = useSmartWalletContract(address);
+
+    const { address: USER_HANDLE_ADDRESS, abi: USER_HANDLE_ABI } = useAddressAndABI("USER_HANDLE");
+
+    const userHandleSwapRateEncode = useFuncEncode(USER_HANDLE_ABI, "swapBorrowRateMode", aaveAddress ? [marketAddress, aaveAddress, borrowRate] : []);
+
+    return () => {
+        if (!smartWalletContract) return;
+
+        try {
+            return smartWalletContract.execute(USER_HANDLE_ADDRESS, userHandleSwapRateEncode);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+}
+
+
+
 const offchainData = ["0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", 0, 0, 0];
 
 export const useBoost = (tokenAddressArray?: string[], amount?: string, minPrice?: string, apy?: number) => {

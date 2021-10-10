@@ -215,7 +215,7 @@ const Boost = ({ handle }: { handle: HandleType }) => {
 
     const max = useMemo(() =>
         availableBorrowsETH && collateralFactor && price ?
-            fullNumber(getBoostMax(Number(availableBorrowsETH), Number(collateralFactor), true) / price) : undefined,
+            fullNumber(getBoostMax(Number(availableBorrowsETH), Number(collateralFactor), true) / price) : "0",
         [availableBorrowsETH, collateralFactor, price]);
 
     const reload = useReload();
@@ -386,18 +386,18 @@ const Repay = ({ handle }: { handle: HandleType }) => {
     const supplyCoins = useMemo(() => supplyMap ? Object.keys(supplyMap) : [], [supplyMap]);
     const boorowCoins = useMemo(() => borrowMap ? Object.entries(borrowMap).map(([key, item]) => ({ value: key, name: item.symbol, loanType: item.loanType })) : [], [borrowMap]);
 
-    const [from, to] = tokens ?? [];
-    const [symbol, apy] = to ? to.split("_") : [];
-    const tokenCopy = useMemo(() => [from, symbol], [from, symbol]);
+    const [from, symbol] = tokens ?? [];
+    const [to, apy] = symbol ? symbol.split("_") : [];
+    const tokenCopy = useMemo(() => [from, to], [from, to]);
 
     const tokenAddressArray = useCoinAddressArray(tokenCopy);
     useAdvancedAfter(handle, amount, tokens, tokenAddressArray);
     const { type } = useAfterState();
 
     const fromToeknInfo = supplyMap?.[from];
-    const toToeknInfo = borrowMap?.[to];
+    const toToeknInfo = borrowMap?.[symbol];
 
-    const max = useMemo(() => fromToeknInfo && toToeknInfo ? getRepayMax(fromToeknInfo, toToeknInfo) : undefined, [fromToeknInfo, toToeknInfo]);
+    const max = useMemo(() => fromToeknInfo && toToeknInfo ? getRepayMax(fromToeknInfo, toToeknInfo) : "0", [fromToeknInfo, toToeknInfo]);
 
     const reload = useReload();
 
@@ -413,8 +413,12 @@ const Repay = ({ handle }: { handle: HandleType }) => {
     }
 
     useEffect(() => {
-        if (!tokens && supplyCoins.length && boorowCoins.length) setTokens([supplyCoins[0], boorowCoins[0].value]);
-    }, [supplyCoins, boorowCoins]);
+        if (!from && supplyCoins.length) setTokens([supplyCoins[0], symbol]);
+    }, [supplyCoins]);
+
+    useEffect(() => {
+        if (!symbol && boorowCoins.length) setTokens([from, boorowCoins[0].value]);
+    }, [boorowCoins]);
 
     useEffect(() => {
         if (type !== handle) setAmount(undefined);
@@ -426,7 +430,7 @@ const Repay = ({ handle }: { handle: HandleType }) => {
             max={max ?? "0"}
             labelText={<Trans>减杠杆：</Trans>}
             labelTips={<Trans>在单笔交易中完成取出储蓄抵押品<br />以购买借入资产并偿还债务三个步骤。</Trans>}
-            leftText={tokens ? t`Withdraw ${from} ${from === symbol ? "" : "→ Swap"} → Payback ${symbol}` : ""}
+            leftText={tokens ? t`Withdraw ${from} ${from === to ? "" : "→ Swap"} → Payback ${to}` : ""}
             rightText={<InputMax max={max} />}
             coins={[supplyCoins, boorowCoins]}
             selectText={[t`减少质押`, t`还币`]}
@@ -444,7 +448,7 @@ const Repay = ({ handle }: { handle: HandleType }) => {
 
         {open &&
             <RepayModal
-                {...{ open, amount, tokens: [from, symbol], tokenAddressArray, apy }}
+                {...{ open, amount, tokens: [from, to], tokenAddressArray, apy }}
                 onClose={() => setOpen(false)}
                 onReload={handleReload}
             />}
@@ -530,29 +534,39 @@ const RepayModal: React.FC<{
         </Font>
 
         <br />
-        {!priceLoading && tradeInfo ?
+        {from !== to ?
+            !priceLoading && tradeInfo ?
+                <>
+                    <Font fontSize="14px" color="#939DA7">
+                        <Trans>还款中</Trans>
+                    </Font>
+
+                    <Font fontSize="30px"><Tips text={fullNumber(tradeInfo.tokenCount)}><span>{numberRuler(tradeInfo.tokenCount)} {to}</span></Tips></Font>
+
+                    <Font fontSize="14px" color="#939DA7">
+                        <Trans>与&nbsp;</Trans>
+
+                        <Tips text={tradeInfo.amountTips}><span> {tradeInfo.amountCount} {from} </span></Tips>
+
+                        <Trans>&nbsp;按价格&nbsp;</Trans>
+
+                        <Tips text={`${tradeInfo.fromCount} ${from}/${to} = ${tradeInfo.toCount} ${to}/${from}`}><span> {tradeInfo.fromCount} {from + "/" + to} </span></Tips>
+                    </Font>
+                    <Font fontSize="14px" color="#939DA7">
+                        <Tips text={<Trans>If debt is fully paid off by Repay, the remainder of the <br /> Repay amount will be returned to your wallet as DAI</Trans>}>
+                            <span><Trans>(Remainder of collateral will be returned as {to})</Trans></span>
+                        </Tips>
+                    </Font>
+                </> :
+                <EmptyLoading /> :
             <>
                 <Font fontSize="14px" color="#939DA7">
                     <Trans>还款中</Trans>
                 </Font>
 
-                <Font fontSize="30px"><Tips text={fullNumber(tradeInfo.tokenCount)}><span>{numberRuler(tradeInfo.tokenCount)} {to}</span></Tips></Font>
-
-                <Font fontSize="14px" color="#939DA7">
-                    <Trans>与&nbsp;</Trans>
-
-                    <Tips text={tradeInfo.amountTips}><span> {tradeInfo.amountCount} {from} </span></Tips>
-
-                    <Trans>&nbsp;按价格&nbsp;</Trans>
-
-                    <Tips text={`${tradeInfo.fromCount} ${from}/${to} = ${tradeInfo.toCount} ${to}/${from}`}><span> {tradeInfo.fromCount} {from + "/" + to} </span></Tips>
-                </Font>
-                <Font fontSize="14px" color="#939DA7">
-                    <Tips text={<Trans>If debt is fully paid off by Repay, the remainder of the <br /> Repay amount will be returned to your wallet as DAI</Trans>}>
-                        <span><Trans>(Remainder of collateral will be returned as {to})</Trans></span>
-                    </Tips>
-                </Font>
-            </> : <EmptyLoading />}
+                <Font fontSize="30px"><Tips text={fullNumber(amount)}><span>{numberRuler(amount)} {to}</span></Tips></Font>
+            </>
+        }
     </Modal>
 }
 

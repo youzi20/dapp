@@ -71,6 +71,14 @@ msgstr "Supply composition:"
 msgid "This asset is unsupported for stable rate borrow"
 msgstr "This asset is unsupported for stable rate borrow"
 
+#: src/pages/Home/MarketInfo.tsx
+msgid "To stable"
+msgstr "To stable"
+
+#: src/pages/Home/MarketInfo.tsx
+msgid "To variable"
+msgstr "To variable"
+
 #: src/pages/Home/UserInfo.tsx
 msgid "Value of borrowed funds above which your position will face liquidation."
 msgstr "Value of borrowed funds above which your position will face liquidation."
@@ -85,9 +93,13 @@ msgstr "Variable"
 msgid "Variable B. APY"
 msgstr "Variable B. APY"
 
+#: 
+#~ msgid "Withdraw {from} {0} → Payback {symbol}"
+#~ msgstr "Withdraw {from} {0} → Payback {symbol}"
+
 #: src/pages/Home/Advanced.tsx
-msgid "Withdraw {from} {0} → Payback {symbol}"
-msgstr "Withdraw {from} {0} → Payback {symbol}"
+msgid "Withdraw {from} {0} → Payback {to}"
+msgstr "Withdraw {from} {0} → Payback {to}"
 
 #: src/pages/Home/MarketInfo.tsx
 msgid "不可用"
@@ -148,6 +160,10 @@ msgstr "债务"
 #: src/pages/Home/Control.tsx
 msgid "做多"
 msgstr "做多"
+
+#: src/pages/Home/MarketInfo.tsx
+msgid "停用"
+msgstr "停用"
 
 #: src/pages/Home/UserInfo.tsx
 msgid "储蓄余额:"
@@ -232,6 +248,10 @@ msgstr "加载中~"
 #: src/components/Modal/index.tsx
 msgid "取消"
 msgstr "取消"
+
+#: src/pages/Home/MarketInfo.tsx
+msgid "启用"
+msgstr "启用"
 
 #: src/pages/Home/Advanced.tsx
 msgid "在单笔交易中完成取出储蓄抵押品<0/>以购买借入资产并偿还债务三个步骤。"
@@ -322,6 +342,8 @@ msgstr "授权成功"
 #: src/pages/Home/Collateral.tsx
 #: src/pages/Home/Debt.tsx
 #: src/pages/Home/Debt.tsx
+#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/MarketInfo.tsx
 msgid "操作成功"
 msgstr "操作成功"
 

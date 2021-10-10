@@ -110,7 +110,7 @@ export function numberToFixed(value?: string | number, len?: number) {
 }
 
 export function fullNumber(value?: string | number, exact?: boolean) {
-    if (!value) return;
+    if (!value && value !== 0) return;
 
     const [valueStr, valueNum] = stringAndNumber(value);
 
@@ -215,8 +215,10 @@ export function getBoostMax(value: number, ratio: number, isFirst?: boolean): nu
 }
 
 export function getRepayMax(from: any, to: any) {
-    const { priceETH: fromEthPrice, amount: fromAmount, price } = from;
-    const { priceETH: toEthPrice } = to;
+    const { symbol: fromSymbol, priceETH: fromEthPrice, amount: fromAmount, price } = from;
+    const { symbol: toSymbol, priceETH: toEthPrice, amount: toAmount, } = to;
+
+    if (fromSymbol === toSymbol) return fromAmount - toAmount > 0 ? toAmount : fromAmount;
 
     if (fromEthPrice <= toEthPrice) return fromAmount;
 

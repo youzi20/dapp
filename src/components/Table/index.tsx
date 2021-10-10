@@ -17,6 +17,7 @@ type TextAlign = "left" | "center" | "right";
 
 interface TableColumnProps {
     first?: boolean
+    hidden?: boolean
     title?: string
     dataKey?: string
     width?: string
@@ -112,7 +113,7 @@ export const TableAfter = styled.div<{ bg?: string, border?: string }>`
 `;
 
 export const TableColumn: React.FC<TableColumnProps> = (props) => {
-    const { first, title, dataKey, width, align, render } = props;
+    const { first, hidden, title, dataKey, width, align, render } = props;
     const { header, item, index, after } = useContext<TableContextProps>(TableContext);
 
     if (header) {
@@ -120,6 +121,8 @@ export const TableColumn: React.FC<TableColumnProps> = (props) => {
             <Font color="rgba(255,255,255,0.8)" fontSize="14px" fontWeight="500">{title}</Font>
         </TableColumnWrapper>
     };
+
+    if (hidden && after) return <TableColumnWrapper {...{ width, align }}></TableColumnWrapper>;
 
     if (first && after) return <TableColumnWrapper {...{ width, align }}><Trans>之后</Trans>：</TableColumnWrapper>;
 

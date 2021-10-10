@@ -14,6 +14,19 @@
     },
     {
         "inputs": [],
+        "name": "AAVE_Loan_Info",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "name": "AAVE_MARKET_ID",
         "outputs": [
             {
@@ -53,6 +66,19 @@
     },
     {
         "inputs": [],
+        "name": "AAVE_RECEIVER2",
+        "outputs": [
+            {
+                "internalType": "address payable",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "name": "AAVE_REFERRAL_CODE",
         "outputs": [
             {
@@ -72,6 +98,19 @@
                 "internalType": "address",
                 "name": "",
                 "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "AUTOMATIC_FULL_SERVICE_FEE",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
             }
         ],
         "stateMutability": "view",
@@ -910,6 +949,11 @@
                         "internalType": "uint256",
                         "name": "ltv",
                         "type": "uint256"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "usageAsCollateralEnableds",
+                        "type": "bool"
                     }
                 ],
                 "internalType": "struct AaveLoanInfoV2.UserLoanData[]",
@@ -918,6 +962,56 @@
             }
         ],
         "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "nullAddress",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "enum AaveHelperV2.OptionEnum",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "name": "optionMap",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "enum AaveHelperV2.OptionEnum",
+                "name": "_option",
+                "type": "uint8"
+            },
+            {
+                "internalType": "bool",
+                "name": "_flag",
+                "type": "bool"
+            }
+        ],
+        "name": "setOptionMap",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     }
 ]

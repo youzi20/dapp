@@ -67,7 +67,7 @@ export const UNISWAP_WRAPPER = {
     [SupportedChainId.KOVAN]: "0x7994f28499c0f7226E21D4827D5DD4158F816230",
 }
 
-export const MARKET_ADDRESS = constructSameAddressMap('0x662328eEdA8A5Cb019587081e898E35D70512262');
+export const MARKET_ADDRESS = constructSameAddressMap('0xe46c50F1Abb4bc821ee80A79AeBC34d9092b1c6B');
 export const USER_INFO_ADDRESS = constructSameAddressMap('0x64A436ae831C1672AE81F674CAb8B6775df3475C');
 export const USER_HANDLE_ADDRESS = constructSameAddressMap('0x1389E35b1830c7B258B18875D8c4B5C03c391f51');
 export const USER_HANDLE_OTHER_ADDRESS = constructSameAddressMap('0x19d29022d94b191372445e0485b5f1b7130dd0E4');

@@ -3,13 +3,15 @@ import styled from 'styled-components';
 import ButtonUi from '@material-ui/core/Button';
 import { LoadingIcon } from '../Icon';
 
-const ButtonWrapper = styled.div<{ theme: string[] }>`
+const ButtonWrapper = styled.div<{ theme: string[], size?: "lg" | "default" | "sm" }>`
 .button-box {
     display: flex;
     align-items: center;
+    justify-content: center;
+    width: 100%;
     color: #fff;
     line-height: 16px;
-    padding: 14px 32px;
+    ${({ size }) => size === "sm" ? "padding: 7px 15px;" : "padding: 14px 32px;"}
     border-radius: 3px;
     background-color: ${({ theme }) => theme[0]};
     transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -34,14 +36,15 @@ const ThemeList = {
 }
 
 const Button: React.FC<{
+    theme: "primary" | "gray" | "buy" | "sell"
+    size?: "lg" | "default" | "sm"
     disabled?: boolean
     loading?: boolean
-    theme: "primary" | "gray" | "buy" | "sell"
     style?: any
     onClick?: () => void
-}> = ({ theme, children, disabled, loading, ...other }) => {
+}> = ({ theme, size, children, disabled, loading, ...other }) => {
 
-    return <ButtonWrapper className="button-wrap" theme={ThemeList[theme]}>
+    return <ButtonWrapper className="button-wrap" theme={ThemeList[theme]} size={size}>
         <ButtonUi {...other} disabled={disabled || loading}  >
             <div className="button-box">
                 {loading ? <LoadingIcon fontSize="14px" color="#89939D" style={{ marginRight: 4 }} /> : null}

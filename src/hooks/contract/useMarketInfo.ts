@@ -83,16 +83,17 @@ export const useUserData = () => {
             const ratio = await marketInfoContract.getRatio(marketAddress, address);
 
             const data = loan.filter((item: any) => item.symbol).map((
-                { amount, priceETH, rate, loanType, symbol }: any
+                { amount, symbol, priceETH, rate, loanType, usageAsCollateralEnableds }: any
             ) => ({
                 loanType,
+                usageAsCollateralEnableds,
                 symbol: symbol.toLocaleUpperCase(),
                 amount: getFormatNumber(amount),
                 priceETH: getFormatNumber(priceETH),
                 rate: getFormatNumber(rate, 27),
             }));
 
-            console.log("use", data);
+            console.log("use", loan, data);
 
             const { totalCollateralETH, totalDebtETH, availableBorrowsETH, currentLiquidationThreshold, healthFactor } = account;
 
@@ -122,7 +123,8 @@ export const useTokenPrice = (tokens?: string[] | string) => {
     const marketInfoContract = useMarketContract();
 
     const getTokenPrice = async () => {
-        if (!marketInfoContract || !tokens?.length) return;
+        if (!marketInfoContract || !tokens || (tokens instanceof Array && !tokens.every(item => item))) return;
+
         setLoading(true);
 
         try {

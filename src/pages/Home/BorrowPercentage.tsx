@@ -9,7 +9,7 @@ import { useState as useAfterState, useAfterBorrowRatio, useAfterUserInfo } from
 
 import { Font } from '../../styled';
 
-import { getRatio, numberRuler, ethToPrice, fullNumber, numberToFixed } from '../../utils';
+import { getRatio, numberRuler, ethToPrice, numberToFixed } from '../../utils';
 
 import {
     PercentageGraphConetnt,

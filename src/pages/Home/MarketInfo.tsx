@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import { Trans, t } from '@lingui/macro';
 
+import Button from '../../components/Button';
 import Tips, { TipsPrice } from '../../components/Tips';
 import Table, { TableColumn } from '../../components/Table';
+import { message } from '../../components/Message';
 
 import {
     MarketStatusEnums,
@@ -11,9 +13,13 @@ import {
     useEthPrice,
     useMarketMap,
     useSupplyMap,
-    useBorrowMap
+    useBorrowMap,
+    useCoinAddress
 } from '../../state/market';
 import { useState as useAfterState, useAfterSupply, useAfterBorrow } from '../../state/after';
+
+import { useEnabled, useSwapRate } from '../../hooks/contract/handle';
+import { useReload } from '../../hooks/contract/reload';
 
 import { Font, Flex } from '../../styled';
 
@@ -70,6 +76,92 @@ const renderApplyTips = ({ price: ethPrice, symbol, totalSupply, totalBorrow }: 
     </Flex>
 };
 
+const EnabledSupply = ({ symbol, amount, usageAsCollateralEnableds }: { symbol: string, amount: string, usageAsCollateralEnableds: boolean }) => {
+    const [loading, setLoading] = useState<boolean>(false);
+    const address = useCoinAddress(symbol, true);
+
+    const reload = useReload();
+    const enabled = useEnabled(address, !usageAsCollateralEnableds);
+
+    const onClick = () => {
+        setLoading(true);
+
+        enabled().then((res: any) => {
+            console.log(res);
+
+            res.wait().then((res: any) => {
+                console.log(res);
+                message.success(t`操作成功`);
+
+                reload();
+                setLoading(false);
+            }).catch((error: any) => {
+                setLoading(false);
+                message.error(error.message);
+                console.error(error);
+            });
+        }).catch((error: any) => {
+            setLoading(false);
+            message.error(error.message);
+            console.error(error);
+        });
+    }
+
+    return <Button disabled={amount === "0"} loading={loading} theme="gray" size="sm" onClick={onClick}>
+        {usageAsCollateralEnableds ?
+            <Trans>停用</Trans> :
+            <Trans>启用</Trans>}
+    </Button>
+}
+
+const renderEnabledSupply = ({ symbol, amount, usageAsCollateralEnableds }: { symbol: string, amount: string, usageAsCollateralEnableds: boolean }) => {
+    return <EnabledSupply {...{ symbol, amount, usageAsCollateralEnableds }} />
+}
+
+const ChangeRate = ({ symbol, amount, loanType }: { symbol: string, amount: string, loanType: number }) => {
+    const [loading, setLoading] = useState<boolean>(false);
+    const address = useCoinAddress(symbol, true);
+
+    const reload = useReload();
+    const swapRate = useSwapRate(address, loanType === 2 ? 2 : 1);
+
+    const onClick = () => {
+        setLoading(true);
+
+        swapRate().then((res: any) => {
+            console.log(res);
+
+            res.wait().then((res: any) => {
+                console.log(res);
+                message.success(t`操作成功`);
+
+                reload();
+                setLoading(false);
+            }).catch((error: any) => {
+                setLoading(false);
+                message.error(error.message);
+                console.error(error);
+            });
+        }).catch((error: any) => {
+            setLoading(false);
+            message.error(error.message);
+            console.error(error);
+        });
+    }
+
+    return <Button disabled={amount === "0"} loading={loading} theme="gray" size="sm" onClick={onClick} style={{ width: 150 }}>
+        {loanType === 2 ?
+            <Trans>To variable</Trans> :
+            <Trans>To stable</Trans>}
+    </Button>
+}
+
+const renderChangeRate = ({ symbol, amount, loanType }: { symbol: string, amount: string, loanType: number }) => {
+
+    return <ChangeRate {...{ symbol, amount, loanType }} />
+}
+
+
 const MarketInfo = () => {
     const { marketStatus, loanStatus } = useMatketState();
 
@@ -108,7 +200,7 @@ const MarketInfo = () => {
                 <TableColumn width="196px" title={t`已供应($)`} dataKey="priceETH" render={(value) => renderPriceTips(value, price)} />
                 <TableColumn width="190px" title={t`供应 APY`} dataKey="rate" render={renderRatioTips} />
                 <TableColumn width="120px" title={t`抵押因素`} dataKey="collateralFactor" render={renderRatioText} />
-                <TableColumn width="100px" align="right" title={t`抵押物`} />
+                <TableColumn hidden width="100px" align="right" title={t`抵押物`} render={(_, __, data) => renderEnabledSupply(data)} />
             </Table>
         </Wrapper> : ""}
 
@@ -127,8 +219,8 @@ const MarketInfo = () => {
                 <TableColumn width="160px" title={t`已借贷`} render={(_, __, value) => renderAmountTips(value)} />
                 <TableColumn width="170px" title={t`已借贷($)`} dataKey="priceETH" render={(value) => renderPriceTips(value, price)} />
                 <TableColumn width="140px" title={t`贷款 APY`} dataKey="rate" render={renderRatioTips} />
-                <TableColumn width="160px" title={t`Interest Rate`} dataKey="loanType" render={(value) => value === 2 ? t`Stable` : t`Variable`} />
-                <TableColumn width="190px" title={t`Change interest rate`} />
+                <TableColumn hidden width="160px" title={t`Interest Rate`} dataKey="loanType" render={(value) => value === 2 ? t`Stable` : t`Variable`} />
+                <TableColumn hidden width="190px" title={t`Change interest rate`} render={(_, __, data) => renderChangeRate(data)} />
                 <TableColumn width="100px" align="right" title={t`限制`} dataKey="ratio" render={renderRatioText} />
             </Table>
         </Wrapper> : ""}

@@ -71,6 +71,14 @@ msgstr "Supply composition:"
 msgid "This asset is unsupported for stable rate borrow"
 msgstr "This asset is unsupported for stable rate borrow"
 
+#: src/pages/Home/MarketInfo.tsx
+msgid "To stable"
+msgstr ""
+
+#: src/pages/Home/MarketInfo.tsx
+msgid "To variable"
+msgstr ""
+
 #: src/pages/Home/UserInfo.tsx
 msgid "Value of borrowed funds above which your position will face liquidation."
 msgstr "Value of borrowed funds above which your position will face liquidation."
@@ -85,8 +93,12 @@ msgstr "Variable"
 msgid "Variable B. APY"
 msgstr "Variable B. APY"
 
+#: 
+#~ msgid "Withdraw {from} {0} → Payback {symbol}"
+#~ msgstr ""
+
 #: src/pages/Home/Advanced.tsx
-msgid "Withdraw {from} {0} → Payback {symbol}"
+msgid "Withdraw {from} {0} → Payback {to}"
 msgstr ""
 
 #: src/pages/Home/MarketInfo.tsx
@@ -148,6 +160,10 @@ msgstr "Bebt"
 #: src/pages/Home/Control.tsx
 msgid "做多"
 msgstr "Bullish"
+
+#: src/pages/Home/MarketInfo.tsx
+msgid "停用"
+msgstr ""
 
 #: src/pages/Home/UserInfo.tsx
 msgid "储蓄余额:"
@@ -224,6 +240,10 @@ msgstr "Loading"
 #: src/components/Modal/index.tsx
 msgid "取消"
 msgstr "Cancel"
+
+#: src/pages/Home/MarketInfo.tsx
+msgid "启用"
+msgstr ""
 
 #: src/pages/Home/Advanced.tsx
 msgid "在单笔交易中完成取出储蓄抵押品<0/>以购买借入资产并偿还债务三个步骤。"
@@ -314,6 +334,8 @@ msgstr "Approve Success"
 #: src/pages/Home/Collateral.tsx
 #: src/pages/Home/Debt.tsx
 #: src/pages/Home/Debt.tsx
+#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/MarketInfo.tsx
 msgid "操作成功"
 msgstr ""
 
