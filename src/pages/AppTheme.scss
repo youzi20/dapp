@@ -36,6 +36,7 @@ body.base {
 
     --handle-bg    : transparent;
     --handle-border: #61717E;
+    --handle-error-border: #EB5757;
     --handle-empty : #61717E;
 
     --select              : transparent;
@@ -87,6 +88,8 @@ body.theme1 {
 
     --handle-bg    : rgb(35 24 21 / 33%);
     --handle-border: rgb(255 255 255 / 25%);
+    --handle-error-border: rgb(215 77 63);
+    --handle-error-bg: rgb(215 77 63 / 45%);
     --handle-empty : #61717E;
 
     --select              : transparent;

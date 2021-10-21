@@ -48,6 +48,14 @@ export const useUserHandleOtherContract = () => {
     return useContract("USER_HANDLE_OTHER");
 }
 
+export const useSaverContract = () => {
+    return useContract("SAVER");
+}
+
+export const useSaverInfoContract = () => {
+    return useContract("SAVER_INFO");
+}
+
 export const useSmartWalletContract = (address: string | null) => {
     return useContract("SMART_WALLET", address);
 }

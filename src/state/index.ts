@@ -4,6 +4,7 @@ import { save, load } from 'redux-localstorage-simple';
 import { walletReducer as wallet } from './wallet';
 import { userReducer as user } from './user';
 import { marketReducer as market } from './market';
+import { saverReducer as saver } from './saver';
 import { afterReducer as after } from './after';
 import { langReducer as lang } from './lang';
 
@@ -14,6 +15,7 @@ const store = configureStore({
         wallet,
         user,
         market,
+        saver,
         after,
         lang
     },

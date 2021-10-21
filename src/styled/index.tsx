@@ -3,6 +3,7 @@ import styled from "styled-components";
 export const Body = styled.div`
 background: var(--bg);
 min-height: 100vh;
+padding-bottom: 25px;
 `;
 
 interface ContentInterface {
@@ -98,3 +99,18 @@ cursor: pointer;
 }
 `;
 
+export const Wrapper = styled.div`
+margin-bottom: 25px;
+border-radius: 3px;
+background: var(--user-info);
+overflow: hidden;
+`;
+
+
+export const WrapperHeader = styled.div`
+display: flex;
+align-items: center;
+height: 52px;
+padding: 0 20px;
+background: var(--user-info-header);
+`;

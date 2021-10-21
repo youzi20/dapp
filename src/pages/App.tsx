@@ -8,6 +8,7 @@ import { WalletManager } from '../components/Wallet';
 import { Body } from '../styled';
 
 import Home from './Home';
+import Saver from './Saver';
 
 import './App.scss';
 
@@ -26,6 +27,7 @@ function App() {
           <Body>
             <Switch>
               <Route exact path="/" component={Home} />
+              <Route exact path="/saver" component={Saver} />
             </Switch>
           </Body>
         </Web3ReactProvider>

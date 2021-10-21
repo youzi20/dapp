@@ -70,4 +70,6 @@ export const UNISWAP_WRAPPER = {
 export const MARKET_ADDRESS = constructSameAddressMap('0xe46c50F1Abb4bc821ee80A79AeBC34d9092b1c6B');
 export const USER_INFO_ADDRESS = constructSameAddressMap('0x64A436ae831C1672AE81F674CAb8B6775df3475C');
 export const USER_HANDLE_ADDRESS = constructSameAddressMap('0x1389E35b1830c7B258B18875D8c4B5C03c391f51');
-export const USER_HANDLE_OTHER_ADDRESS = constructSameAddressMap('0x19d29022d94b191372445e0485b5f1b7130dd0E4');
+export const USER_HANDLE_OTHER_ADDRESS = constructSameAddressMap('0x4D8173A283fB6c34A9bF31A2e2E5E2E1376705Af');
+export const SAVER_ADDRESS = constructSameAddressMap('0xDd5E8c92606CE7b52d7d13605Af9Ac00C342F6Ea');
+export const SAVER_INFO_ADDRESS = constructSameAddressMap('0xE033fB6B635789Dd3E8Fe81cb3F6587d1c08b4bB');

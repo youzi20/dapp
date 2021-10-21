@@ -11,40 +11,23 @@ import 'swiper/swiper.scss';
 import 'swiper/components/pagination/pagination.scss';
 
 import Tips, { TipsInfo, TipsPrice } from '../../components/Tips';
-import Button from '../../components/Button';
-import { message } from '../../components/Message';
-import { EmptyLoading } from '../../components/Empty';
 
-import { useBuild, useProxies } from '../../hooks/contract/useUserInfo';
-
-import { WalletStatusEnums, useState as useWalletState } from '../../state/wallet';
 import { UserStatusEnums, useState as useUserState, useUserInfo } from '../../state/user';
 import { useEthPrice, useLiquidationInfo } from '../../state/market';
 import { useState as useAfterState, useAfterUserInfo } from '../../state/after';
 
-import { Font, Flex, Grid, TextOverflowWrapper } from '../../styled';
+import { Font, Flex, Grid, TextOverflowWrapper, Wrapper } from '../../styled';
 
 import { getRatio, ethToPriceTips, numberToFixed, getHandleTheme } from '../../utils';
+
+import Loading from '../Loading';
+import AaveInit from '../AaveInit';
+import SmartAddress from '../SmartAddress';
 
 import SupplyPercentage from './SupplyPercentage';
 import BorrowPercentage from './BorrowPercentage';
 
 SwiperCore.use([Pagination]);
-
-const Wrapper = styled.div`
-margin-bottom: 25px;
-border-radius: 3px;
-background: var(--user-info);
-overflow: hidden;
-`;
-
-const WalletHeader = styled.div`
-display: flex;
-align-items: center;
-height: 52px;
-padding: 0 20px;
-background: var(--user-info-header);
-`;
 
 const WalletBody = styled.div`
 display: flex;
@@ -148,64 +131,6 @@ background: var(--user-info-highlighted);
 }
 `;
 
-const Loading = () => {
-    return <Wrapper>
-        <EmptyLoading />
-    </Wrapper>
-}
-
-
-const Create = () => {
-    const { status } = useWalletState();
-
-    const [loading, setLoading] = useState(false);
-
-    const build = useBuild();
-    const proxies = useProxies();
-
-    const handleBuild = () => {
-        if (status !== WalletStatusEnums.SUCEESS) {
-            message.error(t`请先连接钱包`);
-            return;
-        }
-
-        setLoading(true);
-
-        build().then(res => {
-            res.wait().then((res: any) => {
-                setLoading(false);
-                message.success(t`创建成功`);
-                proxies();
-            }).catch((error: any) => {
-                setLoading(false);
-                message.error(error.message);
-                console.error(error);
-            });
-        }).catch((error: any) => {
-            setLoading(false);
-            message.error(error.message);
-            console.error(error);
-        });
-    }
-
-    return <Wrapper>
-        <div style={{ padding: 45 }}>
-            <h2><Font fontSize="20px" fontWeight="700"><Trans>创建智能钱包</Trans></Font></h2>
-            <br />
-            <p>
-                <Font fontSize="14px" color="#939DA7" fontWeight="500">
-                    <Trans>
-                        为了使用应用的高级功能，您首先需要创建一个智能钱包 —— 您的个人智能合约钱包可以使用高级功能。<br />
-                        请注意，使用智能钱包，您将无法与其他 app 兼容。
-                    </Trans>
-                </Font>
-            </p>
-            <br />
-            <div><Button loading={loading} theme="primary" onClick={handleBuild}><Trans>创建</Trans></Button></div>
-        </div>
-    </Wrapper>
-}
-
 interface LabelProps {
     text: string | React.ReactNode
     tips?: string | React.ReactNode
@@ -294,9 +219,8 @@ const Info: React.FC<{
     const afterProps = { color, after: Boolean(type) };
 
     return <Wrapper>
-        <WalletHeader>
-            <Font fontSize="14px" fontWeight="700"><Trans>智能钱包</Trans></Font><Font fontSize="13px">: {address ?? ""}</Font>
-        </WalletHeader>
+        <SmartAddress />
+
         <WalletBody>
             <SupplyBalance>
                 <DataBoxWrapper>
@@ -381,7 +305,7 @@ const Info: React.FC<{
 const UserInfo = () => {
     const { status, address } = useUserState();
 
-    if (UserStatusEnums.CREATE === status) return <Create />;
+    if (UserStatusEnums.CREATE === status) return <AaveInit />;
 
     if (UserStatusEnums.LOADING === status) return <Loading />;
 

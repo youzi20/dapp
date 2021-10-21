@@ -18,7 +18,7 @@ import { useState as useAfterState } from '../../state/after';
 import { Font } from '../../styled';
 
 import { fullNumber } from "../../utils";
-import { WARNING_SVG } from "../../utils/images";
+import { TIPS_WARNING_SVG } from "../../utils/images";
 import { HandleType } from "../../types";
 
 import Handle from "./Handle";
@@ -141,7 +141,7 @@ export const Borrow = ({ handle }: { handle: HandleType }) => {
             </Font>
             {!stableBorrowRateEnabled &&
                 <WarnWrapper>
-                    <img src={WARNING_SVG} alt="" />
+                    <img src={TIPS_WARNING_SVG} alt="" />
                     <Font fontSize="14px"><Trans>This asset is unsupported for stable rate borrow</Trans></Font>
                 </WarnWrapper>}
             <APYSelect stable={!stableBorrowRateEnabled} onChange={setApy} />

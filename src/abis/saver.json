@@ -1,0 +1,403 @@
+[
+    {
+        "inputs": [],
+        "name": "AAVE_BASIC_PROXY",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "AAVE_Loan_Info",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "AAVE_MARKET_ID",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "AAVE_MONITOR_PROXY",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "AAVE_RECEIVER",
+        "outputs": [
+            {
+                "internalType": "address payable",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "AAVE_RECEIVER2",
+        "outputs": [
+            {
+                "internalType": "address payable",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "AAVE_SUBSCRIPTION_ADDRESS",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "BOT_REGISTRY_ADDRESS",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "DISCOUNT_ADDR",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "DSGuard_FACTORY_ADDRESS",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "DS_PROXY_REGISTRY",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "ETH_ADDR",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "GasToken",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "LOGGER",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "NAME",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "WETH_ADDRESS",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "feeRecipientAddr",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_contractAddr",
+                "type": "address"
+            }
+        ],
+        "name": "givePermission",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "nullAddress",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_contractAddr",
+                "type": "address"
+            }
+        ],
+        "name": "removePermission",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_lastBoostPrice",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_lastRepayPrice",
+                "type": "uint256"
+            }
+        ],
+        "name": "setOptionParam",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_market",
+                "type": "address"
+            },
+            {
+                "internalType": "uint128",
+                "name": "_minRatio",
+                "type": "uint128"
+            },
+            {
+                "internalType": "uint128",
+                "name": "_maxRatio",
+                "type": "uint128"
+            },
+            {
+                "internalType": "uint128",
+                "name": "_optimalRatioBoost",
+                "type": "uint128"
+            },
+            {
+                "internalType": "uint128",
+                "name": "_optimalRatioRepay",
+                "type": "uint128"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_planRepayPrice",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_planBoostPrice",
+                "type": "uint256"
+            },
+            {
+                "internalType": "bool",
+                "name": "_boostEnabled",
+                "type": "bool"
+            },
+            {
+                "internalType": "uint128",
+                "name": "_optimalType",
+                "type": "uint128"
+            },
+            {
+                "internalType": "uint128",
+                "name": "_repayAllRatio",
+                "type": "uint128"
+            }
+        ],
+        "name": "subscribe",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "unsubscribe",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_market",
+                "type": "address"
+            },
+            {
+                "internalType": "uint128",
+                "name": "_minRatio",
+                "type": "uint128"
+            },
+            {
+                "internalType": "uint128",
+                "name": "_maxRatio",
+                "type": "uint128"
+            },
+            {
+                "internalType": "uint128",
+                "name": "_optimalRatioBoost",
+                "type": "uint128"
+            },
+            {
+                "internalType": "uint128",
+                "name": "_optimalRatioRepay",
+                "type": "uint128"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_planRepayPrice",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_planBoostPrice",
+                "type": "uint256"
+            },
+            {
+                "internalType": "bool",
+                "name": "_boostEnabled",
+                "type": "bool"
+            },
+            {
+                "internalType": "uint128",
+                "name": "_optimalType",
+                "type": "uint128"
+            },
+            {
+                "internalType": "uint128",
+                "name": "_repayAllRatio",
+                "type": "uint128"
+            }
+        ],
+        "name": "update",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+]

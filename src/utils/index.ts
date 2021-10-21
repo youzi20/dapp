@@ -86,9 +86,9 @@ export function numberDelimiter(value?: string) {
 }
 
 export function numberToFixed(value?: string | number, len?: number) {
-    if (!value) return "0";
+    if (typeof value === "number") value = fullNumber(value);
 
-    if (typeof value === "number") value = String(value);
+    if (!value) return "0";
 
     var [integer, decimal] = value.split(/\./);
 
