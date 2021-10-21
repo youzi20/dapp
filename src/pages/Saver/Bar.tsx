@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import styled from "styled-components";
 import { t } from '@lingui/macro';
 
@@ -120,6 +120,12 @@ const Bar: React.FC<BarProps> = ({ ratio, ...other }) => {
 
     const [error, minText, maxText, boostText, repayText, min, max, boost, repay, upWidth, downWidth] = lineList ?? [];
 
+    useEffect(() => {
+        const max = (enabled ? [minRatio, maxRatio, optimalBoost, optimalRepay] : [minRatio, optimalRepay]).sort((a, b) => Number(b) - Number(a))[0];
+
+        if (Number(max) > 150) setMaxBar(Number(max) + 50);
+    }, [minRatio, maxRatio, optimalBoost, optimalRepay, enabled]);
+
     return <BarWrapper {...other}>
         <ValueWrapper>
             <ValueBar width={getRatio(ratio / maxBar * 100)} />
@@ -132,7 +138,7 @@ const Bar: React.FC<BarProps> = ({ ratio, ...other }) => {
                 <ValueLine left={min} />
                 <ValueLine left={repay} />
                 <ValueArrow arrowType="down" contentWidth={downWidth} left={minRatio > optimalRepay ? repay : min} arrowLeft={repay}>
-                    <Tips text={t`如果低于 ${minText}，偿还至 ${repayText}`}>
+                    <Tips text={t`如果低于 ${minText}，则减杠杆至 ${repayText}`}>
                         <div className="arrow-span">
                             <Flex flexDirection={minRatio > optimalRepay ? undefined : "row-reverse"} justifyContent="space-between" style={{ marginTop: 12 }}>
                                 <Font fontSize="14px">{repayText}</Font>
