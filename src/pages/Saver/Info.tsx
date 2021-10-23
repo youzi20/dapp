@@ -1,14 +1,11 @@
-import { useState } from 'react';
 import { t, Trans } from '@lingui/macro';
 import styled from 'styled-components';
 
-import Checkbox from '../../components/Checkbox';
 import Button from '../../components/Button';
 import { message } from '../../components/Message';
 
 import { useUnsubscribe } from '../../hooks/contract/saver';
 
-import { useAppDispatch } from '../../state/hooks';
 import { useState as useUserState } from '../../state/user';
 import { useState as useSaverState } from '../../state/saver';
 
@@ -27,7 +24,7 @@ margin-top: 20px;
 
 const Info = ({ onUpdate }: { onUpdate: () => void }) => {
     const { dataInfo } = useUserState();
-    const { minRatio, maxRatio, optimalBoost, optimalRepay, enabled } = useSaverState();
+    const { optimalType, minRatio, maxRatio, optimalBoost, optimalRepay } = useSaverState();
 
     const { ratio } = dataInfo ?? {};
 
@@ -49,36 +46,46 @@ const Info = ({ onUpdate }: { onUpdate: () => void }) => {
         });
     }
 
+    console.log(optimalType, minRatio, maxRatio, optimalBoost, optimalRepay);
+
     return <Wrapper>
         <SmartAddress />
 
         <Content width="704px" style={{ padding: "50px 0" }}>
             <h2 style={{ marginBottom: 22 }}><Font fontSize="20px"><Trans>Aave Automation Setup</Trans></Font></h2>
 
-            <Flex alignItems="center">
-                <Font color="#fff"><Trans>当前比例：</Trans></Font>
-                <Font fontWeight="700" fontSize="20px" color="#37B06F">{getRatio(ratio * 100)}</Font>
-            </Flex>
+            <Grid rowGap="10px">
+                <Flex alignItems="center">
+                    <Font color="#fff"><Trans>当前比例：</Trans></Font>
+                    <Font fontWeight="700" fontSize="20px" color="#37B06F">{getRatio(ratio * 100)}</Font>
+                </Flex>
 
-            <Bar ratio={Number(ratio) * 100} />
+                <Flex>
+                    <Font><Trans>自动化模式：</Trans>{optimalType === 1 ? <Trans>半自动化</Trans> : <Trans>全自动化</Trans>}</Font>
+                </Flex>
+            </Grid>
 
-            <Font fontSize="14px" color="#939DA7" style={{ display: "flex", alignItems: "center" }}>
-                <Trans>
-                    清算保护：如果低于
-                    <Font color="#fff" style={{margin: "0 3px"}}>{getRatio(Number(minRatio))}</Font>
-                    减杠杆至
-                    <Font color="#fff" style={{margin: "0 3px"}}>{getRatio(Number(optimalRepay))}</Font>
-                </Trans>
-            </Font>
+            {optimalType === 1 && <>
+                <Bar ratio={Number(ratio) * 100} />
 
-            <Font fontSize="14px" color="#939DA7" style={{ display: "flex", alignItems: "center" }}>
-                <Trans>
-                    杠杆增加：如果超过 
-                    <Font color="#fff" style={{margin: "0 3px"}}>{getRatio(Number(maxRatio))}</Font> 
-                    加杠杆至
-                    <Font color="#fff" style={{margin: "0 3px"}}>{getRatio(Number(optimalBoost))}</Font>
-                </Trans>
-            </Font>
+                <Font fontSize="14px" color="#939DA7" style={{ display: "flex", alignItems: "center" }}>
+                    <Trans>
+                        清算保护：如果低于
+                        <Font color="#fff" style={{ margin: "0 3px" }}>{getRatio(Number(minRatio))}</Font>
+                        减杠杆至
+                        <Font color="#fff" style={{ margin: "0 3px" }}>{getRatio(Number(optimalRepay))}</Font>
+                    </Trans>
+                </Font>
+
+                <Font fontSize="14px" color="#939DA7" style={{ display: "flex", alignItems: "center" }}>
+                    <Trans>
+                        杠杆增加：如果超过
+                        <Font color="#fff" style={{ margin: "0 3px" }}>{getRatio(Number(maxRatio))}</Font>
+                        加杠杆至
+                        <Font color="#fff" style={{ margin: "0 3px" }}>{getRatio(Number(optimalBoost))}</Font>
+                    </Trans>
+                </Font>
+            </>}
 
             <ButtonGroupGrid template="max-content max-content" columGap="20px">
                 <Button theme="gray" onClick={handleDeactivate}><Trans>停用</Trans></Button>

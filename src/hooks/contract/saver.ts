@@ -5,7 +5,7 @@ import { useAddress } from "../../state/user";
 import { useState as useSaverState } from '../../state/saver';
 import { getWei } from "../../utils";
 
-export const useSubscribe = () => {
+export const useSubscribe = (optimalType: number) => {
     const address = useAddress();
     const { minRatio, maxRatio, optimalBoost, optimalRepay, enabled } = useSaverState();
 
@@ -14,7 +14,13 @@ export const useSubscribe = () => {
 
     const { address: SAVER_ADDRESS, abi: SAVER_ABI } = useAddressAndABI("SAVER");
 
-    const userSaverSubscribeEncode = useFuncEncode(SAVER_ABI, "subscribe", [marketAddress, getWei(minRatio), getWei(maxRatio), getWei(optimalBoost), getWei(optimalRepay), 0, 0, enabled, 1, 0]);
+    console.log(optimalType, minRatio, maxRatio, optimalBoost, optimalRepay, enabled);
+
+    const value = optimalType === 1 ?
+        [marketAddress, getWei(minRatio), getWei(maxRatio), getWei(optimalBoost), getWei(optimalRepay), 0, 0, enabled, optimalType, 0] :
+        [marketAddress, 0, 0, 0, 0, 0, 0, enabled, optimalType, 0];
+
+    const userSaverSubscribeEncode = useFuncEncode(SAVER_ABI, "subscribe", value);
 
     return () => {
         if (!smartWalletContract) return;

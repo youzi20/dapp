@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { t, Trans } from '@lingui/macro';
 import styled from 'styled-components';
 
 import Checkbox from '../../components/Checkbox';
+import Select, { SelectValueInterface } from '../../components/Select';
 import Button from '../../components/Button';
 import { message } from '../../components/Message';
 
@@ -10,7 +11,7 @@ import { useSubscribe } from '../../hooks/contract/saver';
 
 import { useAppDispatch } from '../../state/hooks';
 import { useState as useUserState } from '../../state/user';
-import { useState as useSaverState, updateEnabled, updateHighRatio, updateOtherRatio } from '../../state/saver';
+import { useState as useSaverState, updateEnabled, updateOtherRatio } from '../../state/saver';
 
 import { Flex, Font, Grid, Content, Wrapper } from '../../styled';
 import { getRatio } from '../../utils';
@@ -22,14 +23,19 @@ import Input, { InputColumn } from './Input';
 import Bar from './Bar';
 
 
-const HighInputColumn = styled(InputColumn)`
-padding-bottom: 30px;
+const Line = styled.div`
+margin-top: 30px;
 border-bottom: 1px solid var(--theme);
 `;
 
-const HighCheckbox = styled(Checkbox)`
-height: 100%;
+const SelectWrapper = styled(Flex)`
+width: 200px;
+height: 44px;
+margin-left: 20px;
+border-radius: 3px;
+background: #37B06F;
 `;
+
 
 const ErrorWarning = styled.div`
 display: flex;
@@ -51,25 +57,27 @@ justify-content: end;
 const Setting = ({ onCancel }: { onCancel: () => void }) => {
     const dispatch = useAppDispatch();
 
-    // const [show, setShow] = useState<boolean>(false);
     const [boostDisabled, setBoostDisabled] = useState<boolean>(true);
+
     const { dataInfo } = useUserState();
-    const { highRatio, minRatio, maxRatio, optimalBoost, optimalRepay } = useSaverState();
+    const { optimalType, minRatio, maxRatio, optimalBoost, optimalRepay } = useSaverState();
+
+    const [modeSelect] = useState([
+        { name: t`全自动化`, value: 2 },
+        { name: t`半自动化`, value: 1 }
+    ]);
+    const [mode, setMode] = useState<SelectValueInterface>();
 
     const { ratio } = dataInfo ?? {};
 
-    const subscribe = useSubscribe();
+    const subscribe = useSubscribe(mode ? Number(mode?.value) : 0);
 
     const handleBoostCheckbox = (value: boolean) => {
         setBoostDisabled(value);
         dispatch(updateEnabled(value));
     }
 
-    const handleHighRatio = (value: string) => {
-        dispatch(updateHighRatio(Number(value)));
-    }
-
-    const handleOtherRatio = (key: "minRatio" | "maxRatio" | "optimalBoost" | "optimalRepay", value: string) => {
+    const handleRatio = (key: "minRatio" | "maxRatio" | "optimalBoost" | "optimalRepay", value: string) => {
         dispatch(updateOtherRatio([key, value]));
     }
 
@@ -89,6 +97,12 @@ const Setting = ({ onCancel }: { onCancel: () => void }) => {
         });
     }
 
+    useEffect(() => {
+        if (optimalType) {
+            setMode(modeSelect[optimalType === 2 ? 0 : 1])
+        }
+    }, [optimalType]);
+
     return <Wrapper>
         <SmartAddress />
 
@@ -101,136 +115,126 @@ const Setting = ({ onCancel }: { onCancel: () => void }) => {
                     </Trans>
                 </Font>
             </p>
-
-            <Flex alignItems="center">
-                <Font color="#fff"><Trans>当前比例：</Trans></Font>
-                <Font fontWeight="700" fontSize="20px" color="#37B06F">{getRatio(ratio * 100)}</Font>
-            </Flex>
-
-            {/* <HighInputColumn
-                title={<Flex alignItems="center">
-                    <Trans>当前比例：</Trans>
+            
+            <Grid rowGap="20px">
+                <Flex alignItems="center">
+                    <Font color="#fff"><Trans>当前比例：</Trans></Font>
                     <Font fontWeight="700" fontSize="20px" color="#37B06F">{getRatio(ratio * 100)}</Font>
-                </Flex>}
-            >
-                <Input
-                    label={t`保持比率在：`}
-                    disabled={show}
-                    value={highRatio}
-                    error={(() => {
-                        let isError = false, message = "";
+                </Flex>
 
-                        if (Number(highRatio) < 120) {
-                            isError = true;
-                            message = t`必须超过 ${120}`;
-                        }
+                <Flex alignItems="center">
+                    <Font><Trans>自动化模式：</Trans></Font>
+                    <SelectWrapper>
+                        <Select
+                            value={mode}
+                            dataSource={modeSelect}
+                            onChange={(value) => setMode(value)}
+                        />
+                    </SelectWrapper>
+                </Flex>
+            </Grid>
 
-                        return { isError, message }
-                    })()}
-                    onChange={handleHighRatio}
-                />
-                <HighCheckbox id="high-checkbox" label={t`高级`} onChange={(value: boolean) => setShow(value)} />
-            </HighInputColumn> */}
+            {mode?.value === 1 && <>
+                <Line />
 
+                <InputColumn
+                    title={t`价格下跌时进行偿还`}
+                    error={Number(minRatio) - ratio * 100 >= 0 && <ErrorWarning>
+                        <img src={ERROR_WARNING_SVG} alt="" />
+                        <Font fontSize="14px"><Trans>自动减杠杆将在启用当前参数时被触发</Trans></Font>
+                    </ErrorWarning>}
+                >
+                    <Input
+                        label={t`如果比率低于：`}
+                        value={minRatio}
+                        error={(() => {
+                            let isError = false, message = "";
 
-            <InputColumn
-                title={t`价格下跌时进行偿还`}
-                error={Number(minRatio) - ratio * 100 >= 0 && <ErrorWarning>
-                    <img src={ERROR_WARNING_SVG} alt="" />
-                    <Font fontSize="14px"><Trans>自动减杠杆将在启用当前参数时被触发</Trans></Font>
-                </ErrorWarning>}
-            >
-                <Input
-                    label={t`如果比率低于：`}
-                    value={minRatio}
-                    error={(() => {
-                        let isError = false, message = "";
+                            if (Number(minRatio) < 115) {
+                                isError = true;
+                                message = t`必须超过 ${115}`;
+                            } else if (boostDisabled && Number(optimalBoost) - Number(minRatio) <= 0) {
+                                isError = true;
+                                message = t`值值必须小于 "加杠杆至"`;
+                            } else if (Number(optimalRepay) - Number(minRatio) <= 0) {
+                                isError = true;
+                                message = t`值必须小于 "减杠杆至"`;
+                            }
 
-                        if (Number(minRatio) < 115) {
-                            isError = true;
-                            message = t`必须超过 ${115}`;
-                        } else if (boostDisabled && Number(optimalBoost) - Number(minRatio) <= 0) {
-                            isError = true;
-                            message = t`值值必须小于 "加杠杆至"`;
-                        } else if (Number(optimalRepay) - Number(minRatio) <= 0) {
-                            isError = true;
-                            message = t`值必须小于 "减杠杆至"`;
-                        }
+                            return { isError, message }
+                        })()}
+                        onChange={(value: string) => handleRatio("minRatio", value)}
+                    />
+                    <Input
+                        label={t`减杠杆至：`}
+                        value={optimalRepay}
+                        error={(() => {
+                            let isError = false, message = "";
 
-                        return { isError, message }
-                    })()}
-                    onChange={(value: string) => handleOtherRatio("minRatio", value)}
-                />
-                <Input
-                    label={t`减杠杆至：`}
-                    value={optimalRepay}
-                    error={(() => {
-                        let isError = false, message = "";
+                            console.log("optimalRepay", optimalRepay, minRatio, maxRatio);
 
-                        console.log("optimalRepay", optimalRepay, minRatio, maxRatio);
+                            if (Number(optimalRepay) - Number(minRatio) < 5 || (boostDisabled && Number(maxRatio) - Number(optimalRepay) < 5)) {
+                                isError = true;
+                                message = t`目标和限制比率之间的差值必须大于 5%`;
+                            }
 
-                        if (Number(optimalRepay) - Number(minRatio) < 5 || (boostDisabled && Number(maxRatio) - Number(optimalRepay) < 5)) {
-                            isError = true;
-                            message = t`目标和限制比率之间的差值必须大于 5%`;
-                        }
+                            return { isError, message }
+                        })()}
 
-                        return { isError, message }
-                    })()}
+                        onChange={(value: string) => handleRatio("optimalRepay", value)}
+                    />
+                </InputColumn>
 
-                    onChange={(value: string) => handleOtherRatio("optimalRepay", value)}
-                />
-            </InputColumn>
+                <InputColumn
+                    title={<Checkbox
+                        id="boost-checkbox"
+                        label={t`价格上涨时加杠杆`}
+                        checked={boostDisabled}
+                        onChange={handleBoostCheckbox} />}
+                    error={Number(maxRatio) - ratio * 100 <= 0 && <ErrorWarning>
+                        <img src={ERROR_WARNING_SVG} alt="" />
+                        <Font fontSize="14px"><Trans>自动加杠杆将在启用当前参数时被触发</Trans></Font>
+                    </ErrorWarning>}
+                >
+                    <Input
+                        disabled={!boostDisabled}
+                        label={t`如果比率超过：`}
+                        value={maxRatio}
+                        error={(() => {
+                            let isError = false, message = "";
 
-            <InputColumn
-                title={<Checkbox
-                    id="boost-checkbox"
-                    label={t`价格上涨时加杠杆`}
-                    checked={boostDisabled}
-                    onChange={handleBoostCheckbox} />}
-                error={Number(maxRatio) - ratio * 100 <= 0 && <ErrorWarning>
-                    <img src={ERROR_WARNING_SVG} alt="" />
-                    <Font fontSize="14px"><Trans>自动加杠杆将在启用当前参数时被触发</Trans></Font>
-                </ErrorWarning>}
-            >
-                <Input
-                    disabled={!boostDisabled}
-                    label={t`如果比率超过：`}
-                    value={maxRatio}
-                    error={(() => {
-                        let isError = false, message = "";
+                            if (Number(maxRatio) < 115) {
+                                isError = true;
+                                message = t`必须超过 ${115}`;
+                            }
 
-                        if (Number(maxRatio) < 115) {
-                            isError = true;
-                            message = t`必须超过 ${115}`;
-                        }
+                            return { isError, message }
+                        })()}
+                        onChange={(value: string) => handleRatio("maxRatio", value)}
+                    />
+                    <Input
+                        disabled={!boostDisabled}
+                        label={t`加杠杆至：`}
+                        value={optimalBoost}
+                        error={(() => {
+                            let isError = false, message = "";
 
-                        return { isError, message }
-                    })()}
-                    onChange={(value: string) => handleOtherRatio("maxRatio", value)}
-                />
-                <Input
-                    disabled={!boostDisabled}
-                    label={t`加杠杆至：`}
-                    value={optimalBoost}
-                    error={(() => {
-                        let isError = false, message = "";
+                            console.log("optimalBoost", optimalBoost, minRatio, maxRatio);
 
-                        console.log("optimalBoost", optimalBoost, minRatio, maxRatio);
+                            if (boostDisabled && (Number(optimalBoost) - Number(minRatio) < 5 || Number(maxRatio) - Number(optimalBoost) < 5)) {
+                                isError = true;
+                                message = t`目标和限制比率之间的差值必须大于 5%`;
+                            }
 
-                        if (boostDisabled && (Number(optimalBoost) - Number(minRatio) < 5 || Number(maxRatio) - Number(optimalBoost) < 5)) {
-                            isError = true;
-                            message = t`目标和限制比率之间的差值必须大于 5%`;
-                        }
+                            return { isError, message }
+                        })()}
 
-                        return { isError, message }
-                    })()}
+                        onChange={(value: string) => handleRatio("optimalBoost", value)}
+                    />
+                </InputColumn>
 
-                    onChange={(value: string) => handleOtherRatio("optimalBoost", value)}
-                />
-            </InputColumn>
-
-            <Bar ratio={Number(ratio) * 100} />
-
+                <Bar ratio={Number(ratio) * 100} />
+            </>}
             <ButtonGroupGrid template="max-content max-content" columGap="20px">
                 <Button theme="gray" onClick={onCancel}><Trans>取消</Trans></Button>
                 <Button theme="primary" onClick={handleSubmit}><Trans>提交</Trans></Button>

@@ -64,7 +64,7 @@ cursor: pointer;
 }
 `;
 
-interface SelectValueInterface {
+export interface SelectValueInterface {
     name: string | React.ReactNode,
     value: number | string
 }

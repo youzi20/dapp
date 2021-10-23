@@ -6,20 +6,27 @@ import { useSaverInfoContract } from "./index";
 import { useAppDispatch } from '../../state/hooks';
 
 import { useState as useUserState } from '../../state/user';
-import { SaverStatusEnums, updateStatus, updateState } from '../../state/saver';
+import { SaverStatusEnums, useState as useSaverState, updateStatus, updateState } from '../../state/saver';
 
-import { getFormatNumber, fullNumber } from "../../utils";
+import { getFormatNumber } from "../../utils";
 
 export const useSaverInfo = (status: boolean) => {
     const { account } = useWeb3ReactCore();
+    const { status: saverStatus } = useSaverState();
 
     const isSubscribed = useSubscribed();
     const getSaverParams = useSaverParams();
 
     useEffect(() => {
+        if (SaverStatusEnums.OPEN === saverStatus) {
+            getSaverParams();
+        }
+    }, [saverStatus]);
+
+
+    useEffect(() => {
         if (status && account) {
             isSubscribed();
-            getSaverParams();
         }
     }, [account, status]);
 }
@@ -65,23 +72,14 @@ export const useSaverParams = () => {
     return async () => {
         if (!saveInfoContract) return;
 
-        dispatch(updateStatus(SaverStatusEnums.LOADING));
-
         try {
             const info = await saveInfoContract.getHolder(address);
+            const optimalType = await saveInfoContract.getOptimalType(address);
 
-            const [addr, minRatio, maxRatio, optimalBoost, optimalRepay, , enabled,] = info ?? [];
-
-            console.log({
-                addr,
-                minRatio: Number(getFormatNumber(minRatio)),
-                maxRatio: Number(getFormatNumber(maxRatio)),
-                optimalBoost: Number(getFormatNumber(optimalBoost)),
-                optimalRepay: Number(getFormatNumber(optimalRepay)),
-                enabled,
-            });
+            const [, minRatio, maxRatio, optimalBoost, optimalRepay, , enabled,] = info ?? [];
 
             dispatch(updateState({
+                optimalType: Number(getFormatNumber(optimalType, 0)),
                 minRatio: String(Number(getFormatNumber(minRatio))),
                 maxRatio: String(Number(getFormatNumber(maxRatio))),
                 optimalBoost: String(Number(getFormatNumber(optimalBoost))),

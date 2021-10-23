@@ -21,6 +21,15 @@ msgstr "(Remainder of collateral will be returned as {to})"
 msgid "<0>Stable</0> would be a good choice if you need to plan around a non-volatile rate over a longer period of time.<1/><2/><3>Variable</3> is based on the supply and demand for the selected asset on Aave and is re-calculated every second, meaning the rate will be lower when there is less demand for the asset.<4/><5/>You can also switch between the two rates at any point in the future."
 msgstr "<0>Stable</0> would be a good choice if you need to plan around a non-volatile rate over a longer period of time.<1/><2/><3>Variable</3> is based on the supply and demand for the selected asset on Aave and is re-calculated every second, meaning the rate will be lower when there is less demand for the asset.<4/><5/>You can also switch between the two rates at any point in the future."
 
+#: src/pages/SaverInit.tsx
+msgid "Aave Automation"
+msgstr "Aave Automation"
+
+#: src/pages/Saver/Info.tsx
+#: src/pages/Saver/Setting.tsx
+msgid "Aave Automation Setup"
+msgstr "Aave Automation Setup"
+
 #: src/pages/Home/Advanced.tsx
 msgid "Borrow {0} → Swap → Supply {1}"
 msgstr "Borrow {0} → Swap → Supply {1}"
@@ -37,6 +46,10 @@ msgstr "If debt is fully paid off by Repay, the remainder of the <0/> Repay amou
 msgid "Interest Rate"
 msgstr "Interest Rate"
 
+#: src/pages/SaverInit.tsx
+msgid "Keeps your Aave position at a certain ratio to protect it from liquidation or increase leverage based on market changes."
+msgstr "Keeps your Aave position at a certain ratio to protect it from liquidation or increase leverage based on market changes."
+
 #: src/pages/Home/UserInfo.tsx
 msgid "Liquidation limit:"
 msgstr "Liquidation limit:"
@@ -48,6 +61,10 @@ msgstr "Liquidation ratio:"
 #: src/components/Wallet/index.tsx
 msgid "MetaMask 账户已连接"
 msgstr "MetaMask 账户已连接"
+
+#: src/pages/Saver/Setting.tsx
+msgid "Once Enabled, DeFi Saver will monitor your Aave ratio and automatically activate Repay if your Aave reaches the lower configured limit, or Boost if it reaches the upper one. Simply enter your target ratio, or configure manually below."
+msgstr "Once Enabled, DeFi Saver will monitor your Aave ratio and automatically activate Repay if your Aave reaches the lower configured limit, or Boost if it reaches the upper one. Simply enter your target ratio, or configure manually below."
 
 #: src/pages/Home/UserInfo.tsx
 msgid "Safety ratio below which your position will face liquidation."
@@ -110,7 +127,7 @@ msgstr "不可用"
 msgid "与"
 msgstr "与"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/AaveInit.tsx
 msgid "为了使用应用的高级功能，您首先需要创建一个智能钱包 —— 您的个人智能合约钱包可以使用高级功能。<0/>请注意，使用智能钱包，您将无法与其他 app 兼容。"
 msgstr "为了使用应用的高级功能，您首先需要创建一个智能钱包 —— 您的个人智能合约钱包可以使用高级功能。<0/>请注意，使用智能钱包，您将无法与其他 app 兼容。"
 
@@ -133,6 +150,14 @@ msgstr "从您的Aave储蓄中提取资产。"
 #: src/pages/Home/MarketInfo.tsx
 msgid "价格"
 msgstr "价格"
+
+#: src/pages/Saver/Setting.tsx
+msgid "价格上涨时加杠杆"
+msgstr "价格上涨时加杠杆"
+
+#: src/pages/Saver/Setting.tsx
+msgid "价格下跌时进行偿还"
+msgstr "价格下跌时进行偿还"
 
 #: src/pages/Home/MarketInfo.tsx
 #: src/pages/Home/MarketInfo.tsx
@@ -157,11 +182,20 @@ msgstr "借币："
 msgid "债务"
 msgstr "债务"
 
+#: src/pages/Saver/Setting.tsx
+msgid "值值必须小于 \"加杠杆至\""
+msgstr "值值必须小于 \"加杠杆至\""
+
+#: src/pages/Saver/Setting.tsx
+msgid "值必须小于 \"减杠杆至\""
+msgstr "值必须小于 \"减杠杆至\""
+
 #: src/pages/Home/Control.tsx
 msgid "做多"
 msgstr "做多"
 
 #: src/pages/Home/MarketInfo.tsx
+#: src/pages/Saver/Info.tsx
 msgid "停用"
 msgstr "停用"
 
@@ -172,6 +206,11 @@ msgstr "储蓄余额:"
 #: src/pages/Home/Collateral.tsx
 msgid "储蓄您的资产开始赚取收益。"
 msgstr "储蓄您的资产开始赚取收益。"
+
+#: src/pages/Saver/Info.tsx
+#: src/pages/Saver/Setting.tsx
+msgid "全自动化"
+msgstr "全自动化"
 
 #: src/pages/Home/Advanced.tsx
 #: src/pages/Home/Collateral.tsx
@@ -192,19 +231,23 @@ msgstr "减杠杆"
 msgid "减杠杆是使用储蓄的 {from} 还款 {to} 债务。这降低了您的杠杆，<0/> 但也降低了您的借贷能力，让您的仓位更安全。"
 msgstr "减杠杆是使用储蓄的 {from} 还款 {to} 债务。这降低了您的杠杆，<0/> 但也降低了您的借贷能力，让您的仓位更安全。"
 
+#: src/pages/Saver/Setting.tsx
+msgid "减杠杆至："
+msgstr "减杠杆至："
+
 #: src/pages/Home/Advanced.tsx
 msgid "减杠杆："
 msgstr "减杠杆："
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/AaveInit.tsx
 msgid "创建"
 msgstr "创建"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/AaveInit.tsx
 msgid "创建成功"
 msgstr "创建成功"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/AaveInit.tsx
 msgid "创建智能钱包"
 msgstr "创建智能钱包"
 
@@ -230,6 +273,10 @@ msgstr "加杠杆"
 msgid "加杠杆是借入更多 {from} 以获得更多的 {to}。这将会以增加你<0/>的借贷能力为代价增加了你的杠杆。"
 msgstr "加杠杆是借入更多 {from} 以获得更多的 {to}。这将会以增加你<0/>的借贷能力为代价增加了你的杠杆。"
 
+#: src/pages/Saver/Setting.tsx
+msgid "加杠杆至："
+msgstr "加杠杆至："
+
 #: src/pages/Home/Advanced.tsx
 msgid "加杠杆："
 msgstr "加杠杆："
@@ -241,11 +288,17 @@ msgstr "加杠杆："
 msgid "加载中~"
 msgstr "加载中~"
 
+#: src/pages/Saver/Info.tsx
+#: src/pages/Saver/Setting.tsx
+msgid "半自动化"
+msgstr "半自动化"
+
 #: 
 #~ msgid "取出质押"
 #~ msgstr "取出质押"
 
 #: src/components/Modal/index.tsx
+#: src/pages/Saver/Setting.tsx
 msgid "取消"
 msgstr "取消"
 
@@ -260,6 +313,22 @@ msgstr "在单笔交易中完成取出储蓄抵押品<0/>以购买借入资产�
 #: src/pages/Home/Advanced.tsx
 msgid "在单笔交易中完成增加债务购买更多抵押品 <0/>并将其添加到储蓄中这三个步骤。"
 msgstr "在单笔交易中完成增加债务购买更多抵押品 <0/>并将其添加到储蓄中这三个步骤。"
+
+#: src/pages/Saver/Bar.tsx
+msgid "如果低于 {minText}，则减杠杆至 {repayText}"
+msgstr "如果低于 {minText}，则减杠杆至 {repayText}"
+
+#: src/pages/Saver/Setting.tsx
+msgid "如果比率低于："
+msgstr "如果比率低于："
+
+#: src/pages/Saver/Setting.tsx
+msgid "如果比率超过："
+msgstr "如果比率超过："
+
+#: src/pages/Saver/Bar.tsx
+msgid "如果超过 {maxText}，则加杠杆至 {boostText}"
+msgstr "如果超过 {maxText}，则加杠杆至 {boostText}"
 
 #: src/pages/Home/UserInfo.tsx
 msgid "安全比率 (最小值 100%):"
@@ -292,6 +361,17 @@ msgstr "市场信息"
 #: src/pages/Home/MarketInfo.tsx
 msgid "市场规模"
 msgstr "市场规模"
+
+#: src/pages/Saver/Bar.tsx
+#: src/pages/Saver/Info.tsx
+#: src/pages/Saver/Setting.tsx
+msgid "当前比例："
+msgstr "当前比例："
+
+#: src/pages/Saver/Setting.tsx
+#: src/pages/Saver/Setting.tsx
+msgid "必须超过 {0}"
+msgstr "必须超过 {0}"
 
 #: src/pages/Home/BorrowPercentage.tsx
 #: src/pages/Home/BorrowPercentage.tsx
@@ -336,6 +416,10 @@ msgstr "授权"
 msgid "授权成功"
 msgstr "授权成功"
 
+#: src/pages/Saver/Setting.tsx
+msgid "提交"
+msgstr "提交"
+
 #: src/pages/Home/Advanced.tsx
 #: src/pages/Home/Advanced.tsx
 #: src/pages/Home/Collateral.tsx
@@ -344,6 +428,8 @@ msgstr "授权成功"
 #: src/pages/Home/Debt.tsx
 #: src/pages/Home/MarketInfo.tsx
 #: src/pages/Home/MarketInfo.tsx
+#: src/pages/Saver/Info.tsx
+#: src/pages/Saver/Setting.tsx
 msgid "操作成功"
 msgstr "操作成功"
 
@@ -357,7 +443,7 @@ msgstr "数值不能小于0"
 msgid "数值大于最大值"
 msgstr "数值大于最大值"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/SmartAddress.tsx
 msgid "智能钱包"
 msgstr "智能钱包"
 
@@ -370,6 +456,10 @@ msgstr "暂无可操作币种"
 msgid "暂无数据~"
 msgstr "暂无数据~"
 
+#: src/pages/Saver/Info.tsx
+msgid "更新"
+msgstr "更新"
+
 #: src/pages/Home/styled.tsx
 msgid "最大值"
 msgstr "最大值"
@@ -378,6 +468,14 @@ msgstr "最大值"
 #: src/pages/Home/Handle.tsx
 msgid "未输入值"
 msgstr "未输入值"
+
+#: 
+#~ msgid "杠杆增加：如果超过 <0>{0}</0> 加杠杆至<1>{1}</1>"
+#~ msgstr "杠杆增加：如果超过 <0>{0}</0> 加杠杆至<1>{1}</1>"
+
+#: src/pages/Saver/Info.tsx
+msgid "杠杆增加：如果超过<0>{0}</0>加杠杆至<1>{1}</1>"
+msgstr "杠杆增加：如果超过<0>{0}</0>加杠杆至<1>{1}</1>"
 
 #: src/pages/Home/Advanced.tsx
 msgid "正在购买"
@@ -392,11 +490,45 @@ msgstr "正在连接..."
 msgid "此操作无可用的抵押品或借贷资产。"
 msgstr "此操作无可用的抵押品或借贷资产。"
 
+#: src/pages/Saver/Info.tsx
+msgid "清算保护：如果低于<0>{0}</0>减杠杆至<1>{1}</1>"
+msgstr "清算保护：如果低于<0>{0}</0>减杠杆至<1>{1}</1>"
+
+#: src/pages/Saver/Setting.tsx
+#: src/pages/Saver/Setting.tsx
+msgid "目标和限制比率之间的差值必须大于 5%"
+msgstr "目标和限制比率之间的差值必须大于 5%"
+
 #: src/components/Modal/index.tsx
 msgid "确认"
 msgstr "确认"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/components/Nav/index.tsx
+msgid "管理"
+msgstr "管理"
+
+#: src/pages/Saver/Setting.tsx
+msgid "自动减杠杆将在启用当前参数时被触发"
+msgstr "自动减杠杆将在启用当前参数时被触发"
+
+#: src/pages/Saver/Setting.tsx
+msgid "自动加杠杆将在启用当前参数时被触发"
+msgstr "自动加杠杆将在启用当前参数时被触发"
+
+#: src/pages/Saver/Info.tsx
+#: src/pages/Saver/Setting.tsx
+msgid "自动化模式："
+msgstr "自动化模式："
+
+#: src/components/Nav/index.tsx
+msgid "自动处理"
+msgstr "自动处理"
+
+#: src/pages/SaverInit.tsx
+msgid "设置"
+msgstr "设置"
+
+#: src/pages/AaveInit.tsx
 msgid "请先连接钱包"
 msgstr "请先连接钱包"
 
@@ -449,6 +581,7 @@ msgstr "还币"
 msgid "还币："
 msgstr "还币："
 
+#: src/pages/Home/Advanced.tsx
 #: src/pages/Home/Advanced.tsx
 msgid "还款中"
 msgstr "还款中"

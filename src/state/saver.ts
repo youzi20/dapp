@@ -12,7 +12,7 @@ export enum SaverStatusEnums {
 
 interface SaverState {
     readonly status: SaverStatusEnums
-    readonly highRatio: string
+    readonly optimalType: number
     readonly minRatio: string
     readonly maxRatio: string
     readonly optimalBoost: string
@@ -22,8 +22,8 @@ interface SaverState {
 
 const initialState: SaverState = {
     status: SaverStatusEnums.CLOSE,
+    optimalType: 0,
     enabled: true,
-    highRatio: "150",
     minRatio: "135",
     maxRatio: "165",
     optimalBoost: "150",
@@ -33,7 +33,6 @@ const initialState: SaverState = {
 export const updateState = createAction<Partial<SaverState> | undefined>('saver/updateState');
 export const updateStatus = createAction<SaverStatusEnums>('saver/updateStatus');
 export const updateEnabled = createAction<boolean>('saver/updateEnabled');
-export const updateHighRatio = createAction<number>('saver/updateHighRatio');
 export const updateOtherRatio = createAction<["minRatio" | "maxRatio" | "optimalBoost" | "optimalRepay", string]>('saver/updateOtherRatio');
 
 
@@ -54,13 +53,6 @@ export const saverReducer = createReducer(initialState, (builder) =>
         })
         .addCase(updateEnabled, (state, action) => {
             state.enabled = action.payload;
-        })
-        .addCase(updateHighRatio, (state, action) => {
-            state.highRatio = String(action.payload);
-            state.minRatio = String(action.payload - 15 < 0 ? 0 : action.payload - 15);
-            state.maxRatio = String(action.payload + 15);
-            state.optimalBoost = String(action.payload);
-            state.optimalRepay = String(action.payload);
         })
         .addCase(updateOtherRatio, (state, action) => {
             const [key, value] = action.payload;
