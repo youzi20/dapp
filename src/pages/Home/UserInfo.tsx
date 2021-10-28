@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { Link } from "react-router-dom";
 import styled from 'styled-components';
 import { Trans, t } from '@lingui/macro';
 
@@ -15,10 +16,12 @@ import Tips, { TipsInfo, TipsPrice } from '../../components/Tips';
 import { UserStatusEnums, useState as useUserState, useUserInfo } from '../../state/user';
 import { useEthPrice, useLiquidationInfo } from '../../state/market';
 import { useState as useAfterState, useAfterUserInfo } from '../../state/after';
+import { SaverStatusEnums, useState as useSaverState } from '../../state/saver';
 
 import { Font, Flex, Grid, TextOverflowWrapper, Wrapper } from '../../styled';
 
 import { getRatio, ethToPriceTips, numberToFixed, getHandleTheme } from '../../utils';
+import { SAVER_SVG, SAVER_ACTIVE_SVG } from '../../utils/images';
 
 import Loading from '../Loading';
 import AaveInit from '../AaveInit';
@@ -190,9 +193,19 @@ const LabelItem: React.FC<{
     </LabelItemWrapper>
 }
 
-const Info: React.FC<{
-    address: string | null
-}> = ({ address }) => {
+const SaverIcon = () => {
+    const { status, optimalType } = useSaverState();
+
+    const tipsText = optimalType === 0 ? t`启用清算保护和自动杠杆自动化` : optimalType === 1 ? t`已启用半自动化` : t`已启用全动化`;
+
+    return <Tips text={tipsText} >
+        <Link to="./saver" style={{ display: "inherit" }}>
+            <img src={SaverStatusEnums.OPEN !== status ? SAVER_SVG : SAVER_ACTIVE_SVG} alt="" />
+        </Link>
+    </Tips>
+}
+
+const Info = () => {
     const price = useEthPrice();
     const [borrowETH, liquidationETH] = useLiquidationInfo() || [];
 
@@ -209,7 +222,7 @@ const Info: React.FC<{
         totalLiquidationETH,
     } = useAfterUserInfo() ?? {};
 
-    console.log("UserInfo", userInfo);
+    // console.log("UserInfo", userInfo);
 
     const liquidationRatio = useMemo(() => borrowETH && liquidationETH ? borrowETH / liquidationETH * 100 : null, [borrowETH, liquidationETH]);
 
@@ -246,8 +259,14 @@ const Info: React.FC<{
                     />
                     <HighlightedWrapper>
                         <DataItem
-                            label={<Label text={t`安全比率 (最小值 100%):`} tips={liquidationRatio ? t`您的借款限额与借贷资金的比率低于${getRatio(liquidationRatio)}将被清算。` : ""} />}
-                            quantity={<Ratio ratio={ratio} />}
+                            label={<Label
+                                text={t`安全比率 (最小值 100%):`}
+                                tips={liquidationRatio ? t`您的借款限额与借贷资金的比率低于${getRatio(liquidationRatio)}将被清算。` : ""}
+                            />}
+                            quantity={<Flex alignItems="center">
+                                <Ratio ratio={ratio} />
+                                <SaverIcon />
+                            </Flex>}
                             afterValue={<Ratio ratio={afterRatio} />}
                             {...afterProps}
                         />
@@ -309,7 +328,7 @@ const UserInfo = () => {
 
     if (UserStatusEnums.LOADING === status) return <Loading />;
 
-    return <Info address={address} />
+    return <Info />
 }
 
 export default UserInfo;

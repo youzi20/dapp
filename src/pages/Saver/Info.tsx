@@ -46,7 +46,7 @@ const Info = ({ onUpdate }: { onUpdate: () => void }) => {
         });
     }
 
-    console.log(optimalType, minRatio, maxRatio, optimalBoost, optimalRepay);
+    // console.log(optimalType, minRatio, maxRatio, optimalBoost, optimalRepay);
 
     return <Wrapper>
         <SmartAddress />

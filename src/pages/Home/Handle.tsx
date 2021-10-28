@@ -35,6 +35,8 @@ const Handle: React.FC<{
         text: string | React.ReactNode
         theme: "primary" | "gray" | "buy" | "sell"
         loading?: boolean
+        disabled?: boolean
+        disabledTips?: string
         click?: () => void
     }
     onInputChange?: (value: string | undefined) => void
@@ -76,7 +78,9 @@ const Handle: React.FC<{
             , [isAuthorize, token, value, allowance]);
 
         const isDisabled = useMemo(() => {
-            if (isShowAuthorizeBtn) {
+            if (buttonProps.disabled) {
+                return { tips: buttonProps.disabledTips, disabled: buttonProps.disabled }
+            } else if (isShowAuthorizeBtn) {
                 return { tips: t`需要先进行授权操作`, disabled: true }
             } else if (!coins.length) {
                 return { tips: t`暂无可操作币种`, disabled: true }

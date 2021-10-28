@@ -25,7 +25,7 @@ import { Font, Flex } from '../../styled';
 
 import { getRatio, numberDelimiter, numberRuler, fullNumber, ethToPriceTips, ethToPrice, getTableTheme } from '../../utils';
 
-import CoinIcon from './CoinIcon';
+import CoinIcon from '../CoinIcon';
 
 interface MarketInterface {
     price: string
@@ -181,7 +181,7 @@ const MarketInfo = () => {
     const afterSupply = useAfterSupply();
     const afterBorrow = useAfterBorrow();
 
-    console.log("MarketInfo", marketData, supplyData, borrowData, afterSupply, afterBorrow);
+    // console.log("MarketInfo", marketData, supplyData, borrowData, afterSupply, afterBorrow);
 
     return <>
         {supplyData ? <Wrapper>

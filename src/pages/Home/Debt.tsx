@@ -13,9 +13,10 @@ import { useReloadAfter, useDebtAfter } from "../../hooks/after";
 import { useUserInfo } from "../../state/user";
 import { useBorrowCoins, useBorrowMap, useCoinAddress, useTokenInfo } from '../../state/market';
 import { useState as useWalletState, WalletStatusEnums } from '../../state/wallet';
+import { useState as useSaverState } from '../../state/saver';
 import { useState as useAfterState } from '../../state/after';
 
-import { Font } from '../../styled';
+import { Font, TipsStyle } from '../../styled';
 
 import { fullNumber } from "../../utils";
 import { TIPS_WARNING_SVG } from "../../utils/images";
@@ -24,23 +25,14 @@ import { HandleType } from "../../types";
 import Handle from "./Handle";
 import { TabPanelGrid, InputMax, SelectOptionItem, APYSelect } from './styled';
 
-const WarnWrapper = styled.div`
-display: grid;
-grid-template-columns: auto 1fr;
-grid-column-gap: 10px;
-align-items: center;
-margin-top: 25px;
-padding: 12px;
-border-radius: 3px;
-background-color: rgba(242,201,76,0.3);
-`;
-
 export const Borrow = ({ handle }: { handle: HandleType }) => {
     const [token, setToken] = useState<string>();
     const [amount, setAmount] = useState<string>();
     const [loadingButton, setLoadingButton] = useState<boolean>();
     const [open, setOpen] = useState<boolean>(false);
     const [apy, setApy] = useState<number>();
+
+    const { optimalType } = useSaverState();
 
     const { price, stableBorrowRateEnabled } = useTokenInfo(token) ?? {};
     const { availableBorrowsETH } = useUserInfo() ?? {};
@@ -107,6 +99,8 @@ export const Borrow = ({ handle }: { handle: HandleType }) => {
             buttonProps={{
                 text: t`借币`,
                 theme: "buy",
+                disabled: optimalType === 2,
+                disabledTips: t`已开启全自动化模式，禁用该操作`,
                 click: handleClick
             }}
             onInputChange={setAmount}
@@ -140,10 +134,10 @@ export const Borrow = ({ handle }: { handle: HandleType }) => {
                 </Trans>
             </Font>
             {!stableBorrowRateEnabled &&
-                <WarnWrapper>
+                <TipsStyle theme="rgb(145 114 44)">
                     <img src={TIPS_WARNING_SVG} alt="" />
                     <Font fontSize="14px"><Trans>This asset is unsupported for stable rate borrow</Trans></Font>
-                </WarnWrapper>}
+                </TipsStyle>}
             <APYSelect stable={!stableBorrowRateEnabled} onChange={setApy} />
         </Modal>
     </>
@@ -155,10 +149,13 @@ export const Payback = ({ handle }: { handle: HandleType }) => {
     const [amount, setAmount] = useState<string>();
     const [loadingButton, setLoadingButton] = useState<boolean>();
 
+    const { optimalType } = useSaverState();
+
     const [symbol, apy] = token ? token.split("_") : [];
 
     const address = useCoinAddress(symbol);
     useDebtAfter(handle, amount, token, address);
+
     const { type } = useAfterState();
 
     const borrowMap = useBorrowMap();
@@ -229,6 +226,8 @@ export const Payback = ({ handle }: { handle: HandleType }) => {
             text: t`还币`,
             theme: "sell",
             loading: loadingButton,
+            disabled: optimalType === 2,
+            disabledTips: t`已开启全自动化模式，禁用该操作`,
             click: handleClick
         }}
         onInputChange={setAmount}

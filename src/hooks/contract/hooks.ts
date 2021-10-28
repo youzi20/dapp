@@ -54,5 +54,5 @@ export const useFuncEncode = (ABI: any, methodName: string, options?: any[]) => 
 
     const fragment = useMemo(() => active ? contractInterface?.getFunction(methodName) : null, [contractInterface, methodName]);
 
-    return useMemo(() => active && contractInterface?.encodeFunctionData(fragment ?? "", options), [fragment, options]);
+    return useMemo(() => active && (!options || options.length > 0)   ? contractInterface?.encodeFunctionData(fragment ?? "", options) : "", [fragment, options]);
 }

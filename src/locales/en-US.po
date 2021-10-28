@@ -159,6 +159,10 @@ msgstr ""
 msgid "价格下跌时进行偿还"
 msgstr ""
 
+#: src/pages/Saver/Setting.tsx
+msgid "使用全自动化模式请先偿还以下借贷"
+msgstr ""
+
 #: src/pages/Home/MarketInfo.tsx
 #: src/pages/Home/MarketInfo.tsx
 msgid "供应 APY"
@@ -298,6 +302,10 @@ msgstr "Cancel"
 msgid "启用"
 msgstr ""
 
+#: src/pages/Home/UserInfo.tsx
+msgid "启用清算保护和自动杠杆自动化"
+msgstr ""
+
 #: src/pages/Home/Advanced.tsx
 msgid "在单笔交易中完成取出储蓄抵押品<0/>以购买借入资产并偿还债务三个步骤。"
 msgstr "Takes out supplied collateral to buy borrowed asset <0/> and pay back debt in a single transaction."
@@ -339,12 +347,30 @@ msgid "已供应($)"
 msgstr "Supplied($)"
 
 #: src/pages/Home/MarketInfo.tsx
+#: src/pages/Saver/Setting.tsx
 msgid "已借贷"
 msgstr "Borrowed"
 
 #: src/pages/Home/MarketInfo.tsx
+#: src/pages/Saver/Setting.tsx
 msgid "已借贷($)"
 msgstr "Borrowed($)"
+
+#: src/pages/Home/UserInfo.tsx
+msgid "已启用全动化"
+msgstr ""
+
+#: src/pages/Home/UserInfo.tsx
+msgid "已启用半自动化"
+msgstr ""
+
+#: src/pages/Home/Advanced.tsx
+#: src/pages/Home/Advanced.tsx
+#: src/pages/Home/Collateral.tsx
+#: src/pages/Home/Debt.tsx
+#: src/pages/Home/Debt.tsx
+msgid "已开启全自动化模式，禁用该操作"
+msgstr ""
 
 #: src/pages/Home/MarketInfo.tsx
 msgid "市场信息"
@@ -561,6 +587,7 @@ msgstr "Borrow Limit: {percentPrice} ({value})"
 #: src/pages/Home/MarketInfo.tsx
 #: src/pages/Home/MarketInfo.tsx
 #: src/pages/Home/MarketInfo.tsx
+#: src/pages/Saver/Setting.tsx
 msgid "资产"
 msgstr "Asset"
 

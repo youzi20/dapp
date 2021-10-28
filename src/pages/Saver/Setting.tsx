@@ -1,27 +1,39 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { t, Trans } from '@lingui/macro';
 import styled from 'styled-components';
 
 import Checkbox from '../../components/Checkbox';
 import Select, { SelectValueInterface } from '../../components/Select';
 import Button from '../../components/Button';
+import Table, { TableColumn } from '../../components/Table';
+import Tips, { TipsPrice } from '../../components/Tips';
 import { message } from '../../components/Message';
 
 import { useSubscribe } from '../../hooks/contract/saver';
 
 import { useAppDispatch } from '../../state/hooks';
+import { MarketStatusEnums, useState as useMatketState, useEthPrice, useBorrowMap } from '../../state/market';
 import { useState as useUserState } from '../../state/user';
 import { useState as useSaverState, updateEnabled, updateOtherRatio } from '../../state/saver';
 
-import { Flex, Font, Grid, Content, Wrapper } from '../../styled';
-import { getRatio } from '../../utils';
-import { ERROR_WARNING_SVG } from '../../utils/images';
+import { Flex, Font, Grid, Content, Wrapper, TipsStyle } from '../../styled';
+import { getRatio, ethToPriceTips, fullNumber, numberRuler } from '../../utils';
+import { TIPS_WARNING_SVG, ERROR_WARNING_SVG } from '../../utils/images';
 
+
+import CoinIcon from '../CoinIcon';
 import SmartAddress from '../SmartAddress';
 
 import Input, { InputColumn } from './Input';
 import Bar from './Bar';
 
+interface MarketInterface {
+    price: string
+    symbol: string
+    amount: string
+    totalSupply: string
+    totalBorrow: string
+}
 
 const Line = styled.div`
 margin-top: 30px;
@@ -36,37 +48,34 @@ border-radius: 3px;
 background: #37B06F;
 `;
 
-
-const ErrorWarning = styled.div`
-display: flex;
-align-items: center;
-text-align: left;
-padding: 12px;
-border-radius: 3px;
-background-color: var(--handle-error-bg);
-
-img {
-    margin-right: 10px;
-}
-`;
-
 const ButtonGroupGrid = styled(Grid)`
 justify-content: end;
+margin-top: 25px;
 `;
+
+const renderCoinIcon = (value: any) => <CoinIcon name={value} />;
+const renderAmountTips = ({ symbol, amount }: MarketInterface) => <Flex><Tips text={fullNumber(amount)} ><div>{numberRuler(amount)} {symbol}</div></Tips></Flex>;
+const renderPriceTips = (value: string, price?: number) => <Flex><TipsPrice price={ethToPriceTips(value, price)} /></Flex>;
+
 
 const Setting = ({ onCancel }: { onCancel: () => void }) => {
     const dispatch = useAppDispatch();
-
-    const [boostDisabled, setBoostDisabled] = useState<boolean>(true);
-
-    const { dataInfo } = useUserState();
-    const { optimalType, minRatio, maxRatio, optimalBoost, optimalRepay } = useSaverState();
 
     const [modeSelect] = useState([
         { name: t`全自动化`, value: 2 },
         { name: t`半自动化`, value: 1 }
     ]);
     const [mode, setMode] = useState<SelectValueInterface>();
+    const [boostDisabled, setBoostDisabled] = useState<boolean>(true);
+
+    const { loanStatus } = useMatketState();
+    const price = useEthPrice();
+    const borrowMap = useBorrowMap();
+
+    const borrowData = useMemo(() => borrowMap ? Object.values(borrowMap) : null, [borrowMap]);
+
+    const { dataInfo } = useUserState();
+    const { optimalType, minRatio, maxRatio, optimalBoost, optimalRepay } = useSaverState();
 
     const { ratio } = dataInfo ?? {};
 
@@ -115,7 +124,7 @@ const Setting = ({ onCancel }: { onCancel: () => void }) => {
                     </Trans>
                 </Font>
             </p>
-            
+
             <Grid rowGap="20px">
                 <Flex alignItems="center">
                     <Font color="#fff"><Trans>当前比例：</Trans></Font>
@@ -139,10 +148,11 @@ const Setting = ({ onCancel }: { onCancel: () => void }) => {
 
                 <InputColumn
                     title={t`价格下跌时进行偿还`}
-                    error={Number(minRatio) - ratio * 100 >= 0 && <ErrorWarning>
-                        <img src={ERROR_WARNING_SVG} alt="" />
-                        <Font fontSize="14px"><Trans>自动减杠杆将在启用当前参数时被触发</Trans></Font>
-                    </ErrorWarning>}
+                    error={Number(minRatio) - ratio * 100 >= 0 &&
+                        <TipsStyle theme="var(--handle-error-bg)">
+                            <img src={ERROR_WARNING_SVG} alt="" />
+                            <Font fontSize="14px"><Trans>自动减杠杆将在启用当前参数时被触发</Trans></Font>
+                        </TipsStyle>}
                 >
                     <Input
                         label={t`如果比率低于：`}
@@ -191,10 +201,11 @@ const Setting = ({ onCancel }: { onCancel: () => void }) => {
                         label={t`价格上涨时加杠杆`}
                         checked={boostDisabled}
                         onChange={handleBoostCheckbox} />}
-                    error={Number(maxRatio) - ratio * 100 <= 0 && <ErrorWarning>
-                        <img src={ERROR_WARNING_SVG} alt="" />
-                        <Font fontSize="14px"><Trans>自动加杠杆将在启用当前参数时被触发</Trans></Font>
-                    </ErrorWarning>}
+                    error={Number(maxRatio) - ratio * 100 <= 0 &&
+                        <TipsStyle theme="var(--handle-error-bg)">
+                            <img src={ERROR_WARNING_SVG} alt="" />
+                            <Font fontSize="14px"><Trans>自动加杠杆将在启用当前参数时被触发</Trans></Font>
+                        </TipsStyle>}
                 >
                     <Input
                         disabled={!boostDisabled}
@@ -235,9 +246,26 @@ const Setting = ({ onCancel }: { onCancel: () => void }) => {
 
                 <Bar ratio={Number(ratio) * 100} />
             </>}
+
+            {mode?.value === 2 && borrowData?.length  && <>
+                <TipsStyle theme="rgb(145 114 44)">
+                    <img src={TIPS_WARNING_SVG} alt="" />
+                    <Font fontSize="14px"><Trans>使用全自动化模式请先偿还以下借贷</Trans></Font>
+                </TipsStyle>
+
+                <Table
+                    dataSource={borrowData ?? []}
+                    loading={!!borrowData && loanStatus === MarketStatusEnums.LOADING}
+                >
+                    <TableColumn first width="140px" title={t`资产`} dataKey="symbol" render={renderCoinIcon} />
+                    <TableColumn width="160px" title={t`已借贷`} render={(_, __, value) => renderAmountTips(value)} />
+                    <TableColumn width="170px" title={t`已借贷($)`} dataKey="priceETH" render={(value) => renderPriceTips(value, price)} />
+                </Table>
+            </>}
+
             <ButtonGroupGrid template="max-content max-content" columGap="20px">
                 <Button theme="gray" onClick={onCancel}><Trans>取消</Trans></Button>
-                <Button theme="primary" onClick={handleSubmit}><Trans>提交</Trans></Button>
+                <Button disabled={mode?.value === 2 && !!borrowData?.length } theme="primary" onClick={handleSubmit}><Trans>提交</Trans></Button>
             </ButtonGroupGrid>
         </Content>
     </Wrapper>

@@ -37,7 +37,7 @@ export const useSubscribed = () => {
 
     const saveInfoContract = useSaverInfoContract();
 
-    console.log("saveInfoContract", saveInfoContract);
+    // console.log("saveInfoContract", saveInfoContract);
 
     return async () => {
         if (!saveInfoContract) return;
@@ -67,7 +67,7 @@ export const useSaverParams = () => {
 
     const saveInfoContract = useSaverInfoContract();
 
-    console.log("saveInfoContract", saveInfoContract);
+    // console.log("saveInfoContract", saveInfoContract);
 
     return async () => {
         if (!saveInfoContract) return;

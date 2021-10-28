@@ -12,6 +12,7 @@ import { useReloadAfter, useCollateralAfter } from "../../hooks/after";
 import { useUserInfo } from "../../state/user";
 import { useSupplyCoins, useSupplyMap, useCoinAddress } from '../../state/market';
 import { useState as useWalletState, WalletStatusEnums } from '../../state/wallet';
+import { useState as useSaverState } from '../../state/saver';
 import { useState as useAfterState } from '../../state/after';
 
 import { fullNumber, getWithdrawMax } from "../../utils";
@@ -109,6 +110,8 @@ const Withdraw = ({ handle }: { handle: HandleType }) => {
     const [amount, setAmount] = useState<string>();
     const [loadingButton, setLoadingButton] = useState<boolean>();
 
+    const { optimalType } = useSaverState();
+
     const supplyMap = useSupplyMap();
     const supplyCoins = useMemo(() => supplyMap ? Object.keys(supplyMap) : [], [supplyMap]);
 
@@ -168,6 +171,8 @@ const Withdraw = ({ handle }: { handle: HandleType }) => {
             text: t`减少质押`,
             theme: "sell",
             loading: loadingButton,
+            disabled: optimalType === 2,
+            disabledTips: t`已开启全自动化模式，禁用该操作`,
             click: handleClick
         }}
         onInputChange={setAmount}

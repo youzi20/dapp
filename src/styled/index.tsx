@@ -106,11 +106,21 @@ background: var(--user-info);
 overflow: hidden;
 `;
 
-
 export const WrapperHeader = styled.div`
 display: flex;
 align-items: center;
 height: 52px;
 padding: 0 20px;
 background: var(--user-info-header);
+`;
+
+export const TipsStyle = styled.div<{ theme: string }>`
+display: grid;
+grid-template-columns: auto 1fr;
+grid-column-gap: 10px;
+align-items: center;
+margin: 25px 0;
+padding: 12px;
+border-radius: 3px;
+background-color: ${({ theme }) => theme};
 `;

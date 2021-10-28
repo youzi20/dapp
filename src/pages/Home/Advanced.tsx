@@ -23,6 +23,7 @@ import {
     useCoinAddressArray,
     useTokenInfo,
 } from '../../state/market';
+import { useState as useSaverState } from '../../state/saver';
 import { useState as useAfterState } from "../../state/after";
 
 import { Font, Flex } from '../../styled';
@@ -68,6 +69,8 @@ const Handle: React.FC<{
         text: string | React.ReactNode
         theme: "primary" | "gray" | "buy" | "sell"
         loading?: boolean
+        disabled?: boolean
+        disabledTips?: string
         click?: () => void
     }
     onInputChange?: (value?: string) => void
@@ -99,7 +102,9 @@ const Handle: React.FC<{
         const theme = useMemo(() => getHandleTheme(type), [type]);
 
         const isDisabled = useMemo(() => {
-            if (!coins.length) {
+            if (buttonProps.disabled) {
+                return { tips: buttonProps.disabledTips, disabled: buttonProps.disabled }
+            } else if (!coins.length) {
                 return { tips: t`暂无可操作币种`, disabled: true }
             } else if (!value) {
                 return { tips: t`未输入值`, disabled: true }
@@ -199,12 +204,14 @@ const Boost = ({ handle }: { handle: HandleType }) => {
     const [tokens, setTokens] = useState<string[]>();
     const [amount, setAmount] = useState<string>();
 
-    const tokenAddressArray = useCoinAddressArray(tokens);
-    useAdvancedAfter(handle, amount, tokens, tokenAddressArray);
-    const { type } = useAfterState();
+    const { optimalType } = useSaverState();
 
     const stableCoins = useStableCoins() ?? [];
     const otherCoins = useOtherCoins() ?? [];
+
+    const tokenAddressArray = useCoinAddressArray(tokens);
+    useAdvancedAfter(handle, amount, tokens, tokenAddressArray);
+    const { type } = useAfterState();
 
     const { availableBorrowsETH } = useUserInfo() ?? {};
 
@@ -256,6 +263,8 @@ const Boost = ({ handle }: { handle: HandleType }) => {
             buttonProps={{
                 text: t`加杠杆`,
                 theme: "buy",
+                disabled: optimalType === 2,
+                disabledTips: t`已开启全自动化模式，禁用该操作`,
                 click: handleClick
             }}
             onInputChange={setAmount}
@@ -380,6 +389,8 @@ const Repay = ({ handle }: { handle: HandleType }) => {
     const [tokens, setTokens] = useState<(string)[]>();
     const [amount, setAmount] = useState<string>();
 
+    const { optimalType } = useSaverState();
+
     const supplyMap = useSupplyMap();
     const borrowMap = useBorrowMap();
 
@@ -440,6 +451,8 @@ const Repay = ({ handle }: { handle: HandleType }) => {
             buttonProps={{
                 text: t`减杠杆`,
                 theme: "sell",
+                disabled: optimalType === 2,
+                disabledTips: t`已开启全自动化模式，禁用该操作`,
                 click: handleClick
             }}
             onInputChange={setAmount}

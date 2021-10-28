@@ -4,6 +4,7 @@ import { Contract } from '@ethersproject/contracts';
 import { JsonRpcSigner, Web3Provider } from '@ethersproject/providers';
 import { AbiCoder } from '@ethersproject/abi';
 import { formatUnits, parseUnits } from '@ethersproject/units';
+import { BigNumberish } from "@ethersproject/bignumber";
 
 import { Unit, HandleType } from '../types';
 
@@ -15,7 +16,7 @@ export function getRatio(value?: number): string {
     return (numberToFixed(fullNumber(value), 2) ?? "0") + "%";
 }
 
-export function getFormatNumber(value: number | string, unit?: Unit | number) {
+export function getFormatNumber(value: number | string | BigNumberish, unit?: Unit | number) {
     return formatUnits(value, unit ?? "ether");
 }
 
@@ -218,7 +219,7 @@ export function getRepayMax(from: any, to: any) {
     const { symbol: fromSymbol, priceETH: fromEthPrice, amount: fromAmount, price } = from;
     const { symbol: toSymbol, priceETH: toEthPrice, amount: toAmount, } = to;
 
-    if (fromSymbol === toSymbol) return fromAmount - toAmount > 0 ? toAmount : fromAmount;
+    if (fromSymbol === toSymbol) return fromAmount - toAmount > 0 ? toAmount : fromAmount
 
     if (fromEthPrice <= toEthPrice) return fromAmount;
 

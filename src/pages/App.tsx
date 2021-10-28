@@ -7,6 +7,7 @@ import { WalletManager } from '../components/Wallet';
 
 import { Body } from '../styled';
 
+import AppInit from './AppInit';
 import Home from './Home';
 import Saver from './Saver';
 
@@ -24,6 +25,7 @@ function App() {
     <StrictMode>
         <Web3ReactProvider getLibrary={getLibrary}>
           <WalletManager />
+          <AppInit />
           <Body>
             <Switch>
               <Route exact path="/" component={Home} />

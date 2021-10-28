@@ -23,7 +23,7 @@ const Core = () => {
         {UserStatusEnums.SUCCESS === userStatus && SaverStatusEnums.CLOSE === saverStatus && !show ?
             <SaverInit onClick={() => setShow(true)} /> : null}
 
-        {SaverStatusEnums.OPEN == saverStatus && !show ? <Info onUpdate={() => setShow(true)} /> : null}
+        {SaverStatusEnums.OPEN === saverStatus && !show ? <Info onUpdate={() => setShow(true)} /> : null}
 
         {show ? <Setting onCancel={() => setShow(false)} /> : null}
     </>
