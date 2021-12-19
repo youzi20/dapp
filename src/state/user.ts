@@ -11,26 +11,25 @@ export enum UserStatusEnums {
 }
 
 interface UserState {
-    readonly address: string | null
+    readonly address?: string
     readonly status: UserStatusEnums
-    readonly dataInfo?: any
+    readonly dataInfo?: { [key: string]: any }
 }
 
 const initialState: UserState = {
-    address: null,
-    status: UserStatusEnums.CREATE
+    status: UserStatusEnums.LOADING
 }
 
 export const updateState = createAction<UserState | undefined>('user/updateState');
 export const updateAddress = createAction<string>('user/updateAddress');
 export const updateStatus = createAction<UserStatusEnums>('user/updateStatus');
-export const updateDataInfo = createAction<any>('user/updateDataInfo');
+export const updateDataInfo = createAction<{ [key: string]: any } | undefined>('user/updateDataInfo');
 
-export function useAddress(): string | null {
+export function useAddress(): string | undefined {
     return useAppSelector((state: AppState) => state.user.address);
 }
 
-export function useUserInfo(): any {
+export function useUserInfo() {
     return useAppSelector((state: AppState) => state.user.dataInfo);
 }
 

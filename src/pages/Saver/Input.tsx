@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
-import styled from "styled-components";
-import { t } from '@lingui/macro';
-import { Font, Grid } from "../../styled";
+import React, { useEffect, useState } from 'react';
+import styled from 'styled-components';
+import { Font, Grid } from '../../styled';
 
 const InputWrapper = styled.div<{ error?: boolean }>`
 border-radius: 3px;
@@ -69,7 +68,7 @@ interface InputColumnProps {
 
 export const InputColumn: React.FC<InputColumnProps> = ({ title, error, children, ...other }) => {
     return <InputColumnGrid rowGap="20px">
-        {title && <Font fontSize="16px">{title}</Font>}
+        {title && <Font size="16px">{title}</Font>}
         {error}
         <InputColumnWrapper {...other}>
             {children}
@@ -101,12 +100,12 @@ const Input: React.FC<InputProps> = ({ label, value: propsValue, disabled, error
 
     return <InputWrapper error={error?.isError} >
         <InputContent className={disabled ? "disabled" : ""}>
-            <label className="label"><Font {...{ fontSize: "16px", color: "rgba(255, 255, 255, .5)" }}>{label}</Font></label>
+            <label className="label"><Font size="16px" fontColor="rgba(255, 255, 255, .5)">{label}</Font></label>
             <input type="number" value={value} onChange={(e) => handleChange(e.target.value)} />
-            <label className="label-after"><Font {...{ fontSize: "20px" }}>%</Font></label>
+            <label className="label-after"><Font size="20px">%</Font></label>
         </InputContent>
         {error?.isError && <InputError>{error.message}</InputError>}
-    </InputWrapper>
+    </InputWrapper >
 }
 
 export default Input;

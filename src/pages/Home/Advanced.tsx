@@ -1,599 +1,492 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Trans, t } from "@lingui/macro";
+import React, { useState, useEffect, useMemo, useContext } from 'react';
+import { Trans, t } from '@lingui/macro';
 
-import Button from "../../components/Button";
-import Select from '../../components/Select';
-import Modal from "../../components/Modal";
-import Tips, { TipsInfo } from "../../components/Tips";
-import { EmptyLoading } from "../../components/Empty";
-import { message } from "../../components/Message";
+import { CoinIcon } from '../../components/CoinInfo';
+import { ButtonStatus } from '../../components/Button';
+import { message } from '../../components/Message';
+import Modal from '../../components/Modal';
+import { EmptyLoading } from '../../components/Empty';
+import APYSelect from '../../components/ApySelect';
+import Tips from '../../components/Tips';
+import { TipsBoxWarning } from '../../components/TipsBox';
 
-import { useReload } from "../../hooks/contract/reload";
+import useHandle from '../../hooks/handle';
 import { useBoost, useRepay } from '../../hooks/contract/handle';
 import { useTokenPrice } from "../../hooks/contract/useMarketInfo";
 
-import { useReloadAfter, useAdvancedAfter } from "../../hooks/after";
-
+import { useAppDispatch } from '../../state/hooks';
+import { updateConfigReload } from '../../state/config';
 import { useUserInfo } from "../../state/user";
 import {
     useStableCoins,
     useOtherCoins,
     useSupplyMap,
     useBorrowMap,
-    useCoinAddressArray,
+    useTokenAddressArray,
     useTokenInfo,
 } from '../../state/market';
-import { useState as useSaverState } from '../../state/saver';
-import { useState as useAfterState } from "../../state/after";
 
-import { Font, Flex } from '../../styled';
-import { numberDelimiter, numberRuler, fullNumber, getBoostMax, getRepayMax, getHandleTheme } from "../../utils";
-import { HandleType } from "../../types";
+import { Font, Grid, Flex } from '../../styled';
+import { getParseWei, fullNumber, numberRuler, numberToFixed, getNumberTips } from '../../utils';
 
+import Handle, { HandleContext, HandleAbove, HandleInput, HandleSelect, ValueRender, SelectOptionItem, HandleButton } from './Handle';
 
-import {
-    TabPanelGrid,
-    HandleText,
-    HandleWrapper,
-    InputControl,
-    SelectControl,
-    SelectEmpty,
-    InputMax,
-    SelectOptionItem,
-    APYSelect
-} from './styled';
-
-const SelectRender: React.FC<{
-    value: string
-    text: string
-}> = ({ value, text }) => {
-    return <Flex flexDirection="column">
-        <Font>{value}</Font>
-        <Font fontSize="12px" color="#939DA7">{text}</Font>
-    </Flex>
+const TradeInfoItem = ({ symbol, amount, amountTips, text }: {
+    symbol: string
+    amount: string
+    amountTips?: string
+    text?: string | React.ReactNode
+}) => {
+    return <div>
+        <Font size="14px" fontColor="#939DA7" style={{ marginBottom: 4 }}>{text}</Font>
+        <Tips text={amountTips} >
+            <Flex inline alignItems="center">
+                <CoinIcon name={symbol} />
+                <Flex alignItems="baseline">
+                    <Font size="30px" style={{ marginLeft: 10 }}>{amount}</Font>
+                    <Font size="20px" style={{ marginLeft: 3 }} fontColor="#939DA7">{symbol}</Font>
+                </Flex>
+            </Flex>
+        </Tips>
+    </div>
 }
 
-const Handle: React.FC<{
-    type: HandleType
-    max: string
-    labelText: string | React.ReactNode
-    labelTips: string | React.ReactNode
-    coins: any[][]
-    leftText?: string | React.ReactNode
-    rightText?: string | React.ReactNode
-    inputValue?: string
-    selectText: string[]
-    selectValue?: string[]
-    selectOptionItemRender?: React.ReactNode
-    buttonProps: {
-        text: string | React.ReactNode
-        theme: "primary" | "gray" | "buy" | "sell"
-        loading?: boolean
-        disabled?: boolean
-        disabledTips?: string
-        click?: () => void
+
+function getBoostMax(value: number, ratio: number, isFirst?: boolean): number {
+    if (!value || !ratio) return value;
+
+    if (isFirst) {
+        return value + getBoostMax(value, ratio);
+    } else {
+        const val = value * ratio;
+        if (val <= 1e-5) return 0;
+
+        return val + getBoostMax(val, ratio);
     }
-    onInputChange?: (value?: string) => void
-    onSelectChange?: (value: (string | null)[]) => void
+}
 
-}> = ({
-    type,
-    labelText,
-    labelTips,
-    max,
-    leftText,
-    rightText,
-    coins,
-    selectText,
-    inputValue,
-    selectValue,
-    selectOptionItemRender,
-    buttonProps,
-    onInputChange,
-    onSelectChange
-}) => {
-        const [[from, to], setTokens] = useState<(string | null)[]>([]);
-        const [value, setValue] = useState<string | null>(null);
+export const Boost = () => {
+    const { state, setState } = useHandle("Boost");
 
-        const [symbol] = to ? to.split("_") : [];
+    const { status, theme, amount, token, tokenTo, tokenAddress, tokenDecimals, handleButton } = state;
+    const { setStatus, setMax, setAmount, setToken, setTokenTo } = setState;
 
-        const [fromCoins, toCoins] = coins;
+    const [open, setOpen] = useState(false);
 
-        const theme = useMemo(() => getHandleTheme(type), [type]);
+    const [buttonStatus, setButtonStatus] = useState<ButtonStatus>();
 
-        const isDisabled = useMemo(() => {
-            if (buttonProps.disabled) {
-                return { tips: buttonProps.disabledTips, disabled: buttonProps.disabled }
-            } else if (!coins.length) {
-                return { tips: t`暂无可操作币种`, disabled: true }
-            } else if (!value) {
-                return { tips: t`未输入值`, disabled: true }
-            } else if (Number(value) > Number(max)) {
-                return { tips: t`数值大于最大值`, disabled: true }
-            } else if (Number(value) <= 0) {
-                return { tips: t`数值不能小于0`, disabled: true }
-            } else return { tips: "", disabled: false }
-        }, [coins, value, max]);
-
-        const handleInputChange = (value: any) => {
-            setValue(value);
-            onInputChange && onInputChange(value);
-        };
-
-        const handleSelectChange = (value: any) => {
-            setTokens(value);
-            onSelectChange && onSelectChange(value);
-        };
-
-        useEffect(() => {
-            if (inputValue !== value) {
-                setValue(inputValue ?? null);
-            }
-        }, [inputValue]);
-
-        useEffect(() => {
-            if (!selectValue || selectValue[0] !== from || selectValue[1] !== to) {
-                setTokens(selectValue ?? []);
-            }
-        }, [selectValue]);
-
-        return <div>
-            <HandleText>
-                <Font fontSize="13px" color="#939DA7">{leftText}</Font>
-                <Font fontSize="13px" color="#939DA7" onClick={() => handleInputChange(max)}>{rightText}</Font>
-            </HandleText>
-            <HandleWrapper theme={theme}>
-                <InputControl theme={theme}>
-                    <label>
-                        <Flex alignItems="center">
-                            <div className="input-label">
-                                <Font {...{ fontSize: "16px", color: "rgba(255, 255, 255, .5)" }}>
-                                    <Flex alignItems="center">
-                                        <TipsInfo text={labelTips} />
-                                        <span>{labelText}</span>
-                                    </Flex>
-                                </Font>
-                            </div>
-                            <input type="number" placeholder="0" value={value ?? ""} onChange={(e: any) => handleInputChange(e.target.value)} />
-                        </Flex>
-                    </label>
-                </InputControl>
-
-                <SelectControl>
-                    {fromCoins?.length ?
-                        <Select
-                            render={<SelectRender value={from ?? ""} text={selectText[0]} />}
-                            value={from ?? ""}
-                            dataSource={fromCoins}
-                            optionPopoverProps={{ style: { maxHeight: 240 } }}
-                            onChange={(select: any) => handleSelectChange([select.value, to])}
-                        /> :
-                        <SelectEmpty text={selectText[0]} />}
-                </SelectControl>
-
-                <SelectControl>
-                    {toCoins?.length ?
-                        <Select
-                            render={<SelectRender value={symbol ?? ""} text={selectText[1]} />}
-                            value={to ?? ""}
-                            dataSource={toCoins}
-                            optionItemRender={selectOptionItemRender}
-                            optionPopoverProps={{ style: { maxHeight: 240 } }}
-                            onChange={(select: any) => handleSelectChange([from, select.value])}
-                        /> :
-                        <SelectEmpty text={selectText[1]} />}
-                </SelectControl>
-            </HandleWrapper>
-            <Flex justifyContent="flex-end">
-                <Button
-                    theme={buttonProps.theme}
-                    disabled={isDisabled.disabled}
-                    loading={buttonProps.loading}
-                    onClick={buttonProps.click}
-                >
-                    <Tips text={isDisabled.tips} >
-                        <div>{buttonProps.text}</div>
-                    </Tips>
-                </Button>
-            </Flex>
-        </div>
-    }
-
-const Boost = ({ handle }: { handle: HandleType }) => {
-    const [open, setOpen] = useState<boolean>(false);
-    const [tokens, setTokens] = useState<string[]>();
-    const [amount, setAmount] = useState<string>();
-
-    const { optimalType } = useSaverState();
+    const { availableBorrowsETH } = useUserInfo() ?? {};
+    const { price, stableBorrowRateEnabled } = useTokenInfo(token) ?? {};
+    const { collateralFactor } = useTokenInfo(tokenTo) ?? {};
 
     const stableCoins = useStableCoins() ?? [];
     const otherCoins = useOtherCoins() ?? [];
 
-    const tokenAddressArray = useCoinAddressArray(tokens);
-    useAdvancedAfter(handle, amount, tokens, tokenAddressArray);
-    const { type } = useAfterState();
-
-    const { availableBorrowsETH } = useUserInfo() ?? {};
-
-    const [from, to] = tokens ?? [];
-
-    const { price, stableBorrowRateEnabled } = useTokenInfo(from) ?? {};
-    const { collateralFactor } = useTokenInfo(to) ?? {};
-
-    const max = useMemo(() =>
-        availableBorrowsETH && collateralFactor && price ?
-            fullNumber(getBoostMax(Number(availableBorrowsETH), Number(collateralFactor), true) / price) : "0",
-        [availableBorrowsETH, collateralFactor, price]);
-
-    const reload = useReload();
-
-    const handleClick = () => {
-        if (!tokens || !amount) return;
-
-        setOpen(true);
-    }
-
-    const handleReload = () => {
-        reload();
-        setAmount(undefined);
-    }
-
-    useEffect(() => {
-        if (!tokens && stableCoins?.length && otherCoins?.length) {
-            setTokens([stableCoins[0], otherCoins[0]])
+    const max = useMemo(() => {
+        if (availableBorrowsETH && collateralFactor && price) {
+            return fullNumber(getBoostMax(Number(availableBorrowsETH), Number(collateralFactor), true) / price);
         }
-    }, [stableCoins, otherCoins]);
+
+        if (!token || !tokenTo) return "0";
+
+        return;
+    }, [availableBorrowsETH, collateralFactor, price]);
+
+    const onClick = () => {
+        setOpen(true);
+        setButtonStatus("loading");
+        setStatus && setStatus("disabled");
+    }
+
+    const onCancel = () => {
+        setOpen(false);
+        setButtonStatus(undefined);
+        setStatus && setStatus("default");
+    }
 
     useEffect(() => {
-        if (type !== handle) setAmount(undefined);
-    }, [type]);
+        setMax(max);
 
-    return <>
+        return () => { }
+    }, [max]);
+
+    return <HandleContext.Provider value={{
+        status, theme, max, amount, token, tokenTo, tokenAddress, tokenDecimals, handleButton,
+        setStatus, setAmount, setToken, setTokenTo
+    }}>
         <Handle
-            type={handle}
-            max={max ?? "0"}
-            labelText={<Trans>加杠杆：</Trans>}
-            labelTips={<Trans>在单笔交易中完成增加债务购买更多抵押品 <br />并将其添加到储蓄中这三个步骤。</Trans>}
-            leftText={tokens ? t`Borrow ${tokens[0]} → Swap → Supply ${tokens[1]}` : ""}
-            rightText={<InputMax max={max} />}
-            coins={[stableCoins, otherCoins]}
-            selectText={[t`借币`, t`质押`]}
-            inputValue={amount ?? ""}
-            selectValue={tokens}
-            buttonProps={{
-                text: t`加杠杆`,
-                theme: "buy",
-                disabled: optimalType === 2,
-                disabledTips: t`已开启全自动化模式，禁用该操作`,
-                click: handleClick
-            }}
-            onInputChange={setAmount}
-            onSelectChange={(value: any) => setTokens(value)}
+            above={<HandleAbove text={token && tokenTo ? t`Borrow ${token} → Swap → Supply ${tokenTo}` : undefined} />}
+            body={<>
+                <HandleInput
+                    labelText={<Trans>加杠杆</Trans>}
+                    labelTips={<Trans>在单笔交易中完成增加债务购买更多抵押品 <br />并将其添加到储蓄中这三个步骤。</Trans>}
+                />
+                <HandleSelect
+                    dataSource={stableCoins ?? []}
+                    valueRender={<ValueRender text={t`贷款`} />}
+                />
+                <HandleSelect
+                    type="to"
+                    dataSource={otherCoins ?? []}
+                    valueRender={<ValueRender text={t`质押`} />}
+                />
+            </>}
+            button={<HandleButton status={buttonStatus} onClick={onClick}>
+                <Trans>加杠杆</Trans>
+            </HandleButton>}
         />
 
-        {open &&
-            <BoostModal
-                {...{ open, amount, tokens, tokenAddressArray, stable: stableBorrowRateEnabled }}
-                onClose={() => setOpen(false)}
-                onReload={handleReload}
-            />}
-    </>
+        {open && <BoostModal stable={!stableBorrowRateEnabled} onCancel={onCancel} />}
+    </HandleContext.Provider>
 }
 
-const BoostModal: React.FC<{
-    open: boolean
-    amount?: string
-    tokens?: string[]
-    tokenAddressArray?: string[]
-    stable?: boolean
-    onClose: () => void
-    onReload: () => void
-}> = ({ open, amount, tokens, tokenAddressArray, stable, onClose, onReload }) => {
+const BoostModal = ({ stable, onCancel }: {
+    stable: boolean
+    onCancel: () => void
+}) => {
+    const dispatch = useAppDispatch();
+
+    const { amount, token, tokenTo, tokenDecimals } = useContext(HandleContext);
+
     const [apy, setApy] = useState<number>();
-    const [loading, setLoading] = useState<boolean>(false);
+    const [confirmStatus, setConfirmStatus] = useState<ButtonStatus>();
 
-    const { loading: priceLoading, prices } = useTokenPrice(tokenAddressArray);
+    const tokenArray = useMemo(() => {
+        if (!token || !tokenTo) return;
 
-    const [from, to] = tokens ?? [];
+        if (tokenTo === "ETH") return [token];
 
-    let [fromPrice, toPrice]: (number | string)[] = prices ?? [];
+        return [token, tokenTo];
+    }, [token, tokenTo]);
+
+    const tokenAddressArray = useTokenAddressArray(tokenArray);
+    const { loading, tokenPrice } = useTokenPrice(tokenAddressArray);
 
     const tradeInfo = useMemo(() => {
-        if (!fromPrice || !toPrice || !amount) return null;
+        if (!tokenPrice || !amount) return;
+
+        let fromPrice, toPrice;
+        if (tokenTo === "ETH") {
+            toPrice = 1;
+            [fromPrice] = tokenPrice;
+        } else {
+            [fromPrice, toPrice] = tokenPrice;
+        }
 
         fromPrice = Number(fromPrice);
         toPrice = Number(toPrice);
 
-        const amountNumber = Number(amount);
-        const amountTips = numberDelimiter(amount);
-        const amountCount = numberRuler(amountNumber);
+        const { numTips: amountTips, numUnit: amountUnit } = getNumberTips(amount);
+        const { numTips: buyTips, numUnit: buyUnit } = getNumberTips(Number(amount) * fromPrice / toPrice);
 
-        const tokenCount = fromPrice * amountNumber / toPrice;
-        const fromCount = numberRuler(toPrice / fromPrice);
-        const toCount = numberRuler(fromPrice / toPrice);
+        const fromConvert = numberRuler(toPrice / fromPrice);
+        const toConvert = numberRuler(fromPrice / toPrice);
 
-        return { amountCount, amountTips, tokenCount, fromCount, toCount }
-    }, [amount, fromPrice, toPrice]);
+        return { amountTips, amountUnit, buyTips, buyUnit, fromConvert, toConvert }
+    }, [tokenPrice]);
 
-    const boost = useBoost(tokenAddressArray, amount, undefined, apy);
+    const AtRate = tradeInfo ? (<Tips text={`${tradeInfo.fromConvert} ${token}/${tokenTo} = ${tradeInfo.toConvert} ${tokenTo}/${token}`}>
+        <Font fontColor="#fff" weight="500">{`${tradeInfo.fromConvert} ${token}/${tokenTo}`} </Font>
+    </Tips>) : undefined;
 
-    // console.log("BoostModal", priceLoading, fromPrice, toPrice, tradeInfo);
+    // console.log("BoostModal", loading, tokenPrice)
 
-    const handle = () => {
-        setLoading(true);
+    const boost = useBoost(tokenAddressArray, getParseWei(numberToFixed(amount, tokenDecimals), tokenDecimals), undefined, apy);
+
+    const handleClick = () => {
+        setConfirmStatus("loading");
 
         boost().then((res: any) => {
             console.log(res);
-
             res.wait().then((res: any) => {
                 console.log(res);
                 message.success(t`操作成功`);
 
-                setLoading(false);
-                onReload();
-                onClose();
+                onCancel();
+                dispatch(updateConfigReload());
             }).catch((error: any) => {
-                setLoading(false);
-                message.error(error.message);
                 console.error(error);
+                message.error(error.message);
+
+                setConfirmStatus(undefined);
             });
         }).catch((error: any) => {
-            setLoading(false);
-            message.error(error.message);
             console.error(error);
+            message.error(error.message);
+
+            setConfirmStatus(undefined);
         });
     }
 
+    useEffect(() => {
+        setConfirmStatus(loading ? "disabled" : "default");
+
+        return () => { }
+    }, [loading]);
+
     return <Modal
-        open={open}
-        width={470}
+        open
+        width="430px"
         title={t`加杠杆`}
-        cancelButtonProps={{ onClick: onClose }}
-        confirmButtonProps={{
-            text: t`加杠杆`,
-            disabled: priceLoading,
-            loading,
-            onClick: handle
-        }}
+        onCancel={onCancel}
+        onConfirm={handleClick}
+        cancelStatus={confirmStatus === "loading" ? "disabled" : "default"}
+        confirmStatus={confirmStatus}
+        confirmText={t`加杠杆`}
     >
-        <Font fontSize="14px" color="#939DA7">
-            <Trans>加杠杆是借入更多 {from} 以获得更多的 {to}。这将会以增加你<br />的借贷能力为代价增加了你的杠杆。</Trans>
-        </Font>
+        {!token || !tokenTo || loading || !tradeInfo ?
+            <EmptyLoading /> :
+            <div style={{ margin: "-30px -20px" }}>
+                <div style={{ padding: 20, background: "#3B4751" }}>
+                    <Grid rowGap="15px">
+                        <Font size="14px" fontColor="#939DA7">
+                            <Trans>加杠杆是借入更多 {token} 以获得更多的 {tokenTo}。这将会以增加你的借贷能力为代价增加了你的杠杆。</Trans>
+                        </Font>
 
-        <br />
-        {!priceLoading && tradeInfo ?
-            <>
-                <Font fontSize="14px" color="#939DA7">
-                    <Trans>正在购买</Trans>
-                </Font>
+                        <TradeInfoItem
+                            text={t`贷款中`}
+                            symbol={token}
+                            amount={tradeInfo.amountUnit ?? "-"}
+                            amountTips={tradeInfo.amountTips ?? ""}
+                        />
+                        <TradeInfoItem
+                            text={<Grid column={2} columnGap="4px" alignItems="center">{t`正在购买 at rate: `} {AtRate}</Grid>}
+                            symbol={tokenTo}
+                            amount={tradeInfo.buyUnit ?? "-"}
+                            amountTips={tradeInfo.buyTips ?? ""}
+                        />
+                    </Grid>
+                </div>
 
-                <Font fontSize="30px"><Tips text={fullNumber(tradeInfo.tokenCount)}><span>{numberRuler(tradeInfo.tokenCount)} {to}</span></Tips></Font>
-
-                <Font fontSize="14px" color="#939DA7">
-                    <Trans>与&nbsp;</Trans>
-
-                    <Tips text={tradeInfo.amountTips}><span> {tradeInfo.amountCount} {from} </span></Tips>
-
-                    <Trans>&nbsp;按价格&nbsp;</Trans>
-
-                    <Tips text={`${tradeInfo.fromCount} ${from}/${to} = ${tradeInfo.toCount} ${to}/${from}`}><span> {tradeInfo.fromCount} {from + "/" + to} </span></Tips>
-                </Font>
-
-                <APYSelect stable={!stable} onChange={setApy} />
-            </> : <EmptyLoading />}
+                <Grid rowGap="15px" style={{ padding: 20, background: "#313D47" }}>
+                    <TipsBoxWarning isShow={stable} />
+                    <APYSelect stable={stable} onChange={setApy} />
+                </Grid>
+            </div>}
     </Modal>
 }
 
-const Repay = ({ handle }: { handle: HandleType }) => {
-    const [open, setOpen] = useState<boolean>(false);
-    const [tokens, setTokens] = useState<(string)[]>();
-    const [amount, setAmount] = useState<string>();
+function getRepayMax(from: any, to: any) {
+    const { symbol: fromSymbol, priceETH: fromEthPrice, amount: fromAmount, price } = from;
+    const { symbol: toSymbol, priceETH: toEthPrice, amount: toAmount, } = to;
 
-    const { optimalType } = useSaverState();
+    if (fromSymbol === toSymbol) return fromAmount - toAmount > 0 ? toAmount : fromAmount
+
+    if (fromEthPrice <= toEthPrice) return fromAmount;
+
+    const max = toEthPrice / price * 1.02;
+
+    return fullNumber(max > fromAmount ? fromAmount : max);
+}
+
+export const Repay = () => {
+    const { state, setState } = useHandle("Repay");
+
+    const { status, theme, amount, token, tokenTo, tokenToLoanType, tokenAddress, tokenDecimals, handleButton } = state;
+    const { setStatus, setMax, setAmount, setToken, setTokenTo, setTokenToLoanType } = setState;
+
+    const [open, setOpen] = useState(false);
+
+    const [buttonStatus, setButtonStatus] = useState<ButtonStatus>();
 
     const supplyMap = useSupplyMap();
     const borrowMap = useBorrowMap();
 
     const supplyCoins = useMemo(() => supplyMap ? Object.keys(supplyMap) : [], [supplyMap]);
-    const boorowCoins = useMemo(() => borrowMap ? Object.entries(borrowMap).map(([key, item]) => ({ value: key, name: item.symbol, loanType: item.loanType })) : [], [borrowMap]);
+    const boorowCoins = useMemo(() => borrowMap ? Object.values(borrowMap).map((item) => ({ value: item.symbol, name: item.symbol, loanType: item.loanType })) : [], [borrowMap]);
 
-    const [from, symbol] = tokens ?? [];
-    const [to, apy] = symbol ? symbol.split("_") : [];
-    const tokenCopy = useMemo(() => [from, to], [from, to]);
+    const toeknInfo = useMemo(() => token && supplyMap ? supplyMap[token] : undefined, [token, supplyMap]);
+    const toeknToInfo = useMemo(() => tokenTo && borrowMap ? borrowMap[`${tokenTo}_${tokenToLoanType}`] : undefined, [tokenTo, borrowMap]);
 
-    const tokenAddressArray = useCoinAddressArray(tokenCopy);
-    useAdvancedAfter(handle, amount, tokens, tokenAddressArray);
-    const { type } = useAfterState();
+    const max = useMemo(() => {
+        if (toeknInfo && toeknToInfo) {
+            return getRepayMax(toeknInfo, toeknToInfo)
+        } else {
+            return "0";
+        }
+    }, [toeknInfo, toeknToInfo]);
 
-    const fromToeknInfo = supplyMap?.[from];
-    const toToeknInfo = borrowMap?.[symbol];
+    // console.log(supplyMap, borrowMap, token, tokenTo, tokenAddress, tokenDecimals);
 
-    const max = useMemo(() => fromToeknInfo && toToeknInfo ? getRepayMax(fromToeknInfo, toToeknInfo) : "0", [fromToeknInfo, toToeknInfo]);
-
-    const reload = useReload();
-
-    const handleClick = () => {
-        if (!tokens || !amount) return;
-
+    const onClick = () => {
         setOpen(true);
+        setButtonStatus("loading");
+        setStatus && setStatus("disabled");
     }
 
-    const handleReload = () => {
-        reload();
-        setAmount(undefined);
+    const onCancel = () => {
+        setOpen(false);
+        setButtonStatus(undefined);
+        setStatus && setStatus("default");
     }
 
     useEffect(() => {
-        if (!from && supplyCoins.length) setTokens([supplyCoins[0], symbol]);
-    }, [supplyCoins]);
+        setMax(max);
 
-    useEffect(() => {
-        if (!symbol && boorowCoins.length) setTokens([from, boorowCoins[0].value]);
-    }, [boorowCoins]);
+        return () => { }
+    }, [max]);
 
-    useEffect(() => {
-        if (type !== handle) setAmount(undefined);
-    }, [type]);
-
-    return <>
+    return <HandleContext.Provider value={{
+        status, theme, max, amount, token, tokenTo, tokenToLoanType, tokenAddress, tokenDecimals, handleButton,
+        setStatus, setAmount, setToken, setTokenTo, setTokenToLoanType
+    }}>
         <Handle
-            type={handle}
-            max={max ?? "0"}
-            labelText={<Trans>减杠杆：</Trans>}
-            labelTips={<Trans>在单笔交易中完成取出储蓄抵押品<br />以购买借入资产并偿还债务三个步骤。</Trans>}
-            leftText={tokens ? t`Withdraw ${from} ${from === to ? "" : "→ Swap"} → Payback ${to}` : ""}
-            rightText={<InputMax max={max} />}
-            coins={[supplyCoins, boorowCoins]}
-            selectText={[t`减少质押`, t`还币`]}
-            inputValue={amount}
-            selectValue={tokens}
-            selectOptionItemRender={<SelectOptionItem />}
-            buttonProps={{
-                text: t`减杠杆`,
-                theme: "sell",
-                disabled: optimalType === 2,
-                disabledTips: t`已开启全自动化模式，禁用该操作`,
-                click: handleClick
-            }}
-            onInputChange={setAmount}
-            onSelectChange={(value: any) => setTokens(value)}
+            above={<HandleAbove text={token && tokenTo ? t`Withdraw ${token} → Swap → Payback ${tokenTo}` : undefined} />}
+            body={<>
+                <HandleInput
+                    labelText={<Trans>减杠杆</Trans>}
+                    labelTips={<Trans>在单笔交易中完成取出储蓄抵押品<br />以购买借入资产并偿还债务三个步骤。</Trans>}
+                />
+                <HandleSelect
+                    dataSource={supplyCoins ?? []}
+                    valueRender={<ValueRender text={t`减少质押`} />}
+                />
+                <HandleSelect
+                    type="to"
+                    dataSource={boorowCoins ?? []}
+                    valueRender={<ValueRender />}
+                    optionItemRender={<SelectOptionItem />}
+                />
+            </>}
+            button={<HandleButton status={buttonStatus} onClick={onClick}>
+                <Trans>减杠杆</Trans>
+            </HandleButton>}
         />
 
-        {open &&
-            <RepayModal
-                {...{ open, amount, tokens: [from, to], tokenAddressArray, apy }}
-                onClose={() => setOpen(false)}
-                onReload={handleReload}
-            />}
-    </>
+        {open && <RepayModal onCancel={onCancel} />}
+    </HandleContext.Provider>
 }
 
-const RepayModal: React.FC<{
-    open: boolean
-    apy: string | null
-    amount?: string
-    tokens?: string[]
-    tokenAddressArray?: string[]
-    onClose: () => void
-    onReload: () => void
-}> = ({ open, apy, amount, tokens, tokenAddressArray, onClose, onReload }) => {
-    const [loading, setLoading] = useState<boolean>(false);
 
-    const [from, to] = tokens ?? [];
+const RepayModal = ({ onCancel }: {
+    onCancel: () => void
+}) => {
+    const dispatch = useAppDispatch();
 
-    const { loading: priceLoading, prices } = useTokenPrice(tokenAddressArray);
+    const { amount, token, tokenTo, tokenToLoanType, tokenDecimals } = useContext(HandleContext);
 
-    let [fromPrice, toPrice]: (number | string)[] = prices ?? [];
+    const [confirmStatus, setConfirmStatus] = useState<ButtonStatus>();
+
+    const tokenArray = useMemo(() => {
+        if (!token || !tokenTo) return;
+
+        if (token === "ETH" && tokenTo === "ETH") return [];
+        else if (token === "ETH") return [tokenTo];
+        else if (tokenTo === "ETH") return [token];
+
+        return [token, tokenTo];
+    }, [token, tokenTo]);
+
+    const tokenAddressArray = useTokenAddressArray(tokenArray);
+    const { loading, tokenPrice } = useTokenPrice(token !== tokenTo ? tokenAddressArray : undefined);
 
     const tradeInfo = useMemo(() => {
-        if (!fromPrice || !toPrice || !amount) return null;
+        const { numTips: amountTips, numUnit: amountUnit } = getNumberTips(amount);
+
+        if (token === tokenTo) return { amountTips, amountUnit };
+
+        if (!tokenPrice) return;
+
+        let fromPrice, toPrice;
+        if (token !== "ETH" && tokenTo !== "ETH") {
+            [fromPrice, toPrice] = tokenPrice;
+        } else if (token === "ETH") {
+            fromPrice = 1;
+            [toPrice] = tokenPrice;
+        } else if (tokenTo === "ETH") {
+            toPrice = 1;
+            [fromPrice] = tokenPrice;
+        }
 
         fromPrice = Number(fromPrice);
         toPrice = Number(toPrice);
 
-        const amountNumber = Number(amount);
-        const amountTips = numberDelimiter(amount);
-        const amountCount = numberRuler(amountNumber);
+        const { numTips: buyTips, numUnit: buyUnit } = getNumberTips(Number(amount) * fromPrice / toPrice);
 
-        const tokenCount = fromPrice * amountNumber / toPrice;
-        const fromCount = numberRuler(toPrice / fromPrice);
-        const toCount = numberRuler(fromPrice / toPrice);
+        const fromConvert = numberRuler(toPrice / fromPrice);
+        const toConvert = numberRuler(fromPrice / toPrice);
 
-        return { amountCount, amountTips, tokenCount, fromCount, toCount }
-    }, [amount, fromPrice, toPrice]);
+        return { amountTips, amountUnit, buyTips, buyUnit, fromConvert, toConvert }
+    }, [tokenPrice]);
 
-    const repay = useRepay(tokenAddressArray, amount, undefined, Number(apy) - 1);
+    const AtRate = tradeInfo ? (<Tips text={`${tradeInfo.toConvert} ${tokenTo}/${token} = ${tradeInfo.fromConvert} ${token}/${tokenTo}`}>
+        <Font fontColor="#fff" weight="500">{`${tradeInfo.toConvert} ${tokenTo}/${token}`} </Font>
+    </Tips>) : undefined;
 
-    // console.log("RepayModal", priceLoading, fromPrice, toPrice, tradeInfo);
+    // console.log("RepayModal", token, tokenTo, numberToFixed(amount, tokenDecimals), amount, tokenDecimals);
 
-    const handle = () => {
-        setLoading(true);
+    const repay = useRepay(tokenAddressArray, getParseWei(numberToFixed(amount, tokenDecimals), tokenDecimals), undefined, tokenToLoanType ? tokenToLoanType - 1 : undefined);
 
-        repay().then((res: any) => {
-            console.log(res);
-            res.wait().then((res: any) => {
-                setLoading(false);
+    const handleClick = () => {
+        setConfirmStatus("loading");
+
+        repay()
+            .then((res: any) => {
                 console.log(res);
-                message.success(t`操作成功`);
 
-                onClose();
-                onReload();
-            }).catch((error: any) => {
-                setLoading(false);
-                message.error(error.message);
+                res.wait().then((res: any) => {
+                    console.log(res);
+                    message.success(t`操作成功`);
+
+                    onCancel();
+                    dispatch(updateConfigReload());
+                })
+                    .catch((error: any) => {
+                        console.error(error);
+                        message.error(error.message);
+
+                        setConfirmStatus(undefined);
+                    });
+            })
+            .catch((error: any) => {
                 console.error(error);
+                message.error(error.message);
+
+                setConfirmStatus(undefined);
             });
-        }).catch((error: any) => {
-            setLoading(false);
-            message.error(error.message);
-            console.error(error);
-        });
     }
 
-    return <Modal
-        open={open}
-        width={470}
-        title={t`减杠杆`}
-        cancelButtonProps={{ onClick: onClose }}
-        confirmButtonProps={{
-            text: t`减杠杆`,
-            disabled: priceLoading,
-            loading,
-            onClick: handle
-        }}
-    >
-        <Font fontSize="14px" color="#939DA7">
-            <Trans>减杠杆是使用储蓄的 {from} 还款 {to} 债务。这降低了您的杠杆，<br /> 但也降低了您的借贷能力，让您的仓位更安全。</Trans>
-        </Font>
-
-        <br />
-        {from !== to ?
-            !priceLoading && tradeInfo ?
-                <>
-                    <Font fontSize="14px" color="#939DA7">
-                        <Trans>还款中</Trans>
-                    </Font>
-
-                    <Font fontSize="30px"><Tips text={fullNumber(tradeInfo.tokenCount)}><span>{numberRuler(tradeInfo.tokenCount)} {to}</span></Tips></Font>
-
-                    <Font fontSize="14px" color="#939DA7">
-                        <Trans>与&nbsp;</Trans>
-
-                        <Tips text={tradeInfo.amountTips}><span> {tradeInfo.amountCount} {from} </span></Tips>
-
-                        <Trans>&nbsp;按价格&nbsp;</Trans>
-
-                        <Tips text={`${tradeInfo.fromCount} ${from}/${to} = ${tradeInfo.toCount} ${to}/${from}`}><span> {tradeInfo.fromCount} {from + "/" + to} </span></Tips>
-                    </Font>
-                    <Font fontSize="14px" color="#939DA7">
-                        <Tips text={<Trans>If debt is fully paid off by Repay, the remainder of the <br /> Repay amount will be returned to your wallet as DAI</Trans>}>
-                            <span><Trans>(Remainder of collateral will be returned as {to})</Trans></span>
-                        </Tips>
-                    </Font>
-                </> :
-                <EmptyLoading /> :
-            <>
-                <Font fontSize="14px" color="#939DA7">
-                    <Trans>还款中</Trans>
-                </Font>
-
-                <Font fontSize="30px"><Tips text={fullNumber(amount)}><span>{numberRuler(amount)} {to}</span></Tips></Font>
-            </>
+    useEffect(() => {
+        if (token !== tokenTo) {
+            setConfirmStatus(loading ? "disabled" : "default");
         }
+
+        return () => { }
+    }, [loading]);
+
+    return <Modal
+        open
+        width="430px"
+        title={t`减杠杆`}
+        onCancel={onCancel}
+        onConfirm={handleClick}
+        cancelStatus={confirmStatus === "loading" ? "disabled" : "default"}
+        confirmStatus={confirmStatus}
+        confirmText={t`减杠杆`}
+    >
+        {!token || !tokenTo || (loading && token !== tokenTo) || !tradeInfo ?
+            <EmptyLoading /> :
+            <div style={{ margin: "-30px -20px", padding: 20, background: "#3B4751" }}>
+                <Grid rowGap="15px">
+                    <Font size="14px" fontColor="#939DA7">
+                        <Trans>减杠杆是使用储蓄的 {token} 还款 {tokenTo} 债务。这降低了您的杠杆，但也降低了您的借贷能力，让您的仓位更安全。</Trans>
+                    </Font>
+
+                    <TradeInfoItem
+                        text={t`取款中`}
+                        symbol={token}
+                        amount={tradeInfo.amountUnit ?? "-"}
+                        amountTips={tradeInfo.amountTips ?? ""}
+                    />
+
+                    {token !== tokenTo &&
+                        <TradeInfoItem
+                            text={<Grid column={2} columnGap="4px" alignItems="center">{t`正在购买 at rate: `} {AtRate}</Grid>}
+                            symbol={tokenTo}
+                            amount={tradeInfo.buyUnit ?? "-"}
+                            amountTips={tradeInfo.buyTips ?? ""}
+                        />}
+                </Grid>
+            </div>}
     </Modal>
 }
-
-const Advanced = () => {
-    const reload = useReloadAfter();
-
-    useEffect(() => {
-        reload();
-    }, []);
-
-    return <TabPanelGrid>
-        <Boost handle="Boost" />
-        <Repay handle="Repay" />
-    </TabPanelGrid>
-}
-
-export default Advanced;

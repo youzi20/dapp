@@ -13,15 +13,11 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: src/pages/Home/Advanced.tsx
-msgid "(Remainder of collateral will be returned as {to})"
-msgstr "(Remainder of collateral will be returned as {to})"
-
 #: src/pages/Home/Debt.tsx
 msgid "<0>Stable</0> would be a good choice if you need to plan around a non-volatile rate over a longer period of time.<1/><2/><3>Variable</3> is based on the supply and demand for the selected asset on Aave and is re-calculated every second, meaning the rate will be lower when there is less demand for the asset.<4/><5/>You can also switch between the two rates at any point in the future."
 msgstr "<0>Stable</0> would be a good choice if you need to plan around a non-volatile rate over a longer period of time.<1/><2/><3>Variable</3> is based on the supply and demand for the selected asset on Aave and is re-calculated every second, meaning the rate will be lower when there is less demand for the asset.<4/><5/>You can also switch between the two rates at any point in the future."
 
-#: src/pages/SaverInit.tsx
+#: src/pages/CreateSaver.tsx
 msgid "Aave Automation"
 msgstr "Aave Automation"
 
@@ -31,32 +27,36 @@ msgid "Aave Automation Setup"
 msgstr "Aave Automation Setup"
 
 #: src/pages/Home/Advanced.tsx
-msgid "Borrow {0} → Swap → Supply {1}"
-msgstr "Borrow {0} → Swap → Supply {1}"
+msgid "Borrow {token} → Swap → Supply {tokenTo}"
+msgstr "Borrow {token} → Swap → Supply {tokenTo}"
 
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
 msgid "Change interest rate"
 msgstr "Change interest rate"
 
-#: src/pages/Home/Advanced.tsx
-msgid "If debt is fully paid off by Repay, the remainder of the <0/> Repay amount will be returned to your wallet as DAI"
-msgstr "If debt is fully paid off by Repay, the remainder of the <0/> Repay amount will be returned to your wallet as DAI"
+#: src/components/Wallet/index.tsx
+msgid "Connect wallet"
+msgstr "Connect wallet"
 
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
 msgid "Interest Rate"
 msgstr "Interest Rate"
 
-#: src/pages/SaverInit.tsx
+#: src/pages/CreateSaver.tsx
 msgid "Keeps your Aave position at a certain ratio to protect it from liquidation or increase leverage based on market changes."
 msgstr "Keeps your Aave position at a certain ratio to protect it from liquidation or increase leverage based on market changes."
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/Account.tsx
 msgid "Liquidation limit:"
 msgstr "Liquidation limit:"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/Account.tsx
 msgid "Liquidation ratio:"
 msgstr "Liquidation ratio:"
+
+#: src/components/Wallet/index.tsx
+msgid "Manage your positions using advanced actions."
+msgstr "Manage your positions using advanced actions."
 
 #: src/components/Wallet/index.tsx
 msgid "MetaMask 账户已连接"
@@ -66,78 +66,79 @@ msgstr "MetaMask 账户已连接"
 msgid "Once Enabled, DeFi Saver will monitor your Aave ratio and automatically activate Repay if your Aave reaches the lower configured limit, or Boost if it reaches the upper one. Simply enter your target ratio, or configure manually below."
 msgstr "Once Enabled, DeFi Saver will monitor your Aave ratio and automatically activate Repay if your Aave reaches the lower configured limit, or Boost if it reaches the upper one. Simply enter your target ratio, or configure manually below."
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/Account.tsx
 msgid "Safety ratio below which your position will face liquidation."
 msgstr "Safety ratio below which your position will face liquidation."
 
-#: src/pages/Home/MarketInfo.tsx
-#: src/pages/Home/styled.tsx
-#: src/pages/Home/styled.tsx
+#: src/pages/Home/Debt.tsx
+msgid "Select your interest rate"
+msgstr "Select your interest rate"
+
+#: src/components/ApySelect/index.tsx
+#: src/pages/Home/Handle.tsx
+#: src/pages/Home/Handle.tsx
+#: src/pages/Home/Market.tsx
 msgid "Stable"
 msgstr "Stable"
 
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
 msgid "Stable B. APY"
 msgstr "Stable B. APY"
 
-#: src/pages/Home/SupplyPercentage.tsx
+#: src/pages/Home/SupplyGrap.tsx
 msgid "Supply composition:"
 msgstr "Supply composition:"
 
+#: src/components/TipsBox/index.tsx
 #: src/pages/Home/Debt.tsx
 msgid "This asset is unsupported for stable rate borrow"
 msgstr "This asset is unsupported for stable rate borrow"
 
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
 msgid "To stable"
 msgstr "To stable"
 
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
 msgid "To variable"
 msgstr "To variable"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/Account.tsx
 msgid "Value of borrowed funds above which your position will face liquidation."
 msgstr "Value of borrowed funds above which your position will face liquidation."
 
-#: src/pages/Home/MarketInfo.tsx
-#: src/pages/Home/styled.tsx
-#: src/pages/Home/styled.tsx
+#: src/components/ApySelect/index.tsx
+#: src/pages/Home/Handle.tsx
+#: src/pages/Home/Handle.tsx
+#: src/pages/Home/Market.tsx
 msgid "Variable"
 msgstr "Variable"
 
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
 msgid "Variable B. APY"
 msgstr "Variable B. APY"
 
-#: 
-#~ msgid "Withdraw {from} {0} → Payback {symbol}"
-#~ msgstr "Withdraw {from} {0} → Payback {symbol}"
-
 #: src/pages/Home/Advanced.tsx
-msgid "Withdraw {from} {0} → Payback {to}"
-msgstr "Withdraw {from} {0} → Payback {to}"
+msgid "Withdraw {token} → Swap → Payback {tokenTo}"
+msgstr "Withdraw {token} → Swap → Payback {tokenTo}"
 
-#: src/pages/Home/MarketInfo.tsx
+#: src/components/TableRender/index.tsx
 msgid "不可用"
 msgstr "不可用"
 
-#: src/pages/Home/Advanced.tsx
-#: src/pages/Home/Advanced.tsx
-msgid "与"
-msgstr "与"
-
-#: src/pages/AaveInit.tsx
+#: src/pages/CreateWallet.tsx
 msgid "为了使用应用的高级功能，您首先需要创建一个智能钱包 —— 您的个人智能合约钱包可以使用高级功能。<0/>请注意，使用智能钱包，您将无法与其他 app 兼容。"
 msgstr "为了使用应用的高级功能，您首先需要创建一个智能钱包 —— 您的个人智能合约钱包可以使用高级功能。<0/>请注意，使用智能钱包，您将无法与其他 app 兼容。"
 
 #: src/components/Table/index.tsx
-#: src/pages/Home/BorrowPercentage.tsx
-#: src/pages/Home/SupplyPercentage.tsx
-#: src/pages/Home/UserInfo.tsx
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/BorrowGrap.tsx
+#: src/pages/Home/SupplyGrap.tsx
 msgid "之后"
 msgstr "之后"
+
+#: src/pages/Home/Account.tsx
+#: src/pages/Home/Account.tsx
+msgid "之后:"
+msgstr "之后:"
 
 #: src/pages/Home/Debt.tsx
 msgid "从Aave中借贷。在借款前您需要储蓄资产作为抵押物。"
@@ -147,7 +148,7 @@ msgstr "从Aave中借贷。在借款前您需要储蓄资产作为抵押物。"
 msgid "从您的Aave储蓄中提取资产。"
 msgstr "从您的Aave储蓄中提取资产。"
 
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
 msgid "价格"
 msgstr "价格"
 
@@ -163,26 +164,23 @@ msgstr "价格下跌时进行偿还"
 msgid "使用全自动化模式请先偿还以下借贷"
 msgstr "使用全自动化模式请先偿还以下借贷"
 
-#: src/pages/Home/MarketInfo.tsx
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
+#: src/pages/Home/Market.tsx
 msgid "供应 APY"
 msgstr "供应 APY"
 
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
 msgid "供应中"
 msgstr "供应中"
 
-#: src/pages/Home/Advanced.tsx
 #: src/pages/Home/Debt.tsx
 #: src/pages/Home/Debt.tsx
+#: src/pages/Home/Debt.tsx
+#: src/pages/Home/MobileContorl.tsx
 msgid "借币"
 msgstr "借币"
 
-#: src/pages/Home/Debt.tsx
-msgid "借币："
-msgstr "借币："
-
-#: src/pages/Home/Control.tsx
+#: src/pages/Home/Contorl.tsx
 msgid "债务"
 msgstr "债务"
 
@@ -194,16 +192,21 @@ msgstr "值值必须小于 \"加杠杆至\""
 msgid "值必须小于 \"减杠杆至\""
 msgstr "值必须小于 \"减杠杆至\""
 
-#: src/pages/Home/Control.tsx
+#: src/pages/Home/Contorl.tsx
 msgid "做多"
 msgstr "做多"
 
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
+#: src/pages/Home/Market.tsx
 #: src/pages/Saver/Info.tsx
 msgid "停用"
 msgstr "停用"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/Market.tsx
+msgid "停用抵押品"
+msgstr "停用抵押品"
+
+#: src/pages/Home/Account.tsx
 msgid "储蓄余额:"
 msgstr "储蓄余额:"
 
@@ -218,77 +221,65 @@ msgstr "全自动化"
 
 #: src/pages/Home/Advanced.tsx
 #: src/pages/Home/Collateral.tsx
+#: src/pages/Home/Collateral.tsx
+#: src/pages/Home/MobileContorl.tsx
 msgid "减少质押"
 msgstr "减少质押"
 
-#: src/pages/Home/Collateral.tsx
-msgid "减少质押："
-msgstr "减少质押："
-
 #: src/pages/Home/Advanced.tsx
 #: src/pages/Home/Advanced.tsx
 #: src/pages/Home/Advanced.tsx
+#: src/pages/Home/Advanced.tsx
+#: src/pages/Home/MobileContorl.tsx
 msgid "减杠杆"
 msgstr "减杠杆"
 
 #: src/pages/Home/Advanced.tsx
-msgid "减杠杆是使用储蓄的 {from} 还款 {to} 债务。这降低了您的杠杆，<0/> 但也降低了您的借贷能力，让您的仓位更安全。"
-msgstr "减杠杆是使用储蓄的 {from} 还款 {to} 债务。这降低了您的杠杆，<0/> 但也降低了您的借贷能力，让您的仓位更安全。"
+msgid "减杠杆是使用储蓄的 {token} 还款 {tokenTo} 债务。这降低了您的杠杆，但也降低了您的借贷能力，让您的仓位更安全。"
+msgstr "减杠杆是使用储蓄的 {token} 还款 {tokenTo} 债务。这降低了您的杠杆，但也降低了您的借贷能力，让您的仓位更安全。"
 
 #: src/pages/Saver/Setting.tsx
 msgid "减杠杆至："
 msgstr "减杠杆至："
 
-#: src/pages/Home/Advanced.tsx
-msgid "减杠杆："
-msgstr "减杠杆："
-
-#: src/pages/AaveInit.tsx
+#: src/pages/CreateWallet.tsx
 msgid "创建"
 msgstr "创建"
 
-#: src/pages/AaveInit.tsx
+#: src/pages/CreateWallet.tsx
 msgid "创建成功"
 msgstr "创建成功"
 
-#: src/pages/AaveInit.tsx
+#: src/pages/CreateWallet.tsx
 msgid "创建智能钱包"
 msgstr "创建智能钱包"
 
-#: 
-#~ msgid "利率类型"
-#~ msgstr "利率类型"
-
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
 msgid "利用率"
 msgstr "利用率"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/Account.tsx
 msgid "剩余可借款额:"
 msgstr "剩余可借款额:"
 
 #: src/pages/Home/Advanced.tsx
 #: src/pages/Home/Advanced.tsx
 #: src/pages/Home/Advanced.tsx
+#: src/pages/Home/Advanced.tsx
+#: src/pages/Home/MobileContorl.tsx
 msgid "加杠杆"
 msgstr "加杠杆"
 
 #: src/pages/Home/Advanced.tsx
-msgid "加杠杆是借入更多 {from} 以获得更多的 {to}。这将会以增加你<0/>的借贷能力为代价增加了你的杠杆。"
-msgstr "加杠杆是借入更多 {from} 以获得更多的 {to}。这将会以增加你<0/>的借贷能力为代价增加了你的杠杆。"
+msgid "加杠杆是借入更多 {token} 以获得更多的 {tokenTo}。这将会以增加你的借贷能力为代价增加了你的杠杆。"
+msgstr "加杠杆是借入更多 {token} 以获得更多的 {tokenTo}。这将会以增加你的借贷能力为代价增加了你的杠杆。"
 
 #: src/pages/Saver/Setting.tsx
 msgid "加杠杆至："
 msgstr "加杠杆至："
 
-#: src/pages/Home/Advanced.tsx
-msgid "加杠杆："
-msgstr "加杠杆："
-
 #: src/components/Empty/index.tsx
-#: src/pages/Home/Collateral.tsx
-#: src/pages/Home/Debt.tsx
-#: src/pages/Home/styled.tsx
+#: src/pages/Home/Handle.tsx
 msgid "加载中~"
 msgstr "加载中~"
 
@@ -297,20 +288,26 @@ msgstr "加载中~"
 msgid "半自动化"
 msgstr "半自动化"
 
-#: 
-#~ msgid "取出质押"
-#~ msgstr "取出质押"
+#: src/pages/Home/Advanced.tsx
+msgid "取款中"
+msgstr "取款中"
 
 #: src/components/Modal/index.tsx
 #: src/pages/Saver/Setting.tsx
 msgid "取消"
 msgstr "取消"
 
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
+#: src/pages/Home/Market.tsx
+#: src/pages/Saver/Setting.tsx
 msgid "启用"
 msgstr "启用"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/Market.tsx
+msgid "启用抵押品"
+msgstr "启用抵押品"
+
+#: src/pages/Home/Account.tsx
 msgid "启用清算保护和自动杠杆自动化"
 msgstr "启用清算保护和自动杠杆自动化"
 
@@ -338,53 +335,54 @@ msgstr "如果比率超过："
 msgid "如果超过 {maxText}，则加杠杆至 {boostText}"
 msgstr "如果超过 {maxText}，则加杠杆至 {boostText}"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/Account.tsx
 msgid "安全比率 (最小值 100%):"
 msgstr "安全比率 (最小值 100%):"
 
-#: src/pages/Home/BorrowPercentage.tsx
+#: src/pages/Home/BorrowGrap.tsx
+#: src/pages/Home/Market.tsx
 msgid "已使用借款额度:"
 msgstr "已使用借款额度:"
 
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
 msgid "已供应"
 msgstr "已供应"
 
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
 msgid "已供应($)"
 msgstr "已供应($)"
 
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
 #: src/pages/Saver/Setting.tsx
 msgid "已借贷"
 msgstr "已借贷"
 
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
 #: src/pages/Saver/Setting.tsx
 msgid "已借贷($)"
 msgstr "已借贷($)"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/Account.tsx
 msgid "已启用全动化"
 msgstr "已启用全动化"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/Account.tsx
 msgid "已启用半自动化"
 msgstr "已启用半自动化"
 
-#: src/pages/Home/Advanced.tsx
-#: src/pages/Home/Advanced.tsx
-#: src/pages/Home/Collateral.tsx
-#: src/pages/Home/Debt.tsx
-#: src/pages/Home/Debt.tsx
-msgid "已开启全自动化模式，禁用该操作"
-msgstr "已开启全自动化模式，禁用该操作"
+#: src/hooks/handle/index.ts
+msgid "已开启全自动化模式，禁止使用"
+msgstr "已开启全自动化模式，禁止使用"
 
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
 msgid "市场信息"
 msgstr "市场信息"
 
-#: src/pages/Home/MarketInfo.tsx
+#: src/components/TableRender/index.tsx
+msgid "市场流动性:"
+msgstr "市场流动性:"
+
+#: src/pages/Home/Market.tsx
 msgid "市场规模"
 msgstr "市场规模"
 
@@ -399,84 +397,75 @@ msgstr "当前比例："
 msgid "必须超过 {0}"
 msgstr "必须超过 {0}"
 
-#: src/pages/Home/BorrowPercentage.tsx
-#: src/pages/Home/BorrowPercentage.tsx
+#: src/pages/Home/BorrowGrap.tsx
 msgid "总计 ({value})"
 msgstr "总计 ({value})"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/Account.tsx
 msgid "您可以借贷的最大金额。"
 msgstr "您可以借贷的最大金额。"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/Account.tsx
 msgid "您提供的抵押品总数。"
 msgstr "您提供的抵押品总数。"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/Account.tsx
 msgid "您的借款限额与借贷资金的比率低于{0}将被清算。"
 msgstr "您的借款限额与借贷资金的比率低于{0}将被清算。"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/Account.tsx
 msgid "您的借贷资金总额。"
 msgstr "您的借贷资金总额。"
 
-#: src/pages/Home/MarketInfo.tsx
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
+#: src/pages/Home/Market.tsx
 msgid "抵押因素"
 msgstr "抵押因素"
 
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
 msgid "抵押物"
 msgstr "抵押物"
-
-#: src/pages/Home/Advanced.tsx
-#: src/pages/Home/Advanced.tsx
-msgid "按价格"
-msgstr "按价格"
 
 #: src/pages/Home/Handle.tsx
 msgid "授权"
 msgstr "授权"
 
 #: src/pages/Home/Handle.tsx
+msgid "授权 DS 操作您的 {token}"
+msgstr "授权 DS 操作您的 {token}"
+
+#: src/pages/Home/Handle.tsx
 msgid "授权成功"
 msgstr "授权成功"
 
-#: src/pages/Saver/Setting.tsx
-msgid "提交"
-msgstr "提交"
-
 #: src/pages/Home/Advanced.tsx
 #: src/pages/Home/Advanced.tsx
 #: src/pages/Home/Collateral.tsx
 #: src/pages/Home/Collateral.tsx
 #: src/pages/Home/Debt.tsx
 #: src/pages/Home/Debt.tsx
-#: src/pages/Home/MarketInfo.tsx
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
+#: src/pages/Home/Market.tsx
 #: src/pages/Saver/Info.tsx
 #: src/pages/Saver/Setting.tsx
 msgid "操作成功"
 msgstr "操作成功"
 
-#: src/pages/Home/Advanced.tsx
-#: src/pages/Home/Handle.tsx
+#: src/pages/Home/MobileContorl.tsx
+msgid "操作："
+msgstr "操作："
+
+#: src/hooks/handle/index.ts
 msgid "数值不能小于0"
 msgstr "数值不能小于0"
 
-#: src/pages/Home/Advanced.tsx
-#: src/pages/Home/Handle.tsx
+#: src/hooks/handle/index.ts
 msgid "数值大于最大值"
 msgstr "数值大于最大值"
 
 #: src/pages/SmartAddress.tsx
 msgid "智能钱包"
 msgstr "智能钱包"
-
-#: src/pages/Home/Advanced.tsx
-#: src/pages/Home/Handle.tsx
-msgid "暂无可操作币种"
-msgstr "暂无可操作币种"
 
 #: src/components/Empty/index.tsx
 msgid "暂无数据~"
@@ -486,35 +475,38 @@ msgstr "暂无数据~"
 msgid "更新"
 msgstr "更新"
 
-#: src/pages/Home/styled.tsx
+#: src/pages/Home/Handle.tsx
 msgid "最大值"
 msgstr "最大值"
 
-#: src/pages/Home/Advanced.tsx
-#: src/pages/Home/Handle.tsx
+#: src/hooks/handle/index.ts
 msgid "未输入值"
 msgstr "未输入值"
-
-#: 
-#~ msgid "杠杆增加：如果超过 <0>{0}</0> 加杠杆至<1>{1}</1>"
-#~ msgstr "杠杆增加：如果超过 <0>{0}</0> 加杠杆至<1>{1}</1>"
 
 #: src/pages/Saver/Info.tsx
 msgid "杠杆增加：如果超过<0>{0}</0>加杠杆至<1>{1}</1>"
 msgstr "杠杆增加：如果超过<0>{0}</0>加杠杆至<1>{1}</1>"
 
 #: src/pages/Home/Advanced.tsx
-msgid "正在购买"
-msgstr "正在购买"
+#: src/pages/Home/Advanced.tsx
+msgid "正在购买 at rate:"
+msgstr "正在购买 at rate:"
 
 #: src/components/Wallet/index.tsx
 msgid "正在连接..."
 msgstr "正在连接..."
 
-#: src/pages/Home/styled.tsx
-#: src/pages/Home/styled.tsx
+#: src/pages/Connecting.tsx
+msgid "正在连接您的的账户，请稍等..."
+msgstr "正在连接您的的账户，请稍等..."
+
+#: src/pages/Home/Handle.tsx
 msgid "此操作无可用的抵押品或借贷资产。"
 msgstr "此操作无可用的抵押品或借贷资产。"
+
+#: src/pages/Home/Market.tsx
+msgid "清算"
+msgstr "清算"
 
 #: src/pages/Saver/Info.tsx
 msgid "清算保护：如果低于<0>{0}</0>减杠杆至<1>{1}</1>"
@@ -550,68 +542,64 @@ msgstr "自动化模式："
 msgid "自动处理"
 msgstr "自动处理"
 
-#: src/pages/SaverInit.tsx
+#: src/pages/CreateSaver.tsx
 msgid "设置"
 msgstr "设置"
 
-#: src/pages/AaveInit.tsx
+#: src/pages/Home/Market.tsx
+msgid "该资产是被用来支撑您所借的资金。停用资产作为抵押品会使您的仓位被清算。 在停用该资产前，请偿还所贷款或提供不同的资产作为抵押品。"
+msgstr "该资产是被用来支撑您所借的资金。停用资产作为抵押品会使您的仓位被清算。 在停用该资产前，请偿还所贷款或提供不同的资产作为抵押品。"
+
+#: src/pages/CreateWallet.tsx
 msgid "请先连接钱包"
 msgstr "请先连接钱包"
 
 #: src/pages/Home/Advanced.tsx
 #: src/pages/Home/Collateral.tsx
-#: src/pages/Home/Control.tsx
+#: src/pages/Home/Collateral.tsx
+#: src/pages/Home/Contorl.tsx
+#: src/pages/Home/MobileContorl.tsx
 msgid "质押"
 msgstr "质押"
 
-#: src/pages/Home/Collateral.tsx
-msgid "质押："
-msgstr "质押："
+#: src/pages/Home/Advanced.tsx
+msgid "贷款"
+msgstr "贷款"
 
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
 msgid "贷款 APY"
 msgstr "贷款 APY"
 
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Advanced.tsx
+#: src/pages/Home/Market.tsx
 msgid "贷款中"
 msgstr "贷款中"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/Account.tsx
 msgid "贷款总额:"
 msgstr "贷款总额:"
 
-#: src/pages/Home/UserInfo.tsx
+#: src/pages/Home/Account.tsx
+#: src/pages/Home/Market.tsx
 msgid "贷款限额:"
 msgstr "贷款限额:"
 
-#: src/pages/Home/BorrowPercentage.tsx
-msgid "贷款限额: {afterPercentPrice} ({value})"
-msgstr "贷款限额: {afterPercentPrice} ({value})"
+#: src/pages/Home/BorrowGrap.tsx
+msgid "贷款限额: ({maxPrice} ({value})"
+msgstr "贷款限额: ({maxPrice} ({value})"
 
-#: src/pages/Home/BorrowPercentage.tsx
-msgid "贷款限额: {percentPrice} ({value})"
-msgstr "贷款限额: {percentPrice} ({value})"
-
-#: src/pages/Home/MarketInfo.tsx
-#: src/pages/Home/MarketInfo.tsx
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
+#: src/pages/Home/Market.tsx
+#: src/pages/Home/Market.tsx
 #: src/pages/Saver/Setting.tsx
 msgid "资产"
 msgstr "资产"
 
-#: src/pages/Home/Advanced.tsx
 #: src/pages/Home/Debt.tsx
+#: src/pages/Home/Debt.tsx
+#: src/pages/Home/MobileContorl.tsx
 msgid "还币"
 msgstr "还币"
-
-#: src/pages/Home/Debt.tsx
-msgid "还币："
-msgstr "还币："
-
-#: src/pages/Home/Advanced.tsx
-#: src/pages/Home/Advanced.tsx
-msgid "还款中"
-msgstr "还款中"
 
 #: src/pages/Home/Debt.tsx
 msgid "还贷资产。"
@@ -621,7 +609,7 @@ msgstr "还贷资产。"
 msgid "连接您的钱包"
 msgstr "连接您的钱包"
 
-#: src/pages/Home/MarketInfo.tsx
+#: src/pages/Home/Market.tsx
 msgid "限制"
 msgstr "限制"
 

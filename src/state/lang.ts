@@ -5,8 +5,6 @@ import { SupportedLocale } from '../hooks/lang';
 import { AppState } from './index';
 import { useAppSelector } from './hooks';
 
-
-
 interface LangState {
     readonly locale: SupportedLocale | null
 }

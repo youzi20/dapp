@@ -4,9 +4,9 @@ body.base {
 
     --wallet-button       : linear-gradient(180deg, #2B3943 0%, rgba(43, 57, 67, 0.46) 92.86%);
     --wallet-network      : #37B06F;
-    --wallet-menu         : #20292F;
-    --wallet-option-hover : #2A3339;
-    --wallet-option-active: #191F25;
+
+    --wallet-box: #2B3943;
+    --wallet-box-hover: #1a2226;
 
     --user-info       : linear-gradient(to bottom, #2B3943, #1A242B);
     --user-info-header: linear-gradient(to bottom, #2A5648, #264F42);
@@ -15,7 +15,7 @@ body.base {
     --user-info-highlighted       : linear-gradient(180deg, rgba(97, 113, 126, 0.45) 0%, rgba(97, 113, 126, 0) 100%);
     --user-info-highlighted-active: linear-gradient(to bottom, #264F42, rgba(43, 57, 67, 0) 100%);
 
-    --percentage-bg: #2C3A42;
+    --percent-bg: #2C3A42;
 
     --table       : linear-gradient(180deg, #2B3943 0%, rgba(43, 57, 67, 0.46) 92.86%);
     --table-header: #2B3943;
@@ -31,35 +31,35 @@ body.base {
 
     --modal       : linear-gradient(to bottom, #2B3943, #1A242B);
     --modal-title : rgba(55, 176, 111, 0.5);
-    --modal-body  : transparent;
-    --modal-shadow: 0 0 20px 5px rgb(0 0 0 / 50%);
+    --modal-body  : #3B4751;
 
     --handle-bg    : transparent;
     --handle-border: #61717E;
     --handle-error-border: #EB5757;
+    --handle-error-bg: rgb(215 77 63 / 45%);
     --handle-empty : #61717E;
 
-    --select              : transparent;
-    --select-active       : #323D46;
-    --select-option       : #20292F;
-    --select-option-hover : #2A3339;
-    --select-option-active: #3F4D57;
+    --option-wrapper: #192228;
+    --option-hover : #2A3339;
+    --option-active: #4b5660;
 
+    --select              : transparent;
+    --select-active       : #3F4D57;
 
     --apy            : #2B3943;
     --apy-item-hover : #31414c;
     --apy-item-active: #394956;
 }
 
-body.theme1 {
+body.theme {
     --bg   : rgb(0 0 0 / 90%) url(../assets/images/theme1-bg.jpg);
     --theme: #fff;
 
     --wallet-button       : #595757;
     --wallet-network      : linear-gradient(90deg, #6E52F7 6%, #696FF4 32%, #5CB9EC 89%, #59C8EA 100%);
-    --wallet-menu         : #3a3a3a;
-    --wallet-option-hover : #525252;
-    --wallet-option-active: #5f5f5f;
+
+    --wallet-box: #4c475e;
+    --wallet-box-hover: #3b3062;
 
     --user-info       : linear-gradient(180deg, rgb(110 82 247 / 55%) 6%, rgb(105 111 244 / 55%) 32%, rgb(92 185 236 / 55%) 89%, rgb(89 200 234 / 55%) 100%);
     --user-info-header: #717071;
@@ -68,7 +68,7 @@ body.theme1 {
     --user-info-highlighted       : linear-gradient(0deg, rgba(173, 169, 168, 0.00) 14%, rgba(116, 109, 107, 0.19) 35%, rgba(35, 24, 21, 0.45) 100%);
     --user-info-highlighted-active: linear-gradient(to bottom, #6066D2, rgba(43, 57, 67, 0) 100%);
 
-    --percentage-bg: #b8b982;
+    --percent-bg: #b8b982;
 
     --table       : linear-gradient(180deg, rgb(110 82 247 / 55%) 6%, rgb(105 111 244 / 55%) 31%, rgb(92 185 236 / 55%) 85%, rgb(89 200 234 / 55%) 100%);
     --table-header: #717071;
@@ -81,10 +81,9 @@ body.theme1 {
 
     --tips: #717071;
 
-    --modal       : #000;
-    --modal-title : #717071;
-    --modal-body  : linear-gradient(180deg, rgb(110 82 247 / 55%) 6%, rgb(105 111 244 / 55%) 31%, rgb(92 185 236 / 55%) 85%, rgb(89 200 234 / 55%) 100%);
-    --modal-shadow: 0 0 20px 5px rgb(255 255 255 / 10%);
+    --modal       : linear-gradient(to bottom, #2B3943, #1A242B);
+    --modal-title : rgba(55, 176, 111, 0.5);
+    --modal-body  : #3B4751;
 
     --handle-bg    : rgb(35 24 21 / 33%);
     --handle-border: rgb(255 255 255 / 25%);
@@ -92,13 +91,14 @@ body.theme1 {
     --handle-error-bg: rgb(215 77 63 / 45%);
     --handle-empty : #61717E;
 
+    --option-wrapper: #525252;
+    --option-hover : #5f5f5f;
+    --option-active: #3a3a3a;
+    
     --select              : transparent;
     --select-active       : rgb(35 24 21 / 33%);
-    --select-option       : #525252;
-    --select-option-hover : #5f5f5f;
-    --select-option-active: #3a3a3a;
 
-    --apy            : rgb(35 24 21 / 33%);
-    --apy-item-hover : rgb(35 24 21 / 20%);
-    --apy-item-active: rgb(35 24 21 / 50%);
+    --apy            : #2B3943;
+    --apy-item-hover : #31414c;
+    --apy-item-active: #394956;
 }

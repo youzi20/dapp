@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { t, Trans } from "@lingui/macro";
+import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { t } from '@lingui/macro';
 
-import styled from "styled-components";
+import styled from 'styled-components';
 
-import { Grid } from "../../styled";
+import { Grid } from '../../styled';
 
 
 const NavWrapper = styled(Grid)`
@@ -22,7 +22,12 @@ a.active {
     color: #fff;
     text-decoration: underline;
 }
-`
+
+@media screen and (max-width: 768px) {
+    height: 48px;
+    padding: 15px;
+}
+`;
 
 const Nav = () => {
     const [data] = useState([
@@ -32,7 +37,7 @@ const Nav = () => {
 
     const location = useLocation();
 
-    return <NavWrapper template={`repeat(${data.length}, max-content)`} columGap="20px">
+    return <NavWrapper template={`repeat(${data.length}, max-content)`} columnGap="20px">
         {data.map(item =>
             <Link to={item.path} className={item.path === location.pathname ? "active" : ""} key={item.path}>{item.text}</Link>
         )}

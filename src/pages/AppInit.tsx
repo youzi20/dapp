@@ -13,7 +13,7 @@ const AppInit = () => {
     useMarketInit(WalletStatusEnums.SUCEESS === walletStatus);
     useSaverInfo(WalletStatusEnums.SUCEESS === walletStatus && UserStatusEnums.SUCCESS === userStatus);
 
-    console.log(walletStatus);
+    // console.log(walletStatus);
 
     return <div></div>
 }

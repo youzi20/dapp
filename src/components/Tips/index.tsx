@@ -4,7 +4,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 
 import { IconWrapper } from '../Icon';
 
-import { Font, Flex, TextOverflowWrapper } from '../../styled';
+import { Font } from '../../styled';
 
 const TipsWrapper = styled.div`
 min-height: 25px;
@@ -32,11 +32,24 @@ img {
 
 const Tips: React.FC<{
     text?: string | React.ReactNode
+    placement?:
+    | 'bottom-end'
+    | 'bottom-start'
+    | 'bottom'
+    | 'left-end'
+    | 'left-start'
+    | 'left'
+    | 'right-end'
+    | 'right-start'
+    | 'right'
+    | 'top-end'
+    | 'top-start'
+    | 'top';
     children: React.ReactElement<any, any>;
-}> = ({ text, children }) => {
+}> = ({ text, placement = "top", children }) => {
 
     return text ?
-        <Tooltip title={<TipsWrapper><Font fontSize="14px" fontWeight="700">{text}</Font></TipsWrapper>} placement="top">
+        <Tooltip title={<TipsWrapper><Font size="14px" weight="700">{text}</Font></TipsWrapper>} placement={placement}>
             {children}
         </Tooltip> :
         <>{children}</>
@@ -49,31 +62,6 @@ export const TipsInfo: React.FC<{
         <TipsInfoWrapper>
             <IconWrapper name="dapp-info" />
         </TipsInfoWrapper>
-    </Tips>
-}
-
-export const TipsPrice: React.FC<{
-    price: (number | string | undefined)[]
-}> = ({ price }) => {
-    const [priceStr, priceTips, unit] = price;
-
-    const Util = () => <span>{unit}</span>;
-    const Text = () => <TextOverflowWrapper>{priceStr ?? ""}</TextOverflowWrapper>;
-
-    return <Tips text={priceTips}>
-        <Flex>
-            {priceStr ?
-                (unit === "ETH" ?
-                    <>
-                        <Text />
-                        <Util />
-                    </> :
-                    <>
-                        <Util />
-                        <Text />
-                    </>)
-                : "-"}
-        </Flex>
     </Tips>
 }
 

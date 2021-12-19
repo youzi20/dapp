@@ -1,19 +1,15 @@
-import { Trans } from '@lingui/macro';
+import { t, Trans } from '@lingui/macro';
 
-import Tips from '../../components/Tips';
+import PercentGrap from '../../components/PercentGrap';
 
 import { useSupplyRatio } from '../../state/market';
-import { useState as useAfterState, useAfterSupplyRatio } from '../../state/after';
+import { useAfterSupplyRatio } from '../../state/after';
 
-import { Font } from '../../styled';
-
-import { getRatio, numberRuler } from '../../utils';
-
-import { PercentageGraphWrapper, PercentageGraphItem } from "./styled";
+// import { PercentageGraphWrapper, PercentageGraphItem } from './styled';
 
 
-const SupplyPercentage = ({ theme }: { theme: string[] }) => {
-    const { type, loading } = useAfterState();
+const SupplyGrap = ({ theme }: { theme: string[] }) => {
+    // const { type, loading } = useAfterState();
 
     const supplyRatio = useSupplyRatio();
     const afterSupplyRatio = useAfterSupplyRatio();
@@ -21,7 +17,22 @@ const SupplyPercentage = ({ theme }: { theme: string[] }) => {
     // console.log("SupplyPercentage", supplyRatio, afterSupplyRatio);
 
     return <>
-        <Font fontSize="20px" color="#939DA7" lineHeight="32px"><Trans>Supply composition:</Trans></Font>
+
+        <PercentGrap
+            title={t`Supply composition:`}
+            theme={theme}
+            ratio={supplyRatio}
+        />
+
+        {afterSupplyRatio &&
+            <PercentGrap
+                size='sm'
+                title={t`之后`}
+                theme={theme}
+                ratio={afterSupplyRatio}
+            />}
+
+        {/* <Font fontSize="20px" color="#939DA7" lineHeight="32px"><Trans>Supply composition:</Trans></Font>
         <PercentageGraphWrapper>
             {supplyRatio?.length ? supplyRatio.map(({ ratio, amount, symbol }, i) => {
                 const ratioText = getRatio(ratio * 100);
@@ -30,9 +41,9 @@ const SupplyPercentage = ({ theme }: { theme: string[] }) => {
                     <PercentageGraphItem width={ratioText} background={theme[i % 2]} key={i} />
                 </Tips>
             }) : ""}
-        </PercentageGraphWrapper>
+        </PercentageGraphWrapper> */}
 
-        {type && <>
+        {/* {type && <>
             <Font fontSize="14px" color="#939DA7" lineHeight="25px"><Trans>之后</Trans></Font>
             <PercentageGraphWrapper size="sm">
                 {afterSupplyRatio?.length ? afterSupplyRatio.map(({ ratio, amount, symbol }, i) => {
@@ -43,8 +54,8 @@ const SupplyPercentage = ({ theme }: { theme: string[] }) => {
                     </Tips>
                 }) : ""}
             </PercentageGraphWrapper>
-        </>}
+        </>} */}
     </>
 }
 
-export default SupplyPercentage;
+export default SupplyGrap;

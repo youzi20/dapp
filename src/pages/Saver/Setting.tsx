@@ -3,11 +3,17 @@ import { t, Trans } from '@lingui/macro';
 import styled from 'styled-components';
 
 import Checkbox from '../../components/Checkbox';
-import Select, { SelectValueInterface } from '../../components/Select';
+import { SelectValueInterface, ThemeSelect } from '../../components/Select';
 import Button from '../../components/Button';
 import Table, { TableColumn } from '../../components/Table';
-import Tips, { TipsPrice } from '../../components/Tips';
+import {
+    renderCoinInfo,
+    renderPriceTips,
+    renderAmountTips
+} from '../../components/TableRender';
 import { message } from '../../components/Message';
+import { TipsBoxWarning, TipsBoxError } from '../../components/TipsBox';
+
 
 import { useSubscribe } from '../../hooks/contract/saver';
 
@@ -16,47 +22,19 @@ import { MarketStatusEnums, useState as useMatketState, useEthPrice, useBorrowMa
 import { useState as useUserState } from '../../state/user';
 import { useState as useSaverState, updateEnabled, updateOtherRatio } from '../../state/saver';
 
-import { Flex, Font, Grid, Content, Wrapper, TipsStyle } from '../../styled';
-import { getRatio, ethToPriceTips, fullNumber, numberRuler } from '../../utils';
-import { TIPS_WARNING_SVG, ERROR_WARNING_SVG } from '../../utils/images';
+import { Flex, Font, Grid, Container, Wrapper, ButtonGroupGrid } from '../../styled';
+import { getRatio } from '../../utils';
 
 
-import CoinIcon from '../CoinIcon';
 import SmartAddress from '../SmartAddress';
 
 import Input, { InputColumn } from './Input';
 import Bar from './Bar';
 
-interface MarketInterface {
-    price: string
-    symbol: string
-    amount: string
-    totalSupply: string
-    totalBorrow: string
-}
-
 const Line = styled.div`
 margin-top: 30px;
 border-bottom: 1px solid var(--theme);
 `;
-
-const SelectWrapper = styled(Flex)`
-width: 200px;
-height: 44px;
-margin-left: 20px;
-border-radius: 3px;
-background: #37B06F;
-`;
-
-const ButtonGroupGrid = styled(Grid)`
-justify-content: end;
-margin-top: 25px;
-`;
-
-const renderCoinIcon = (value: any) => <CoinIcon name={value} />;
-const renderAmountTips = ({ symbol, amount }: MarketInterface) => <Flex><Tips text={fullNumber(amount)} ><div>{numberRuler(amount)} {symbol}</div></Tips></Flex>;
-const renderPriceTips = (value: string, price?: number) => <Flex><TipsPrice price={ethToPriceTips(value, price)} /></Flex>;
-
 
 const Setting = ({ onCancel }: { onCancel: () => void }) => {
     const dispatch = useAppDispatch();
@@ -65,6 +43,7 @@ const Setting = ({ onCancel }: { onCancel: () => void }) => {
         { name: t`全自动化`, value: 2 },
         { name: t`半自动化`, value: 1 }
     ]);
+
     const [mode, setMode] = useState<SelectValueInterface>();
     const [boostDisabled, setBoostDisabled] = useState<boolean>(true);
 
@@ -107,18 +86,16 @@ const Setting = ({ onCancel }: { onCancel: () => void }) => {
     }
 
     useEffect(() => {
-        if (optimalType) {
-            setMode(modeSelect[optimalType === 2 ? 0 : 1])
-        }
+        setMode(modeSelect[optimalType === 2 ? 0 : 1])
     }, [optimalType]);
 
     return <Wrapper>
         <SmartAddress />
 
-        <Content width="704px" style={{ padding: "50px 0" }}>
-            <h2 style={{ marginBottom: 22 }}><Font fontSize="20px"><Trans>Aave Automation Setup</Trans></Font></h2>
+        <Container width="704px" style={{ padding: "50px 0" }}>
+            <h2 style={{ marginBottom: 22 }}><Font size="20px"><Trans>Aave Automation Setup</Trans></Font></h2>
             <p style={{ marginBottom: 30 }}>
-                <Font fontSize="13px" color="#939DA7" lineHeight="18px">
+                <Font size="13px" color="#939DA7" lineHeight="18px">
                     <Trans>
                         Once Enabled, DeFi Saver will monitor your Aave ratio and automatically activate Repay if your Aave reaches the lower configured limit, or Boost if it reaches the upper one. Simply enter your target ratio, or configure manually below.
                     </Trans>
@@ -128,18 +105,17 @@ const Setting = ({ onCancel }: { onCancel: () => void }) => {
             <Grid rowGap="20px">
                 <Flex alignItems="center">
                     <Font color="#fff"><Trans>当前比例：</Trans></Font>
-                    <Font fontWeight="700" fontSize="20px" color="#37B06F">{getRatio(ratio * 100)}</Font>
+                    <Font size="20px" weight="700" fontColor="#37B06F">{getRatio(ratio * 100)}</Font>
                 </Flex>
 
                 <Flex alignItems="center">
                     <Font><Trans>自动化模式：</Trans></Font>
-                    <SelectWrapper>
-                        <Select
-                            value={mode}
-                            dataSource={modeSelect}
-                            onChange={(value) => setMode(value)}
-                        />
-                    </SelectWrapper>
+
+                    <ThemeSelect
+                        value={mode}
+                        dataSource={modeSelect}
+                        onChange={(value) => setMode(value)}
+                    />
                 </Flex>
             </Grid>
 
@@ -148,11 +124,7 @@ const Setting = ({ onCancel }: { onCancel: () => void }) => {
 
                 <InputColumn
                     title={t`价格下跌时进行偿还`}
-                    error={Number(minRatio) - ratio * 100 >= 0 &&
-                        <TipsStyle theme="var(--handle-error-bg)">
-                            <img src={ERROR_WARNING_SVG} alt="" />
-                            <Font fontSize="14px"><Trans>自动减杠杆将在启用当前参数时被触发</Trans></Font>
-                        </TipsStyle>}
+                    error={<TipsBoxError isShow={Number(minRatio) - ratio * 100 >= 0} text={t`自动减杠杆将在启用当前参数时被触发`} />}
                 >
                     <Input
                         label={t`如果比率低于：`}
@@ -181,7 +153,7 @@ const Setting = ({ onCancel }: { onCancel: () => void }) => {
                         error={(() => {
                             let isError = false, message = "";
 
-                            console.log("optimalRepay", optimalRepay, minRatio, maxRatio);
+                            // console.log("optimalRepay", optimalRepay, minRatio, maxRatio);
 
                             if (Number(optimalRepay) - Number(minRatio) < 5 || (boostDisabled && Number(maxRatio) - Number(optimalRepay) < 5)) {
                                 isError = true;
@@ -196,16 +168,8 @@ const Setting = ({ onCancel }: { onCancel: () => void }) => {
                 </InputColumn>
 
                 <InputColumn
-                    title={<Checkbox
-                        id="boost-checkbox"
-                        label={t`价格上涨时加杠杆`}
-                        checked={boostDisabled}
-                        onChange={handleBoostCheckbox} />}
-                    error={Number(maxRatio) - ratio * 100 <= 0 &&
-                        <TipsStyle theme="var(--handle-error-bg)">
-                            <img src={ERROR_WARNING_SVG} alt="" />
-                            <Font fontSize="14px"><Trans>自动加杠杆将在启用当前参数时被触发</Trans></Font>
-                        </TipsStyle>}
+                    title={<Checkbox id="boost-checkbox" label={t`价格上涨时加杠杆`} checked={boostDisabled} onChange={handleBoostCheckbox} />}
+                    error={<TipsBoxError isShow={Number(maxRatio) - ratio * 100 <= 0} text={t`自动加杠杆将在启用当前参数时被触发`} />}
                 >
                     <Input
                         disabled={!boostDisabled}
@@ -230,7 +194,7 @@ const Setting = ({ onCancel }: { onCancel: () => void }) => {
                         error={(() => {
                             let isError = false, message = "";
 
-                            console.log("optimalBoost", optimalBoost, minRatio, maxRatio);
+                            // console.log("optimalBoost", optimalBoost, minRatio, maxRatio);
 
                             if (boostDisabled && (Number(optimalBoost) - Number(minRatio) < 5 || Number(maxRatio) - Number(optimalBoost) < 5)) {
                                 isError = true;
@@ -247,27 +211,24 @@ const Setting = ({ onCancel }: { onCancel: () => void }) => {
                 <Bar ratio={Number(ratio) * 100} />
             </>}
 
-            {mode?.value === 2 && borrowData?.length  && <>
-                <TipsStyle theme="rgb(145 114 44)">
-                    <img src={TIPS_WARNING_SVG} alt="" />
-                    <Font fontSize="14px"><Trans>使用全自动化模式请先偿还以下借贷</Trans></Font>
-                </TipsStyle>
+            {mode?.value === 2 && borrowData?.length && <Grid rowGap="20px" style={{ margin: "20px 0" }}>
+                <TipsBoxWarning isShow text={t`使用全自动化模式请先偿还以下借贷`} />
 
                 <Table
                     dataSource={borrowData ?? []}
                     loading={!!borrowData && loanStatus === MarketStatusEnums.LOADING}
                 >
-                    <TableColumn first width="140px" title={t`资产`} dataKey="symbol" render={renderCoinIcon} />
-                    <TableColumn width="160px" title={t`已借贷`} render={(_, __, value) => renderAmountTips(value)} />
+                    <TableColumn first width="140px" title={t`资产`} dataKey="symbol" render={renderCoinInfo} />
+                    <TableColumn width="160px" title={t`已借贷`} render={(_, __, { amount, symbol }) => renderAmountTips(amount, symbol)} />
                     <TableColumn width="170px" title={t`已借贷($)`} dataKey="priceETH" render={(value) => renderPriceTips(value, price)} />
                 </Table>
-            </>}
+            </Grid>}
 
-            <ButtonGroupGrid template="max-content max-content" columGap="20px">
+            <ButtonGroupGrid column={2} columnGap="20px">
                 <Button theme="gray" onClick={onCancel}><Trans>取消</Trans></Button>
-                <Button disabled={mode?.value === 2 && !!borrowData?.length } theme="primary" onClick={handleSubmit}><Trans>提交</Trans></Button>
+                <Button status={mode?.value === 2 && !!borrowData?.length ? "disabled" : undefined} onClick={handleSubmit}><Trans>启用</Trans></Button>
             </ButtonGroupGrid>
-        </Content>
+        </Container>
     </Wrapper>
 }
 

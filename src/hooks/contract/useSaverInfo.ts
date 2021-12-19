@@ -47,7 +47,7 @@ export const useSubscribed = () => {
         try {
             const isSubscribed = await saveInfoContract.isSubscribed(address);
 
-            console.log(isSubscribed);
+            // console.log(isSubscribed);
 
             if (isSubscribed) {
                 dispatch(updateStatus(SaverStatusEnums.OPEN));

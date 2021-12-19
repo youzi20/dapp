@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import ButtonUi from '@material-ui/core/Button';
 import { LoadingIcon } from '../Icon';
 
+
 const ButtonWrapper = styled.div<{ theme: string[], size?: "lg" | "default" | "sm" }>`
 .button-box {
     display: flex;
@@ -28,6 +29,8 @@ button:not(:disabled):hover .button-box{
 }
 `;
 
+
+
 const ThemeList = {
     primary: ["#37B06F", "#239C5B", "#1A4A30", "#89A998"],
     gray: ["#61717E", "#7F8F9C", "#61717E", "#89939D"],
@@ -35,19 +38,22 @@ const ThemeList = {
     sell: ["#C26E5C", "#ca604a", "#61717E", "#89939D"],
 }
 
+export type ButtonStatus = "default" | "disabled" | "loading" | undefined;
+
+export type ButtonTheme = keyof typeof ThemeList;
+
 const Button: React.FC<{
-    theme: "primary" | "gray" | "buy" | "sell"
+    theme?: ButtonTheme
     size?: "lg" | "default" | "sm"
-    disabled?: boolean
-    loading?: boolean
+    status?: ButtonStatus
     style?: any
     onClick?: () => void
-}> = ({ theme, size, children, disabled, loading, ...other }) => {
+}> = ({ theme = "primary", size, children, status = "default", ...other }) => {
 
     return <ButtonWrapper className="button-wrap" theme={ThemeList[theme]} size={size}>
-        <ButtonUi {...other} disabled={disabled || loading}  >
+        <ButtonUi {...other} disabled={status !== "default"}  >
             <div className="button-box">
-                {loading ? <LoadingIcon fontSize="14px" color="#89939D" style={{ marginRight: 4 }} /> : null}
+                {status === "loading" ? <LoadingIcon size="14px" iconColor="#89939D" style={{ marginRight: 4 }} /> : null}
                 {children}
             </div>
         </ButtonUi>

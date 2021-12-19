@@ -1,18 +1,6 @@
 @import "./MuiTheme.scss";
 @import "./AppTheme.scss";
 
-::-webkit-scrollbar {
-  width           : 4px;
-  height          : 4px;
-  background-color: #fff;
-}
-
-::-webkit-scrollbar-thumb {
-  border-radius     : 4px;
-  -webkit-box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
-  background-color  : #bcbcbc;
-}
-
 *,
 *:after,
 *:before {
@@ -27,6 +15,7 @@
 html,
 body {
   font                  : 16px "Montserrat", sans-serif;
+  color: #fff;
   -webkit-font-smoothing: antialiased;
   word-wrap             : break-word;
 }

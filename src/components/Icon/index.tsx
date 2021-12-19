@@ -1,27 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 
 
-interface IconProps extends React.SVGAttributes<SVGSVGElement> {
-    className?: string
+interface BasePros extends React.SVGAttributes<SVGSVGElement> {
     name: string
-    link?: string
-    blank?: boolean
-    isHover?: boolean
+    className?: string
 }
 
-const Base: React.FC<IconProps> = (props) => {
-    const { className, name: propsName, isHover, ...other } = props;
-    const [name, setName] = useState(propsName);
-
-
-    useEffect(() => {
-        setName(propsName ?? name);
-    }, [propsName]);
-
-    useEffect(() => {
-        setName(propsName);
-    }, [propsName]);
+const Base = ({ className, name, ...other }: BasePros) => {
 
     return <svg
         className={"dapp-icon " + (className || "")}
@@ -31,58 +17,52 @@ const Base: React.FC<IconProps> = (props) => {
     </svg>
 };
 
-const Icon: React.FC<IconProps> = (props) => {
-    const { link, blank, ...other } = props;
+
+interface IconProps extends BasePros {
+    link?: string
+    blank?: boolean
+    linkProps?: any
+}
+
+const Icon = ({ link, blank, linkProps, ...other }: IconProps) => {
     return link ?
-        <a href={link} target={blank ? "_blank" : ""}>
+        <a href={link} target={blank ? "_blank" : ""} {...linkProps}>
             <Base {...other} />
         </a> :
         <Base {...other} />
 }
 
+interface WrapperProps extends IconProps {
+    size?: string
+    iconColor?: string
+    iconCursor?: boolean
+}
 
-export const IconWrapper = styled(({ className, style, name, ...other }: {
-    className?: string
-    fontSize?: string
-    color?: string
-    name: string
-    style?: any
-}) => {
+export const IconWrapper = styled(({ className, style, name }: WrapperProps) => {
     return <div {...{ className, style }}><Base name={name} /></div>
 })`
-font-size:  ${({ fontSize }) => fontSize ?? "inherit"};
-color: ${({ color }) => color ?? "inherit"};
+font-size:  ${({ size }) => size ?? "inherit"};
+color: ${({ iconColor }) => iconColor ?? "inherit"};
+height: 1em;
 line-height: 1em;
+${({ iconCursor = false }) => iconCursor ? "cursor: pointer;" : ""}
 `;
 
 
-export const LoadingIcon = styled(({ className, style, ...other }: {
-    className?: string
-    fontSize?: string
-    color?: string
-    style?: any
-}) => {
-    return <div {...{ className, style }}><Base name="dapp-loading" /></div>
+export const LoadingIcon = styled(({ size, iconColor, ...other }: Omit<WrapperProps, 'name'>) => {
+    return <IconWrapper name="dapp-loading" {...{ size: size ?? "50px", iconColor: iconColor ?? "#37B06F", ...other }} />
 })`
-font-size:  ${({ fontSize }) => fontSize ?? "50px"};
-color: ${({ color }) => color ?? "#37B06F"};
-height: 1em;
+
+${({ iconCursor = false }) => iconCursor ? "cursor: pointer;" : ""}
 animation: 2s linear 0s infinite normal none running LoadingAnimation;
 `;
 
-export const SuccessIcon = styled(({ className, style, ...other }: {
-    className?: string
-    fontSize?: string
-    background?: string
-    style?: any
-}) => {
-    return <div {...{ className, style }}><Base name="dapp-checked" /></div>
+export const SuccessIcon = styled(({ size, ...other }: { background?: string } & Omit<WrapperProps, 'name'>) => {
+    return <IconWrapper name="dapp-checked" {...{ size: size ?? "12px", iconColor: "#fff", ...other }} />
 })`
 display: flex;
 justify-content: center;
 align-items: center;
-font-size:  ${({ fontSize }) => fontSize ?? "12px"};
-color: #fff;
 width: 1.5em;
 height: 1.5em;
 background: ${({ background }) => background ?? "#0CA700"};

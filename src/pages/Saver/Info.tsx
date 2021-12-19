@@ -10,16 +10,22 @@ import { useState as useUserState } from '../../state/user';
 import { useState as useSaverState } from '../../state/saver';
 
 
-import { Flex, Font, Grid, Content, Wrapper } from '../../styled';
+import { Flex, Font, Grid, Wrapper, ButtonGroupGrid } from '../../styled';
 import { getRatio } from '../../utils';
 
 import SmartAddress from '../SmartAddress';
 
 import Bar from './Bar';
 
-const ButtonGroupGrid = styled(Grid)`
-justify-content: end;
-margin-top: 20px;
+const InfoWrapper = styled.div`
+width: 704px;
+margin: 0 auto;
+padding: 50px 0;
+
+@media screen and (max-width: 768px) {
+    width: 100%;
+    padding: 20px 15px;
+}
 `;
 
 const Info = ({ onUpdate }: { onUpdate: () => void }) => {
@@ -51,13 +57,13 @@ const Info = ({ onUpdate }: { onUpdate: () => void }) => {
     return <Wrapper>
         <SmartAddress />
 
-        <Content width="704px" style={{ padding: "50px 0" }}>
-            <h2 style={{ marginBottom: 22 }}><Font fontSize="20px"><Trans>Aave Automation Setup</Trans></Font></h2>
+        <InfoWrapper>
+            <h2 style={{ marginBottom: 22 }}><Font size="20px"><Trans>Aave Automation Setup</Trans></Font></h2>
 
             <Grid rowGap="10px">
                 <Flex alignItems="center">
                     <Font color="#fff"><Trans>当前比例：</Trans></Font>
-                    <Font fontWeight="700" fontSize="20px" color="#37B06F">{getRatio(ratio * 100)}</Font>
+                    <Font weight="700" size="20px" color="#37B06F">{getRatio(ratio * 100)}</Font>
                 </Flex>
 
                 <Flex>
@@ -68,7 +74,7 @@ const Info = ({ onUpdate }: { onUpdate: () => void }) => {
             {optimalType === 1 && <>
                 <Bar ratio={Number(ratio) * 100} />
 
-                <Font fontSize="14px" color="#939DA7" style={{ display: "flex", alignItems: "center" }}>
+                <Font size="14px" color="#939DA7" style={{ display: "flex", alignItems: "center" }}>
                     <Trans>
                         清算保护：如果低于
                         <Font color="#fff" style={{ margin: "0 3px" }}>{getRatio(Number(minRatio))}</Font>
@@ -77,7 +83,7 @@ const Info = ({ onUpdate }: { onUpdate: () => void }) => {
                     </Trans>
                 </Font>
 
-                <Font fontSize="14px" color="#939DA7" style={{ display: "flex", alignItems: "center" }}>
+                <Font size="14px" color="#939DA7" style={{ display: "flex", alignItems: "center", marginBottom: 20 }}>
                     <Trans>
                         杠杆增加：如果超过
                         <Font color="#fff" style={{ margin: "0 3px" }}>{getRatio(Number(maxRatio))}</Font>
@@ -87,11 +93,11 @@ const Info = ({ onUpdate }: { onUpdate: () => void }) => {
                 </Font>
             </>}
 
-            <ButtonGroupGrid template="max-content max-content" columGap="20px">
+            <ButtonGroupGrid column={2} columnGap="20px">
                 <Button theme="gray" onClick={handleDeactivate}><Trans>停用</Trans></Button>
-                <Button theme="primary" onClick={onUpdate}><Trans>更新</Trans></Button>
+                <Button onClick={onUpdate}><Trans>更新</Trans></Button>
             </ButtonGroupGrid>
-        </Content>
+        </InfoWrapper>
     </Wrapper>
 }
 

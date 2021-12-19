@@ -5,12 +5,18 @@ import { AppState } from './index';
 import { useAppDispatch, useAppSelector } from './hooks';
 import { useMarketMap, useSupplyMap, useBorrowMap } from './market';
 
-import { HandleType } from '../types';
-import { fullNumber } from '../utils';
+import { HandleType, fullNumber } from '../utils';
 
 const isAdd = (type: HandleType) => {
     if (["Boost", "Supply", "Borrow"].indexOf(type) >= 0) return true;
     if (["Repay", "Withdraw", "Payback"].indexOf(type) >= 0) return false;
+}
+
+const getHandleTheme = (type?: HandleType) => {
+    if (!type) return;
+
+    if (["Boost", "Supply", "Borrow"].indexOf(type) >= 0) return ["#1e5a48", "#14bd88"];
+    if (["Repay", "Withdraw", "Payback"].indexOf(type) >= 0) return ["#714238", "#cc5e47"];
 }
 
 const symbolInfo = (value: string) => {
@@ -32,15 +38,16 @@ const symbolInfo = (value: string) => {
 interface AfterState {
     readonly loading: boolean
     readonly type?: HandleType
+    readonly theme?: string[]
     readonly supply?: {
+        price?: string
         symbol: string
         amount: string
-        price: string
     }
     readonly borrow?: {
+        price?: string
         symbol: string
         amount: string
-        price: string
     }
 }
 
@@ -58,13 +65,13 @@ export function useAfterUserInfo() {
     const borrowMap = useAfterBorrowMap();
 
     return useMemo(() => {
-        let totalCollateralETH = 0, totalLiquidationETH = 0, totalDebtETH = 0, totalBorrowETH = 0;
+        let totalCollateralETH = 0, liquidationETH = 0, totalDebtETH = 0, borrowETH = 0;
 
         if (supplyMap) {
             Object.values(supplyMap).forEach((item) => {
                 totalCollateralETH += Number(item.priceETH);
-                totalBorrowETH += Number(item.priceETH) * Number(item.collateralFactor);
-                totalLiquidationETH += Number(item.priceETH) * Number(item.liquidationRatio);
+                borrowETH += Number(item.priceETH) * Number(item.collateralFactor);
+                liquidationETH += Number(item.priceETH) * Number(item.liquidationRatio);
             });
         }
 
@@ -76,9 +83,9 @@ export function useAfterUserInfo() {
 
         return {
             totalDebtETH,
-            totalBorrowETH,
             totalCollateralETH,
-            totalLiquidationETH
+            borrowETH,
+            liquidationETH
         }
     }, [supplyMap, borrowMap]);
 }
@@ -99,7 +106,11 @@ export function useAfterSupplyMap() {
         if (supplyMap[symbol]) {
             const { amount: supplyAmount, price: supplyPrice, priceETH: supplyPriceETH, ...other } = supplyMap[symbol];
 
-            const totalAmount = Number(supplyAmount) + (isAdd(type) ? 1 : -1) * Number(amount);
+            let totalAmount = Number(supplyAmount) + (isAdd(type) ? 1 : -1) * Number(amount);
+
+            if (totalAmount < 0) totalAmount = 0;
+
+            // console.log("useAfterSupplyMap", supplyAmount, supplyPrice, amount, totalAmount);
 
             supplyMap[symbol] = {
                 price,
@@ -145,9 +156,11 @@ export function useAfterBorrowMap() {
         if (borrowMap[borrowSymbol]) {
             const { amount: borrowAmount, price: borrowPrice, priceETH: borrowPriceETH, ...other } = borrowMap[borrowSymbol];
 
-            const totalAmount = Number(borrowAmount) + (isAdd(type) ? 1 : -1) * Number(amount);
+            let totalAmount = Number(borrowAmount) + (isAdd(type) ? 1 : -1) * Number(amount);
 
-            console.log(borrowAmount, borrowPrice, amount, totalAmount);
+            if (totalAmount < 0) totalAmount = 0;
+
+            // console.log("useAfterBorrowMap", borrowAmount, borrowPrice, amount, totalAmount);
 
             borrowMap[borrowSymbol] = {
                 price,
@@ -198,13 +211,13 @@ export function useAfterBorrowRatio() {
     return useMemo(() => {
         if (!userInfo || !borrowMap) return null;
 
-        const { totalBorrowETH } = userInfo
+        const { borrowETH } = userInfo
 
         return Object.values(borrowMap).map(({ symbol, amount, loanType, priceETH }: any) => ({
             symbol,
             amount,
             loanType,
-            ratio: priceETH / totalBorrowETH,
+            ratio: priceETH / borrowETH,
         })).sort((a, b) => b.ratio - a.ratio)
     }, [userInfo, borrowMap]);
 }
@@ -259,7 +272,7 @@ export function useAfterBorrow() {
             if (item.symbol === symbol && item.loanType === loan) ratio = item.ratio;
         });
 
-        console.log(borrowMap, afterBorrowRatio, symbol, ratio);
+        // console.log(borrowMap, afterBorrowRatio, symbol, ratio);
 
         if (borrowMap[borrowSymbol]) {
             return {
@@ -287,6 +300,10 @@ export const afterReducer = createReducer(initialState, (builder) =>
             Object.entries(action.payload ?? initialState).forEach(([key, value]) => {
                 // @ts-ignore
                 state[key] = value;
+
+                if (key === "type") {
+                    state.theme = getHandleTheme(value);
+                }
             });
         })
 );

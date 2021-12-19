@@ -1,5 +1,3 @@
-
-import { AbstractConnector } from '@web3-react/abstract-connector';
 import { injected, portis, walletconnect, walletlink, fortmatic } from '../../connectors';
 
 import MetaMaskIcon from '../../assets/wallet/metamask.svg';
@@ -8,14 +6,7 @@ import CoinbaseIcon from '../../assets/wallet/coinbase.svg';
 import FortmaticIcon from '../../assets/wallet/fortmatic.svg';
 import PortisIcon from '../../assets/wallet/portis.png';
 
-
-export interface WalletInfo {
-    connector?: AbstractConnector
-    name: string
-    iconURL: string
-}
-
-export const SUPPORTED_WALLETS: { [key: string]: WalletInfo } = {
+export const SUPPORTED_WALLETS = {
     METAMASK: {
         connector: injected,
         name: 'MetaMask',
@@ -41,6 +32,8 @@ export const SUPPORTED_WALLETS: { [key: string]: WalletInfo } = {
         name: 'Portis',
         iconURL: PortisIcon,
     },
-}
+} as const
+
+export type SupportedWallet = keyof typeof SUPPORTED_WALLETS
 
 export default SUPPORTED_WALLETS;

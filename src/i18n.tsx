@@ -1,13 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { I18nProvider } from '@lingui/react';
 import { i18n } from '@lingui/core';
+import { en, zh, PluralCategory } from 'make-plural/plurals'
+
 
 import { SupportedLocale, useActiveLocale } from './hooks/lang';
 
+type LocalePlural = {
+    [key in SupportedLocale]: (n: number | string, ord?: boolean) => PluralCategory
+}
+
+const plurals: LocalePlural = {
+    'en-US': en,
+    'zh-CN': zh,
+}
 
 async function dynamicActivate(locale: SupportedLocale) {
     const { messages } = await import(`@lingui/loader!./locales/${locale}.po`)
-    // i18n.loadLocaleData(locale, { plurals: () => plurals[locale] })
+    i18n.loadLocaleData(locale, { plurals: () => plurals[locale] })
     i18n.load(locale, messages);
     i18n.activate(locale);
 }

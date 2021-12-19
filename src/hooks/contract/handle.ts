@@ -1,12 +1,14 @@
-import { useMemo } from "react";
+import { useMemo } from 'react';
+import { BigNumberish } from '@ethersproject/bignumber';
 
-import { useSmartWalletContract } from "./index";
-import { useAddressAndABI, useFuncEncode, useTokenAddress } from "./hooks";
 
-import { useWeb3ReactCore } from "../wallet";
+import { useSmartWalletContract } from './index';
+import { useAddressAndABI, useFuncEncode, useTokenAddress } from './hooks';
 
-import { useAddress } from "../../state/user";
-import { getWei, abiEncode } from '../../utils';
+import { useWeb3ReactCore } from '../wallet';
+
+import { useAddress } from '../../state/user';
+import { getParseWei, abiEncode } from '../../utils';
 
 export const useEnabled = (aaveAddress: string, enabled: boolean) => {
     const address = useAddress();
@@ -52,7 +54,7 @@ export const useSwapRate = (aaveAddress: string, borrowRate: number) => {
 
 const offchainData = ["0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", 0, 0, 0];
 
-export const useBoost = (tokenAddressArray?: string[], amount?: string, minPrice?: string, apy?: number) => {
+export const useBoost = (tokenAddressArray?: string[], amount?: BigNumberish, minPrice?: string, apy?: number) => {
     const { account } = useWeb3ReactCore();
     const address = useAddress();
 
@@ -68,7 +70,7 @@ export const useBoost = (tokenAddressArray?: string[], amount?: string, minPrice
 
     const uniswapWrapper = useMemo(() => fromAddress && toAddress ? abiEncode(["address[]"], [[fromAddress, toAddress]]) : "", [fromAddress, toAddress]);
 
-    const exchangeData = [fromAddress, toAddress, getWei(amount ?? "0"), 0, getWei(minPrice ?? "0"), 400, account, uniswapAddress, uniswapWrapper, offchainData];
+    const exchangeData = [fromAddress, toAddress, amount, 0, getParseWei(minPrice ?? "0"), 400, account, uniswapAddress, uniswapWrapper, offchainData];
 
     const userHandleBoostEncode = useFuncEncode(USER_HANDLE_OTHER_ABI, "boost", fromAddress && toAddress && amount && apy ? [marketAddress, exchangeData, apy, 0, 1] : []);
 
@@ -85,7 +87,7 @@ export const useBoost = (tokenAddressArray?: string[], amount?: string, minPrice
     }
 }
 
-export const useRepay = (tokenAddressArray?: string[], amount?: string, minPrice?: string, apy?: number) => {
+export const useRepay = (tokenAddressArray?: string[], amount?: BigNumberish, minPrice?: string, apy?: number) => {
     const { account } = useWeb3ReactCore();
     const address = useAddress();
 
@@ -101,7 +103,7 @@ export const useRepay = (tokenAddressArray?: string[], amount?: string, minPrice
 
     const uniswapWrapper = useMemo(() => fromAddress && toAddress ? abiEncode(["address[]"], [[fromAddress, toAddress]]) : "", [fromAddress, toAddress]);
 
-    const exchangeData = [fromAddress, toAddress, getWei(amount ?? "0"), 0, getWei(minPrice ?? "0"), 400, account, uniswapAddress, uniswapWrapper, offchainData];
+    const exchangeData = [fromAddress, toAddress, amount, 0, getParseWei(minPrice ?? "0"), 400, account, uniswapAddress, uniswapWrapper, offchainData];
 
     // console.log(exchangeData);
 
@@ -121,7 +123,7 @@ export const useRepay = (tokenAddressArray?: string[], amount?: string, minPrice
 }
 
 
-export const useDeposit = (aaveAddress?: string, amount?: string) => {
+export const useDeposit = (aaveAddress?: string, amount?: BigNumberish) => {
     const address = useAddress();
 
     const marketAddress = useTokenAddress("AAVE_MARKET");
@@ -131,7 +133,7 @@ export const useDeposit = (aaveAddress?: string, amount?: string) => {
 
     const { address: USER_HANDLE_ADDRESS, abi: USER_HANDLE_ABI } = useAddressAndABI("USER_HANDLE");
 
-    const userHandleDepositEncode = useFuncEncode(USER_HANDLE_ABI, "deposit", amount && aaveAddress ? [marketAddress, aaveAddress, getWei(amount)] : []);
+    const userHandleDepositEncode = useFuncEncode(USER_HANDLE_ABI, "deposit", amount && aaveAddress ? [marketAddress, aaveAddress, amount] : []);
 
     return (token: any, isGas?: boolean,) => {
         if (!smartWalletContract) return;
@@ -139,11 +141,10 @@ export const useDeposit = (aaveAddress?: string, amount?: string) => {
         try {
             if (token === "ETH") {
                 if (isGas) {
-                    return smartWalletContract.estimateGas.execute(USER_HANDLE_ADDRESS, userHandleDepositEncode, { value: getWei(amount) });
+                    return smartWalletContract.estimateGas.execute(USER_HANDLE_ADDRESS, userHandleDepositEncode, { value: amount });
                 } else {
-                    return smartWalletContract.execute(USER_HANDLE_ADDRESS, userHandleDepositEncode, { value: getWei(amount) });
+                    return smartWalletContract.execute(USER_HANDLE_ADDRESS, userHandleDepositEncode, { value: amount });
                 }
-
             } else {
                 if (isGas) {
                     return smartWalletContract.estimateGas.execute(USER_HANDLE_ADDRESS, userHandleDepositEncode);
@@ -157,7 +158,7 @@ export const useDeposit = (aaveAddress?: string, amount?: string) => {
     }
 }
 
-export const useWithdraw = (aaveAddress?: string, amount?: string) => {
+export const useWithdraw = (aaveAddress?: string, amount?: BigNumberish) => {
     const address = useAddress();
 
     const marketAddress = useTokenAddress("AAVE_MARKET");
@@ -167,7 +168,7 @@ export const useWithdraw = (aaveAddress?: string, amount?: string) => {
 
     const { address: USER_HANDLE_ADDRESS, abi: USER_HANDLE_ABI } = useAddressAndABI("USER_HANDLE");
 
-    const userHandleWithdrawEncode = useFuncEncode(USER_HANDLE_ABI, "withdraw", amount && aaveAddress ? [marketAddress, aaveAddress, getWei(amount)] : []);
+    const userHandleWithdrawEncode = useFuncEncode(USER_HANDLE_ABI, "withdraw", amount && aaveAddress ? [marketAddress, aaveAddress, amount] : []);
 
     return () => {
         if (!smartWalletContract) return;
@@ -180,7 +181,7 @@ export const useWithdraw = (aaveAddress?: string, amount?: string) => {
     }
 }
 
-export const useBorrow = (aaveAddress?: string, amount?: string, apy?: number) => {
+export const useBorrow = (aaveAddress?: string, amount?: BigNumberish, apy?: number) => {
     const address = useAddress();
 
     const marketAddress = useTokenAddress("AAVE_MARKET");
@@ -189,7 +190,7 @@ export const useBorrow = (aaveAddress?: string, amount?: string, apy?: number) =
     const { address: USER_HANDLE_ADDRESS, abi: USER_HANDLE_ABI } = useAddressAndABI("USER_HANDLE");
 
     // 1 固定汇率 2 动态汇率
-    const userHandleBorrowEncode = useFuncEncode(USER_HANDLE_ABI, "borrow", amount && aaveAddress && apy ? [marketAddress, aaveAddress, getWei(amount), apy] : []);
+    const userHandleBorrowEncode = useFuncEncode(USER_HANDLE_ABI, "borrow", amount && aaveAddress && apy ? [marketAddress, aaveAddress, amount, apy] : []);
 
     return () => {
         if (!smartWalletContract) return;
@@ -202,7 +203,7 @@ export const useBorrow = (aaveAddress?: string, amount?: string, apy?: number) =
     }
 }
 
-export const usePayback = (aaveAddress?: string, amount?: string, apy?: number) => {
+export const usePayback = (aaveAddress?: string, amount?: BigNumberish, apy?: number) => {
     const address = useAddress();
 
     const marketAddress = useTokenAddress("AAVE_MARKET");
@@ -211,7 +212,7 @@ export const usePayback = (aaveAddress?: string, amount?: string, apy?: number) 
     const { address: USER_HANDLE_ADDRESS, abi: USER_HANDLE_ABI } = useAddressAndABI("USER_HANDLE");
 
     // 1 固定汇率 2 动态汇率
-    const userHandlePaybackEncode = useFuncEncode(USER_HANDLE_ABI, "payback", aaveAddress && amount && apy ? [marketAddress, aaveAddress, getWei(amount), apy] : []);
+    const userHandlePaybackEncode = useFuncEncode(USER_HANDLE_ABI, "payback", aaveAddress && amount && apy ? [marketAddress, aaveAddress, amount, apy] : []);
 
     // console.log("usePayback", marketAddress, aaveAddress, amount, apy);
 

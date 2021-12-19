@@ -1,32 +1,37 @@
-import { useEffect } from 'react';
+import { useState } from 'react';
 
-import Title, { TitleAction } from '../../components/Title';
+import { UserStatusEnums, useState as useUserState } from '../../state/user';
+import { SaverStatusEnums, useState as useSaverState } from '../../state/saver';
 
-import { useReset } from '../../hooks/contract/reload';
+import { Container } from '../../styled';
 
-import { useState as useWalletState } from '../../state/wallet';
+import Loading from '../Loading';
+import CreateWallet from '../CreateWallet';
+import CreateSaver from '../CreateSaver';
+import WalletConnect from '../WalletConnect';
 
-import { Content } from '../../styled';
-
-import Core from './Core';
+import Setting from './Setting';
+import Info from './Info';
 
 const Saver = () => {
-    const reset = useReset();
-
-    const { status } = useWalletState();
-
-    useEffect(() => {
-        if (!status) {
-            reset();
-        }
-    }, [status]);
+    const [show, setShow] = useState(false);
+    const { status: userStatus } = useUserState();
+    const { status: saverStatus } = useSaverState();
 
     return <div>
-        <Content>
-            <Title action={<TitleAction />} />
+        <WalletConnect>
+            <Container>
+                {userStatus === UserStatusEnums.CREATE && <CreateWallet />}
 
-            <Core />
-        </Content>
+                {userStatus === UserStatusEnums.SUCCESS && saverStatus === SaverStatusEnums.LOADING && <Loading />}
+
+                {saverStatus === SaverStatusEnums.CLOSE && !show && <CreateSaver onClick={() => setShow(true)} />}
+
+                {saverStatus === SaverStatusEnums.OPEN && !show && <Info onUpdate={() => setShow(true)} />}
+
+                {show ? <Setting onCancel={() => setShow(false)} /> : null}
+            </Container>
+        </WalletConnect>
     </div>
 }
 

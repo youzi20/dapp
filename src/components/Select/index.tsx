@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { IconWrapper } from '../Icon';
 
 import usePopover from '../../hooks/popover';
-import { Font } from '../../styled';
+import { Font, OptionWrapper, OptionItemWrapper } from '../../styled';
 
 
 const selectDefaultDatasource = (dataSource: (string | SelectValueInterface)[]) => {
@@ -15,24 +15,27 @@ const selectDefaultValue = (defaultValue: string | SelectValueInterface) => {
     return typeof defaultValue === "string" ? { value: defaultValue, name: defaultValue } : defaultValue;
 }
 
-const SelectStyle = styled.div<{ width?: string, height?: string }>`
+const SelectWrapper = styled.div<{ width?: string, height?: string, disabled?: boolean }>`
 width: ${({ width }) => width ?? "100%"};
 height: ${({ height }) => height ?? "100%"};
 background-color: var(--select);
+
+${({ disabled }) => disabled ? "cursor: not-allowed;" : "cursor: pointer;"}
 
 &.active {
     background-color: var(--select-active);
 }
 `;
 
-const SelectValueStyle = styled.div<{ disabled?: boolean }>`
+const SelectValueWrapper = styled.div<{ disabled?: boolean }>`
 display: flex;
 justify-content: space-between;
 align-items: center;
 height: 100%;
 padding-left: 15px;
 
-${({ disabled }) => disabled ? "pointer-events: none;" : "cursor: pointer;"}
+
+${({ disabled }) => disabled && "pointer-events: none;"}
 
 img {
     flex: 0 1 auto;
@@ -40,59 +43,46 @@ img {
 }
 `;
 
-const OptionWrapper = styled.div`
-width: 100px;
-`;
-
-const OptionItemList = styled.div`
-background-color: var(--select-option);
-`;
-
-export const OptionItemWrapper = styled.div`
-display: grid;
-align-content: center;
-grid-row-gap: 2px;
+export const SelectOptionItemWrapper = styled(OptionItemWrapper)`
+font-size: 14px;
+color: #fff;
 padding: 10px;
-cursor: pointer;
-
-&:not(.active):hover {
-    background: var(--select-option-hover);
-}
-
-&.active {
-    background: var(--select-option-active);
-}
 `;
 
-export interface SelectValueInterface {
-    name: string | React.ReactNode,
-    value: number | string
-}
-
-interface OptionitemInterface {
-    className?: string
-    name: string
-    onClick: () => void
-}
-
-
-const OptionItem: React.FC<OptionitemInterface> = ({ name, ...other }) => {
-    return <OptionItemWrapper {...other}><Font fontSize="14px">{name}</Font></OptionItemWrapper>
-}
-
-
-const Select: React.FC<{
-    width?: string
+export interface SelectInterface {
+    contentWidth?: string
+    contentHeight?: string
+    contentMaxHeight?: string
     height?: string
     dataSource: (SelectValueInterface | string)[]
     defaultValue?: any
     disabled?: boolean
     value?: string | SelectValueInterface
-    render?: string | React.ReactNode
+    valueRender?: string | React.ReactNode
     optionItemRender?: React.ReactNode
     optionPopoverProps?: {}
     onChange?: (value: SelectValueInterface) => void
-}> = ({ dataSource: propsDataSource, defaultValue: propsDefaultValue, value: propsValue, render, optionItemRender, optionPopoverProps, disabled, onChange, ...other }) => {
+}
+
+export interface SelectValueInterface {
+    name: string | React.ReactNode,
+    value: string | number
+}
+
+const Select = ({
+    dataSource: propsDataSource,
+    defaultValue: propsDefaultValue,
+    value: propsValue,
+    valueRender,
+    optionItemRender,
+    optionPopoverProps,
+    contentWidth = "100px",
+    contentHeight,
+    contentMaxHeight,
+    disabled,
+    onChange,
+    ...other
+}: SelectInterface) => {
     const [dataSource, setDataSource] = useState(selectDefaultDatasource(propsDataSource));
     const [value, setValue] = useState(selectDefaultValue(propsDefaultValue));
     const { open, setAnchorEl, Popover } = usePopover();
@@ -107,22 +97,25 @@ const Select: React.FC<{
         setDataSource(selectDefaultDatasource(propsDataSource));
     }, [propsDataSource]);
 
-
     useEffect(() => {
         setValue(selectDefaultValue(propsDefaultValue));
     }, [propsDefaultValue])
 
     useEffect(() => {
         if (propsValue) {
-            setValue(selectDefaultValue(propsValue));
+            const value = selectDefaultValue(propsValue);
+            setValue(value);
+            onChange && onChange(value);
         }
     }, [propsValue]);
 
-    return <SelectStyle className={open ? "active" : ""} {...other} >
-        <SelectValueStyle disabled={disabled} onClick={(e) => setAnchorEl(e.currentTarget)}>
-            <div>{render || <Font fontSize="16px">{value?.name}</Font>}</div>
+    const valueDom = (isValidElement(valueRender) && cloneElement(valueRender, { option: value })) || <Font size="16px">{value?.name}</Font>
+
+    return <SelectWrapper className={open ? "active" : ""} disabled={disabled} {...other} >
+        <SelectValueWrapper disabled={disabled} onClick={(e) => setAnchorEl(e.currentTarget)}>
+            <div>{valueDom}</div>
             <IconWrapper name="dapp-drop-down" style={{ color: "#fff", flex: "0 1 auto", margin: 8 }} />
-        </SelectValueStyle>
+        </SelectValueWrapper>
 
         <Popover
             anchorOrigin={{
@@ -134,25 +127,32 @@ const Select: React.FC<{
                 horizontal: 'right',
             }}
         >
-            <OptionWrapper {...optionPopoverProps}>
-                <OptionItemList>
-                    {dataSource?.map((item: any) => {
-                        if (isValidElement(optionItemRender)) {
-                            return cloneElement(optionItemRender, { active: value && value.value === item.value, item, handleChange });
-                        }
+            <OptionWrapper {...{ contentWidth, contentHeight, contentMaxHeight }}>
+                {dataSource?.map((item: any) => {
+                    if (isValidElement(optionItemRender)) {
+                        return cloneElement(optionItemRender, { option: value, item, handleChange });
+                    }
 
-                        return <OptionItem
-                            className={value && value.value === item.value ? "active" : ""}
-                            name={item.name}
-                            key={item.value}
-                            onClick={() => handleChange(item)}
-                        />
-                    })}
-                </OptionItemList>
+                    return <SelectOptionItemWrapper
+                        key={item.value}
+                        className={value && value.value === item.value ? "active" : ""}
+                        // contentWidth="100px"
+                        onClick={() => handleChange(item)}
+                    >
+                        {item.name}
+                    </SelectOptionItemWrapper>
+                })}
             </OptionWrapper>
         </Popover>
-    </SelectStyle>
+    </SelectWrapper >
 }
 
+export const ThemeSelect = styled(Select)`
+width: 200px;
+height: 44px;
+margin-left: 20px;
+border-radius: 3px;
+background: #37B06F;
+`;
 
 export default Select;

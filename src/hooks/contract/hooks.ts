@@ -1,10 +1,9 @@
 import { useMemo } from 'react';
 import { Interface } from '@ethersproject/abi';
 
-import useWeb3ReactCore from '../wallet/useWeb3ReactCore';
+import { useWeb3ReactCore } from '../wallet';
 
-import { AAVE_MARKET, UNISWAP_WRAPPER, BAT, UNI, DAI, USDC, USDT, WBTC, FEI, TRIBE, FRAX, FXS, renBTC, UMA, UST, MIR } from './addresses';
-import { MARKET_ADDRESS, USER_INFO_ADDRESS, USER_HANDLE_ADDRESS, USER_HANDLE_OTHER_ADDRESS, SAVER_ADDRESS, SAVER_INFO_ADDRESS } from './addresses';
+import { AAVE_MARKET, UNISWAP_WRAPPER, MARKET_ADDRESS, USER_INFO_ADDRESS, USER_HANDLE_ADDRESS, USER_HANDLE_OTHER_ADDRESS, SAVER_ADDRESS, SAVER_INFO_ADDRESS } from './addresses';
 
 import USER_INFO_ABI from '../../abis/user_info.json';
 import USER_HANDLE_ABI from '../../abis/user_handle.json';
@@ -14,9 +13,6 @@ import MARKET_ABI from '../../abis/market.json';
 import SAVER_ABI from '../../abis/saver.json';
 import SAVER_INFO_ABI from '../../abis/saver_info.json';
 import ERC20_ABI from '../../abis/erc20.json';
-
-export type TokenMapKey = "AAVE_MARKET" | "UNISWAP_WRAPPER" | "BAT" | "UNI" | "DAI" | "USDC" | "USDT" | "WBTC" | "FEI" | "TRIBE" | "FRAX" | "FXS" | "renBTC" | "UMA" | "UST" | "MIR";
-export type ContractMapKey = "ERC20" | "MARKET" | "USER_INFO" | "USER_HANDLE" | "USER_HANDLE_OTHER" | "SAVER" | "SAVER_INFO" | "SMART_WALLET";
 
 const contractMap = {
     ERC20: { address: null, abi: ERC20_ABI },
@@ -29,9 +25,13 @@ const contractMap = {
     SMART_WALLET: { address: null, abi: SMART_WALLET_ABI },
 };
 
-const tokenMap: any = { AAVE_MARKET, UNISWAP_WRAPPER, BAT, UNI, DAI, USDC, USDT, WBTC, FEI, TRIBE, FRAX, FXS, renBTC, UMA, UST, MIR };
+const tokenMap = { AAVE_MARKET, UNISWAP_WRAPPER };
 
-export const useAddressAndABI = (key: ContractMapKey) => {
+export type ContractMapKey = keyof typeof contractMap;
+
+export type TokenMapKey = keyof typeof tokenMap;
+
+export const useAddressAndABI: (key: ContractMapKey) => { address?: string | string[], abi?: any } = (key) => {
     const { chainId } = useWeb3ReactCore();
 
     const { address, abi } = contractMap[key];
@@ -39,7 +39,7 @@ export const useAddressAndABI = (key: ContractMapKey) => {
     return useMemo(() => chainId ? { address: address ? address[chainId] : "", abi } : {}, [chainId]);
 }
 
-export const useTokenAddress = (key?: TokenMapKey | string | null) => {
+export const useTokenAddress = (key?: TokenMapKey | null) => {
     const { chainId } = useWeb3ReactCore();
 
     const addressMap = useMemo(() => key && tokenMap.hasOwnProperty(key) ? tokenMap[key] : null, [key]);
@@ -54,5 +54,5 @@ export const useFuncEncode = (ABI: any, methodName: string, options?: any[]) => 
 
     const fragment = useMemo(() => active ? contractInterface?.getFunction(methodName) : null, [contractInterface, methodName]);
 
-    return useMemo(() => active && (!options || options.length > 0)   ? contractInterface?.encodeFunctionData(fragment ?? "", options) : "", [fragment, options]);
+    return useMemo(() => active && (!options || options.length > 0) ? contractInterface?.encodeFunctionData(fragment ?? "", options) : "", [fragment, options]);
 }

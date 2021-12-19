@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import styled from "styled-components";
+import styled from 'styled-components';
 import { t } from '@lingui/macro';
 
 import Tips from '../../components/Tips';
@@ -7,7 +7,7 @@ import Tips from '../../components/Tips';
 import { useState as useSaverState } from '../../state/saver';
 
 import { Font, Flex } from '../../styled';
-import { getRatio, numberRuler } from "../../utils";
+import { getRatio, numberRuler } from '../../utils';
 
 const BarWrapper = styled.div`
 margin: 60px 0;
@@ -90,11 +90,10 @@ const colorArray = (max: number) => {
     return `linear-gradient(to right, ${array.map(item => item.color + " " + getRatio(item.ratio / max * 100)).join(",")})`
 }
 
-interface BarProps {
-    ratio: number
-}
 
-const Bar: React.FC<BarProps> = ({ ratio, ...other }) => {
+const Bar = ({ ratio, ...other }: {
+    ratio: number
+}) => {
     const [maxBar, setMaxBar] = useState(200);
     const { minRatio, maxRatio, optimalBoost, optimalRepay, enabled } = useSaverState();
 
@@ -121,16 +120,16 @@ const Bar: React.FC<BarProps> = ({ ratio, ...other }) => {
     const [error, minText, maxText, boostText, repayText, min, max, boost, repay, upWidth, downWidth] = lineList ?? [];
 
     useEffect(() => {
-        const max = (enabled ? [minRatio, maxRatio, optimalBoost, optimalRepay] : [minRatio, optimalRepay]).sort((a, b) => Number(b) - Number(a))[0];
+        const max = (enabled ? [ratio, minRatio, maxRatio, optimalBoost, optimalRepay] : [ratio, minRatio, optimalRepay]).sort((a, b) => Number(b) - Number(a))[0];
 
         if (Number(max) > 150) setMaxBar(Number(max) + 50);
-    }, [minRatio, maxRatio, optimalBoost, optimalRepay, enabled]);
+    }, [ratio, minRatio, maxRatio, optimalBoost, optimalRepay, enabled]);
 
     return <BarWrapper {...other}>
         <ValueWrapper>
             <ValueBar width={getRatio(ratio / maxBar * 100)} />
             <ValueText>
-                <Tips text={t`当前比例：` + numberRuler(ratio)}><Font fontSize="14px">{getRatio(ratio)}</Font></Tips>
+                <Tips text={t`当前比例：` + numberRuler(ratio)}><Font size="14px">{getRatio(ratio)}</Font></Tips>
             </ValueText>
 
             {lineList && <>
@@ -141,8 +140,8 @@ const Bar: React.FC<BarProps> = ({ ratio, ...other }) => {
                     <Tips text={t`如果低于 ${minText}，则减杠杆至 ${repayText}`}>
                         <div className="arrow-span">
                             <Flex flexDirection={minRatio > optimalRepay ? undefined : "row-reverse"} justifyContent="space-between" style={{ marginTop: 12 }}>
-                                <Font fontSize="14px">{repayText}</Font>
-                                <Font fontSize="14px" style={{ borderBottom: "1px solid #fff" }}>{minText}</Font>
+                                <Font size="14px">{repayText}</Font>
+                                <Font size="14px" style={{ borderBottom: "1px solid #fff" }}>{minText}</Font>
                             </Flex>
                         </div>
                     </Tips>
@@ -156,8 +155,8 @@ const Bar: React.FC<BarProps> = ({ ratio, ...other }) => {
                             <Tips text={t`如果超过 ${maxText}，则加杠杆至 ${boostText}`}>
                                 <div className="arrow-span">
                                     <Flex flexDirection={maxRatio > optimalBoost ? undefined : "row-reverse"} justifyContent="space-between" style={{ marginTop: -12 }}>
-                                        <Font fontSize="14px">{boostText}</Font>
-                                        <Font fontSize="14px" style={{ borderTop: "1px solid #fff" }}>{maxText}</Font>
+                                        <Font size="14px">{boostText}</Font>
+                                        <Font size="14px" style={{ borderTop: "1px solid #fff" }}>{maxText}</Font>
                                     </Flex>
                                 </div>
                             </Tips>

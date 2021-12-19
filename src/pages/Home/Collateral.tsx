@@ -1,196 +1,206 @@
-import { useState, useEffect, useMemo } from "react";
-import { Trans, t } from "@lingui/macro";
+import { useEffect, useMemo, useState } from 'react';
+import { Trans, t } from '@lingui/macro';
+import { MaxUint256 } from '@ethersproject/constants';
 
-import { message } from "../../components/Message";
+import { ButtonStatus } from '../../components/Button';
+import { message } from '../../components/Message';
 
-import { useReload } from "../../hooks/contract/reload";
+import { StatusEnums, useTokenBalances, useAllowance } from '../../hooks/contract/erc20';
 import { useDeposit, useWithdraw } from '../../hooks/contract/handle';
-import { StatusEnums as TokenStatusEnums, useTokenBalances } from '../../hooks/contract/erc20';
+import useHandle from '../../hooks/handle';
 
-import { useReloadAfter, useCollateralAfter } from "../../hooks/after";
-
+import { useAppDispatch } from '../../state/hooks';
+import { updateConfigReload } from '../../state/config';
+import { WalletBalancesEnums, useState as useWalletState } from '../../state/wallet';
 import { useUserInfo } from "../../state/user";
-import { useSupplyCoins, useSupplyMap, useCoinAddress } from '../../state/market';
-import { useState as useWalletState, WalletStatusEnums } from '../../state/wallet';
-import { useState as useSaverState } from '../../state/saver';
-import { useState as useAfterState } from '../../state/after';
+import { useSupplyCoins, useSupplyMap } from '../../state/market';
 
-import { fullNumber, getWithdrawMax } from "../../utils";
-import { HandleType } from "../../types";
+import { fullNumber, getParseWei, numberToFixed } from '../../utils';
 
-import Handle from "./Handle";
-import { TabPanelGrid, InputMax } from './styled';
+import Handle, { HandleContext, HandleAbove, HandleInput, HandleSelect, ApproveButton, HandleButton } from './Handle';
 
-export const Supply = ({ handle }: { handle: HandleType }) => {
-    const [token, setToken] = useState<string>();
-    const [amount, setAmount] = useState<string>();
-    const [loadingButton, setLoadingButton] = useState<boolean>();
+export const Supply = () => {
+    const dispatch = useAppDispatch();
 
-    const supplyCoins = useSupplyCoins() ?? [];
+    const { state, setState } = useHandle("Supply");
 
-    const address = useCoinAddress(token);
-    useCollateralAfter(handle, amount, token, address);
-    const { type } = useAfterState();
+    const { status, theme, amount, token, tokenAddress, tokenDecimals, handleButton } = state;
+    const { setStatus, setMax, setAmount, setToken } = setState;
 
-    const { status: ethStatus, balances: ethBalances } = useWalletState();
-    const { status: supplyStatus, balance: supplayBalances, reload: reloadTokenBalances } = useTokenBalances(token === "ETH" ? undefined : token);
+    const [buttonStatus, setButtonStatus] = useState<ButtonStatus>();
+
+    const supplyCoins = useSupplyCoins();
+
+    const { status: tokenStatus, balances: tokenBalances } = useTokenBalances(token !== "ETH" ? tokenAddress : undefined, tokenDecimals);
+    const { balancesStatus: ethStatus, balances: ethBalances } = useWalletState();
+
+    const { allowance } = useAllowance(token !== "ETH" ? tokenAddress : undefined);
 
     const max = useMemo(() => {
-        if (token == "ETH" && ethBalances) {
-            return fullNumber(ethBalances);
-        } else if (token !== "ETH" && supplayBalances) {
-            return fullNumber(supplayBalances);
-        }
-        return "0";
-    }, [token, ethBalances, supplayBalances]);
+        if (token === "ETH" && WalletBalancesEnums.FINISH === ethStatus) return ethBalances;
+        else if (StatusEnums.FINISH === tokenStatus) return tokenBalances;
 
-    const loading = token === "ETH" ? ethStatus === WalletStatusEnums.LOADING : supplyStatus === TokenStatusEnums.LOADING;
+        return;
+    }, [token, status, ethStatus, tokenStatus, ethBalances]);
 
-    // console.log(max, supplayBalances);
+    const approve = useMemo(() => {
+        if (allowance && token !== "ETH" && Number(allowance) < Number(amount)) return true;
+        else return false
+    }, [allowance, amount, token]);
 
-    const deposit = useDeposit(address, amount);
-    const reload = useReload();
+    const deposit = useDeposit(tokenAddress, getParseWei(amount, tokenDecimals));
 
     const handleClick = async () => {
-        setLoadingButton(true);
+        setButtonStatus("loading");
+        setStatus && setStatus("disabled");
 
-        deposit(token).then((res: any) => {
-            console.log(res);
-            res.wait().then((res: any) => {
+        deposit(token)
+            .then((res: any) => {
                 console.log(res);
-                message.success(t`操作成功`);
 
-                setLoadingButton(false);
-                setAmount(undefined);
-                reload();
-                reloadTokenBalances();
-            }).catch((error: any) => {
-                setLoadingButton(false);
+                res.wait()
+                    .then((res: any) => {
+                        console.log(res);
+                        message.success(t`操作成功`);
+
+                        dispatch(updateConfigReload());
+                        setButtonStatus(undefined);
+                        setStatus && setStatus("default");
+                    })
+                    .catch((error: any) => {
+                        console.error(error);
+                        message.error(error.message);
+
+                        setButtonStatus(undefined);
+                        setStatus && setStatus("default");
+                    });
+            })
+            .catch((error: any) => {
+                console.error(error);
                 message.error(error.message);
-                console.error(error.message);
+
+                setButtonStatus(undefined);
+                setStatus && setStatus("default");
             });
-        }).catch((error: any) => {
-            setLoadingButton(false);
-            message.error(error.message);
-            console.error(error.message);
-        });
     }
 
-    useEffect(() => {
-        if (!token && supplyCoins?.length) setToken(supplyCoins[0]);
-    }, [supplyCoins]);
+    // console.log(token, tokenAddress, tokenDecimals, allowance, ethBalances);
 
     useEffect(() => {
-        if (type !== handle) setAmount(undefined);
-    }, [type]);
+        setMax(max);
 
-    return <Handle
-        isAuthorize
-        type={handle}
-        max={max}
-        labelText={<Trans>质押：</Trans>}
-        labelTips={<Trans>储蓄您的资产开始赚取收益。</Trans>}
-        rightText={loading ? t`加载中~` : <InputMax max={max} />}
-        coins={supplyCoins}
-        inputValue={amount ?? ""}
-        selectValue={token}
-        buttonProps={{
-            text: t`质押`,
-            theme: "buy",
-            loading: loadingButton,
-            click: handleClick
-        }}
-        onInputChange={setAmount}
-        onSelectChange={setToken}
-    />
+        return () => { }
+    }, [max]);
+
+    return <HandleContext.Provider value={{ status, theme, approve, max, amount, token, tokenAddress, handleButton, setStatus, setAmount, setToken }}>
+        <Handle
+            above={<HandleAbove />}
+            body={<>
+                <HandleInput
+                    labelText={<Trans>质押</Trans>}
+                    labelTips={<Trans>储蓄您的资产开始赚取收益。</Trans>}
+                />
+                <HandleSelect dataSource={supplyCoins ?? []} />
+            </>}
+            button={<>
+                {approve && <ApproveButton />}
+                <HandleButton status={buttonStatus} onClick={handleClick}>
+                    <Trans>质押</Trans>
+                </HandleButton>
+            </>}
+            buttonColumn={approve ? 2 : 1}
+        />
+    </HandleContext.Provider>
 }
 
-const Withdraw = ({ handle }: { handle: HandleType }) => {
-    const [token, setToken] = useState<string>();
-    const [amount, setAmount] = useState<string>();
-    const [loadingButton, setLoadingButton] = useState<boolean>();
 
-    const { optimalType } = useSaverState();
+function getWithdrawMax(supplyMap: any, token: string, totalDebt: number) {
+    const totalSupply = Object.values(supplyMap).reduce((prev: number, item: any) => {
+        if (item.symbol === token) return prev;
+
+        return prev + item.priceETH * item.liquidationRatio;
+    }, 0);
+
+    // console.log("Withdraw", totalSupply, totalDebt);
+
+    const { amount, price, priceETH, liquidationRatio } = supplyMap[token];
+
+    if (totalSupply > totalDebt) return [true, amount];
+
+    return [false, fullNumber((priceETH - (totalDebt - totalSupply) / liquidationRatio * 1.01) / price)];
+}
+
+export const Withdraw = () => {
+    const dispatch = useAppDispatch();
+
+    const { state, setState } = useHandle("Withdraw");
+
+    const { status, theme, amount, token, tokenAddress, tokenDecimals, handleButton } = state;
+    const { setStatus, setMax, setAmount, setToken } = setState;
+
+    const [buttonStatus, setButtonStatus] = useState<ButtonStatus>();
+
+    const { totalDebtETH } = useUserInfo() ?? {};
 
     const supplyMap = useSupplyMap();
     const supplyCoins = useMemo(() => supplyMap ? Object.keys(supplyMap) : [], [supplyMap]);
 
-    const address = useCoinAddress(token);
-    useCollateralAfter(handle, amount, token, address);
-    const { type } = useAfterState();
+    const [isMax, max] = useMemo(() => supplyMap && token && totalDebtETH ? getWithdrawMax(supplyMap, token, totalDebtETH) : [false, undefined], [supplyMap, token,]);
 
-    const { totalCollateralETH, totalDebtETH } = useUserInfo() ?? {};
-
-    const max = useMemo(() => supplyMap && token ? getWithdrawMax(supplyMap, token, totalCollateralETH, totalDebtETH) : "0", [supplyMap, token]);
-
-    const withdraw = useWithdraw(address, amount);
-    const reload = useReload();
+    const withdraw = useWithdraw(tokenAddress, isMax && amount === max ? MaxUint256 : getParseWei(numberToFixed(amount, tokenDecimals), tokenDecimals));
 
     const handleClick = () => {
-        setLoadingButton(true);
+        setButtonStatus("loading");
+        setStatus && setStatus("disabled");
 
-        withdraw().then((res: any) => {
-            console.log(res);
-            res.wait().then((res: any) => {
+        withdraw()
+            .then((res: any) => {
                 console.log(res);
-                message.success(t`操作成功`);
+                res.wait()
+                    .then((res: any) => {
+                        console.log(res);
+                        message.success(t`操作成功`);
 
-                setLoadingButton(false);
-                setAmount(undefined);
-                reload();
-            }).catch((error: any) => {
-                setLoadingButton(false);
+                        dispatch(updateConfigReload());
+                        setButtonStatus(undefined);
+                        setStatus && setStatus("default");
+                    })
+                    .catch((error: any) => {
+                        console.error(error);
+                        message.error(error.message);
+
+                        setButtonStatus(undefined);
+                        setStatus && setStatus("default");
+                    });
+            })
+            .catch((error: any) => {
+                console.error(error);
                 message.error(error.message);
-                console.error(error.message);
+
+                setButtonStatus(undefined);
+                setStatus && setStatus("default");
             });
-        }).catch((error: any) => {
-            setLoadingButton(false);
-            message.error(error.message);
-            console.error(error.message);
-        });
     }
 
     useEffect(() => {
-        if (!token && supplyCoins?.length) setToken(supplyCoins[0]);
-    }, [supplyCoins]);
+        setMax(max);
 
-    useEffect(() => {
-        if (type !== handle) setAmount(undefined);
-    }, [type]);
+        return () => { }
+    }, [max]);
 
-    return <Handle
-        type={handle}
-        max={max}
-        labelText={<Trans>减少质押：</Trans>}
-        labelTips={<Trans>从您的Aave储蓄中提取资产。</Trans>}
-        rightText={<InputMax max={max} />}
-        coins={supplyCoins}
-        inputValue={amount ?? ""}
-        selectValue={token}
-        buttonProps={{
-            text: t`减少质押`,
-            theme: "sell",
-            loading: loadingButton,
-            disabled: optimalType === 2,
-            disabledTips: t`已开启全自动化模式，禁用该操作`,
-            click: handleClick
-        }}
-        onInputChange={setAmount}
-        onSelectChange={setToken}
-    />
+    return <HandleContext.Provider value={{ status, theme, max, amount, token, handleButton, setStatus, setAmount, setToken }}>
+        <Handle
+            above={<HandleAbove />}
+            body={<>
+                <HandleInput
+                    labelText={<Trans>减少质押</Trans>}
+                    labelTips={<Trans>从您的Aave储蓄中提取资产。</Trans>}
+                />
+                <HandleSelect dataSource={supplyCoins ?? []} />
+            </>}
+            button={<HandleButton status={buttonStatus} onClick={handleClick}>
+                <Trans>减少质押</Trans>
+            </HandleButton>}
+        />
+    </HandleContext.Provider>
 }
-
-const Collateral = () => {
-    const reload = useReloadAfter();
-
-    useEffect(() => {
-        reload();
-    }, []);
-
-    return <TabPanelGrid>
-        <Supply handle="Supply" />
-        <Withdraw handle="Withdraw" />
-    </TabPanelGrid>
-}
-
-export default Collateral;

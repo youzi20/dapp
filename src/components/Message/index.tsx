@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { render, unmountComponentAtNode } from 'react-dom';
 
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
@@ -10,7 +9,7 @@ const Alert = (props: any) => {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
-export type Color = 'success' | 'info' | 'warning' | 'error';
+export type MessageType = 'success' | 'info' | 'warning' | 'error';
 
 interface SnackbarOrigin {
     vertical: 'top' | 'bottom';
@@ -20,7 +19,7 @@ interface SnackbarOrigin {
 interface MessageProps {
     open?: boolean
     text: string | React.ReactNode
-    severity: Color
+    severity: MessageType
     anchorOrigin?: SnackbarOrigin
     onClose?: () => any
     onCloseAfter?: () => any
@@ -47,8 +46,7 @@ const Message: React.FC<MessageProps> = ({ open: propsOpen, text, severity, onCl
     </Snackbar>
 }
 
-
-const message = {
+export const message = {
     success(text: string | React.ReactNode) {
         showDom(Message, { text, severity: "success" });
     },
@@ -57,6 +55,4 @@ const message = {
     }
 }
 
-
 export default Message;
-export { message };

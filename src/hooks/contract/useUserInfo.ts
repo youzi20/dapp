@@ -1,14 +1,13 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from 'react';
 import { useWeb3ReactCore } from '../wallet';
 
 
-import { useUserInfoContract } from "./index";
+import { useUserInfoContract } from './index';
 
 import { useAppDispatch } from '../../state/hooks';
 import { updateAddress, updateStatus, UserStatusEnums } from '../../state/user';
 
-import { isInvalidAddress } from "../../utils";
-
+import { isInvalidAddress } from './index';
 
 export enum UserStatusEnmus {
     CREATE = "create",
@@ -58,6 +57,8 @@ export const useProxies = () => {
         dispatch(updateStatus(UserStatusEnums.LOADING));
 
         const address = await userInfoContract.proxies(account);
+
+        // console.log(address);
 
         if (address && !isInvalidAddress(address)) {
             dispatch(updateAddress(address));

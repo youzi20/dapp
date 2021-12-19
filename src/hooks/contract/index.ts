@@ -1,17 +1,53 @@
 import { useMemo } from 'react';
+
+import { getAddress } from '@ethersproject/address';
+import { AddressZero } from '@ethersproject/constants';
 import { Contract } from '@ethersproject/contracts';
+import { JsonRpcSigner, Web3Provider } from '@ethersproject/providers';
 
-import useWeb3ReactCore from '../wallet/useWeb3ReactCore';
+import { useWeb3ReactCore } from '../wallet';
 
-import { getContract } from '../../utils';
+import { ContractMapKey, useAddressAndABI } from './hooks';
 
 
-import { ContractMapKey, useAddressAndABI, TokenMapKey, useTokenAddress } from './hooks';
+function isAddress(value: any): string | false {
+    try {
+        return getAddress(value)
+    } catch {
+        return false
+    }
+}
 
+// account is not optional
+function getSigner(library: Web3Provider, account: string): JsonRpcSigner {
+    return library.getSigner(account).connectUnchecked()
+}
+
+// account is optional
+function getProviderOrSigner(library: Web3Provider, account?: string): Web3Provider | JsonRpcSigner {
+    return account ? getSigner(library, account) : library
+}
+
+// account is optional
+function getContract(address: string, ABI: any, library: Web3Provider, account?: string): Contract {
+    if (!isAddress(address) || address === AddressZero) {
+        throw Error(`Invalid 'address' parameter '${address}'.`)
+    }
+
+    return new Contract(address, ABI, getProviderOrSigner(library, account) as any)
+}
+
+export function isInvalidAddress(value: string): boolean {
+    const invalid = ["0x0000000000000000000000000000000000000000"];
+
+    if (isAddress(value) && invalid.indexOf(value) < 0) return false;
+
+    return true;
+}
 
 export function useContract<T extends Contract = Contract>(
     contractKey: ContractMapKey,
-    otherAddress?: string | null,
+    otherAddress?: string | string[],
     withSignerIfPossible = true
 ): T | null {
     const { library, account, chainId } = useWeb3ReactCore();
@@ -24,7 +60,11 @@ export function useContract<T extends Contract = Contract>(
         if (!address || !abi || !library || !chainId) return null
 
         try {
-            return getContract(address, abi, library, withSignerIfPossible && account ? account : undefined)
+            if (typeof address === "string") {
+                return getContract(address, abi, library, withSignerIfPossible && account ? account : undefined);
+            } else {
+                return address.map(address => getContract(address, abi, library, withSignerIfPossible && account ? account : undefined));
+            }
         } catch (error) {
             console.error('Failed to get contract', error)
             return null
@@ -56,12 +96,10 @@ export const useSaverInfoContract = () => {
     return useContract("SAVER_INFO");
 }
 
-export const useSmartWalletContract = (address: string | null) => {
+export const useSmartWalletContract = (address?: string) => {
     return useContract("SMART_WALLET", address);
 }
 
-export const useERC20Contract = (token?: TokenMapKey | string | null) => {
-    const address = useTokenAddress(token);
-
+export const useERC20Contract = (address?: string | string[]) => {
     return useContract("ERC20", address);
 }

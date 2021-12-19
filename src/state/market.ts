@@ -16,30 +16,30 @@ export enum MarketStatusEnums {
 }
 
 interface MarketState {
-    readonly marketData: any[]
+    readonly marketData?: any[]
     readonly marketStatus: MarketStatusEnums
-    readonly loanData: any[]
+    readonly loanData?: any[]
     readonly loanStatus: MarketStatusEnums
-    readonly ethPrice?: number,
+    readonly price?: number,
+    readonly tokenDecimals?: { [key: string]: number }
 }
 
 const initialState: MarketState = {
-    marketData: [],
     marketStatus: MarketStatusEnums.INIT,
-    loanData: [],
     loanStatus: MarketStatusEnums.INIT
 }
 
 export const updateState = createAction<MarketState | undefined>('market/updateState');
-export const updateEthPrice = createAction<number | undefined>('market/updateEthPrice');
-export const updateMaeketData = createAction<any[]>('market/updateMaeketData');
+export const updatePrice = createAction<number | undefined>('market/updateEthPrice');
+export const updateMaeketData = createAction<any[] | undefined>('market/updateMaeketData');
 export const updateMarketStatus = createAction<MarketStatusEnums>('market/updateMarketStatus');
-export const updateLoanData = createAction<any[]>('market/updateLoanData');
+export const updateLoanData = createAction<any[] | undefined>('market/updateLoanData');
 export const updateLoanStatus = createAction<MarketStatusEnums>('market/updateLoanStatus');
+export const updateTokenDecimals = createAction<{ [key: string]: number } | undefined>('market/updateTokenDecimals');
 
 // loanType: 1 质押 2 固定汇率贷款 3 动态汇率贷款
 export function useEthPrice(): number | undefined {
-    return useAppSelector((state: AppState) => state.market.ethPrice);
+    return useAppSelector((state: AppState) => state.market.price);
 }
 
 export function useMarketMap(): { [k: string]: any } | null {
@@ -50,7 +50,7 @@ export function useMarketMap(): { [k: string]: any } | null {
 
         const data: { [k: string]: any } = {};
 
-        [...market].sort((a, b) => b.totalSupply - a.totalSupply).forEach((item: any) => {
+        [...market].forEach((item: any) => {
             const { symbol, ...other } = item;
 
             if (symbol === "WETH") {
@@ -66,14 +66,14 @@ export function useMarketMap(): { [k: string]: any } | null {
 
 export function useSupplyMap(): { [k: string]: any } | null {
     const marketMap = useMarketMap();
-    const supply = useAppSelector((state: AppState) => state.market.loanData.filter((item: any) => item.loanType === 1));
+    const supply = useAppSelector((state: AppState) => state.market.loanData?.filter((item: any) => item.loanType === 1));
 
     return useMemo(() => {
         if (!marketMap || !supply?.length) return null;
 
         const data: { [k: string]: any } = {};
 
-        supply.forEach((item: any) => {
+        [...supply].forEach((item: any) => {
             let { symbol, ...other } = item;
 
             if (symbol === "WETH") {
@@ -98,7 +98,7 @@ export function useSupplyMap(): { [k: string]: any } | null {
 export function useBorrowMap(): { [k: string]: any } | null {
     const { dataInfo } = useUserState();
     const marketMap = useMarketMap();
-    const borrow = useAppSelector((state: AppState) => state.market.loanData.filter((item: any) => [2, 3].indexOf(item.loanType) >= 0));
+    const borrow = useAppSelector((state: AppState) => state.market.loanData?.filter((item: any) => [2, 3].indexOf(item.loanType) >= 0));
 
     return useMemo(() => {
         if (!dataInfo || !marketMap || !borrow?.length) return null;
@@ -109,13 +109,18 @@ export function useBorrowMap(): { [k: string]: any } | null {
 
         const totalLoan = Number(totalDebtETH) + Number(availableBorrowsETH);
 
-        borrow.forEach((item: any) => {
-            const { symbol, priceETH, loanType } = item;
+        [...borrow].forEach((item: any) => {
+            let { symbol, priceETH, loanType } = item;
+
+            if (symbol === "WETH") {
+                symbol = "ETH";
+            }
 
             const { price, collateralFactor, liquidationRatio } = marketMap[symbol];
 
             data[`${symbol}_${loanType}`] = {
                 ...item,
+                symbol,
                 ratio: priceETH / totalLoan,
                 price,
                 collateralFactor,
@@ -126,12 +131,12 @@ export function useBorrowMap(): { [k: string]: any } | null {
     }, [marketMap, borrow, dataInfo]);
 }
 
-export function useSupplyRatio(): any[] | null {
+export function useSupplyRatio(): any[] | undefined {
     const { dataInfo } = useUserState();
     const supplyMap = useSupplyMap();
 
     return useMemo(() => {
-        if (!dataInfo || !supplyMap) return null;
+        if (!dataInfo || !supplyMap) return;
 
         const { totalCollateralETH } = dataInfo
 
@@ -143,11 +148,11 @@ export function useSupplyRatio(): any[] | null {
     }, [dataInfo, supplyMap]);
 }
 
-export function useBorrowRatio(): any[] | null {
+export function useBorrowRatio(): any[] | undefined {
     const borrowMap = useBorrowMap();
 
     return useMemo(() => {
-        if (!borrowMap) return null;
+        if (!borrowMap) return;
 
         return Object.values(borrowMap).map((item: any) => ({
             ratio: item.ratio,
@@ -157,7 +162,7 @@ export function useBorrowRatio(): any[] | null {
     }, [borrowMap]);
 }
 
-const stableCoins = ["DAI", "USDT", "USDC", "BUSD", "TUSD", "SUSD"];
+const STABLE_COINS = ["DAI", "USDT", "USDC", "BUSD", "TUSD", "SUSD"];
 
 export function useStableCoins() {
     const marketMap = useMarketMap();
@@ -166,7 +171,7 @@ export function useStableCoins() {
         if (!marketMap) return null;
 
         return Object.values(marketMap)
-            .filter((item: any) => item.borrowinEnabled && stableCoins.indexOf(item.symbol) >= 0)
+            .filter((item: any) => item.borrowinEnabled && STABLE_COINS.indexOf(item.symbol) >= 0)
             .map(item => item.symbol);
     }, [marketMap]);
 }
@@ -178,12 +183,18 @@ export function useOtherCoins() {
         if (!marketMap) return null;
 
         return Object.values(marketMap)
-            .filter((item: any) => item.usageAsCollateralEnabled && stableCoins.indexOf(item.symbol) < 0)
+            .filter((item: any) => item.usageAsCollateralEnabled && STABLE_COINS.indexOf(item.symbol) < 0)
             .map(item => item.symbol);
     }, [marketMap]);
 }
 
-export function useCoinAddress(token?: string | null, isAave?: boolean): string {
+export function useTokenDecimals(token?: string | null) {
+    const decimals = useAppSelector((state: AppState) => state.market.tokenDecimals);
+
+    return useMemo(() => token && decimals ? decimals[token] : undefined, [token, decimals]);
+}
+
+export function useTokenAddress(token?: string | null, isAave?: boolean): string {
     const marketMap = useMarketMap();
 
     return useMemo(() => {
@@ -197,7 +208,7 @@ export function useCoinAddress(token?: string | null, isAave?: boolean): string 
     }, [marketMap, token]);
 }
 
-export function useCoinAddressArray(tokens?: string[]): string[] | undefined {
+export function useTokenAddressArray(tokens?: string[]): string[] | undefined {
     const marketMap = useMarketMap();
 
     return useMemo(() => {
@@ -219,11 +230,11 @@ export function useTokenInfo(token?: TokenMapKey | string): any {
     return useMemo(() => token && marketMap ? marketMap[token] : null, [token, marketMap]);
 }
 
-export function useSupplyCoins() {
+export function useSupplyCoins(): string[] | undefined {
     const marketMap = useMarketMap();
 
     return useMemo(() => {
-        if (!marketMap) return null;
+        if (!marketMap) return;
 
         return Object.values(marketMap).filter(item => item.usageAsCollateralEnabled).map(item => item.symbol);
     }, [marketMap]);
@@ -237,6 +248,19 @@ export function useBorrowCoins() {
 
         return Object.values(marketMap).filter(item => item.borrowinEnabled).map(item => item.symbol);
     }, [marketMap]);
+}
+
+export function useCoinMaxLoanableAndLiquidation() {
+    const supplyMap = useSupplyMap();
+
+    return useMemo(() => {
+        if (!supplyMap) return;
+
+        return Object.values(supplyMap)
+            .map(({ symbol, collateralFactor, liquidationRatio, usageAsCollateralEnableds, priceETH }) => {
+                return { symbol, loanable: priceETH * collateralFactor, liquidation: priceETH * liquidationRatio, enabled: usageAsCollateralEnableds }
+            });
+    }, [supplyMap]);
 }
 
 export function useLiquidationInfo() {
@@ -271,9 +295,6 @@ export const marketReducer = createReducer(initialState, (builder) =>
                 state[key] = value;
             });
         })
-        .addCase(updateEthPrice, (state, action) => {
-            state.ethPrice = action.payload;
-        })
         .addCase(updateMarketStatus, (state, action) => {
             state.marketStatus = action.payload;
         })
@@ -281,9 +302,15 @@ export const marketReducer = createReducer(initialState, (builder) =>
             state.loanStatus = action.payload;
         })
         .addCase(updateMaeketData, (state, action) => {
-            state.marketData = [...action.payload];
+            state.marketData = action.payload ? [...action.payload] : undefined;
+        })
+        .addCase(updatePrice, (state, action) => {
+            state.price = action.payload;
+        })
+        .addCase(updateTokenDecimals, (state, action) => {
+            state.tokenDecimals = { ...action.payload };
         })
         .addCase(updateLoanData, (state, action) => {
-            state.loanData = [...action.payload];
+            state.loanData = action.payload ? [...action.payload] : undefined;
         })
 )

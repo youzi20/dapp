@@ -10,7 +10,7 @@ import { useAppDispatch } from '../../state/hooks';
 import { updateUserLocale } from "../../state/lang";
 
 
-import { DropWrapper, DropOption } from "../../styled";
+import { OptionWrapper, OptionItemWrapper } from "../../styled";
 
 const LangButton = styled.div`
 display: flex;
@@ -21,6 +21,13 @@ height: 38px;
 border-radius: 3px;
 background: var(--wallet-button);
 cursor: pointer;
+`;
+
+const LangOptionItemWrapper = styled(OptionItemWrapper)`
+width: 100px;
+font-size: 14px;
+color: #fff;
+padding: 10px;
 `;
 
 const LANG_LIST: { [key in SupportedLocale]: string[] } = {
@@ -43,7 +50,7 @@ const Lang = () => {
 
     return <>
         <LangButton onClick={(e) => setAnchorEl(e.currentTarget)}>
-            <Font fontSize="14px">{LANG_LIST[locale][1]}</Font>
+            <Font size="14px">{LANG_LIST[locale][1]}</Font>
         </LangButton>
         <Popover
             style={{ marginTop: 5 }}
@@ -56,11 +63,10 @@ const Lang = () => {
                 horizontal: 'right',
             }}
         >
-            <DropWrapper>
+            <OptionWrapper>
                 {Object.entries(LANG_LIST).map(([key, value]) => {
-                    return <DropOption
+                    return <LangOptionItemWrapper
                         key={key}
-                        width="100px"
                         className={key === locale ? "active" : ""}
                         onClick={() => {
                             if (key === locale) return;
@@ -71,9 +77,9 @@ const Lang = () => {
                         }}
                     >
                         {value[0]}
-                    </DropOption>
+                    </LangOptionItemWrapper>
                 })}
-            </DropWrapper>
+            </OptionWrapper>
         </Popover>
     </>
 

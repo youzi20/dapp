@@ -1,4 +1,4 @@
-import React, { ChangeEvent } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 
 const CheckboxWrapper = styled.div`
@@ -43,8 +43,6 @@ interface CheckboxProps {
 const Checkbox: React.FC<CheckboxProps> = ({ id, label, checked, onChange, ...other }) => {
 
     const handleChange = (value: boolean) => {
-        console.log(value);
-
         onChange && onChange(value);
     }
 

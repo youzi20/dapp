@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
-import { MaxUint256 } from "@ethersproject/constants";
+import { MaxUint256 } from '@ethersproject/constants';
 
 import { useState as useUserState } from '../../state/user';
 
 import { useWeb3ReactCore } from '../wallet';
-import { getFormatNumber, getWei } from '../../utils';
+import { getFormatNumber } from '../../utils';
 
 import { useERC20Contract } from './index';
-import { TokenMapKey } from './hooks';
 
 export enum StatusEnums {
     FINISH,
@@ -15,25 +14,25 @@ export enum StatusEnums {
     ERROR,
 }
 
-export const useTokenBalances = (token?: TokenMapKey | string) => {
+export const useTokenBalances = (tokenAddress?: string, tokenDecimals?: number) => {
     const { account } = useWeb3ReactCore();
 
     const [status, setStaus] = useState<StatusEnums>(StatusEnums.FINISH);
-    const [balance, setBalance] = useState<string>();
+    const [balances, setBalances] = useState<string>();
 
-    const erc20Contract = useERC20Contract(token);
+    const erc20Contract = useERC20Contract(tokenAddress);
 
     // console.log("erc20Contract", erc20Contract);
 
-    const getTokenBalance = async () => {
-        if (!erc20Contract || !account || !token) return;
+    const getTokenBalances = async () => {
+        if (!erc20Contract || !account || !tokenAddress) return;
 
         setStaus(StatusEnums.LOADING);
 
         try {
             const balance = await erc20Contract.balanceOf(account);
 
-            setBalance(getFormatNumber(balance));
+            setBalances(getFormatNumber(balance, tokenDecimals ? Number(tokenDecimals) : "ether"));
             setStaus(StatusEnums.FINISH);
         } catch (error) {
             setStaus(StatusEnums.ERROR);
@@ -43,17 +42,30 @@ export const useTokenBalances = (token?: TokenMapKey | string) => {
     }
 
     useEffect(() => {
-        getTokenBalance();
-    }, [erc20Contract, token]);
+        getTokenBalances();
+    }, [erc20Contract, tokenAddress]);
 
-    return { status, balance, reload: getTokenBalance };
+    return { status, balances, reload: getTokenBalances };
 };
 
+export const useDecimals = (address?: string) => {
+    const erc20Contract = useERC20Contract(address);
 
-export const useApprove = (token: string | null) => {
-    const erc20Contract = useERC20Contract(token);
+    return async () => {
+        if (!erc20Contract) return;
 
-    return async (address: string | null) => {
+        try {
+            return erc20Contract.decimals();
+        } catch (error) {
+            console.error(error);
+        }
+    }
+}
+
+export const useApprove = (tokenAddress?: string) => {
+    const erc20Contract = useERC20Contract(tokenAddress);
+
+    return async (address?: string) => {
         if (!erc20Contract || !address) return;
 
         try {
@@ -64,17 +76,17 @@ export const useApprove = (token: string | null) => {
     }
 }
 
-export const useAllowance = (token: string | null) => {
+export const useAllowance = (tokenAddress?: string) => {
     const { address } = useUserState();
     const { account } = useWeb3ReactCore();
     const [allowance, setAllowance] = useState<string>();
 
-    const erc20Contract = useERC20Contract(token);
+    const erc20Contract = useERC20Contract(tokenAddress);
 
     // console.log("erc20Contract", erc20Contract);
 
     const getAllowanceValue = async () => {
-        if (!erc20Contract || !address || !account || !token) return;
+        if (!erc20Contract || !address || !account || !tokenAddress) return;
 
         try {
             const value = await erc20Contract.allowance(account, address);
@@ -85,8 +97,9 @@ export const useAllowance = (token: string | null) => {
     }
 
     useEffect(() => {
+        setAllowance(undefined);
         getAllowanceValue();
-    }, [erc20Contract, token]);
+    }, [erc20Contract, tokenAddress]);
 
     return { allowance, reload: getAllowanceValue };
 }

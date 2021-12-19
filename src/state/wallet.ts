@@ -1,8 +1,8 @@
 import { createReducer, createAction } from '@reduxjs/toolkit';
 import { AppState } from './index';
 import { useAppSelector } from './hooks';
-import React from 'react';
 
+import { SupportedWallet } from '../hooks/wallet';
 
 export enum WalletStatusEnums {
     OFFLINE,
@@ -19,8 +19,9 @@ export enum WalletBalancesEnums {
 interface WalletState {
     readonly status: WalletStatusEnums
     readonly balancesStatus: WalletBalancesEnums
-    readonly balances?: string
+    readonly wallet?: SupportedWallet
     readonly network?: string
+    readonly balances?: string
     readonly error?: string | React.ReactNode
 }
 
@@ -31,8 +32,9 @@ const initialState: WalletState = {
 
 export const updateStatus = createAction<WalletStatusEnums>('wallet/updateStatus');
 export const updateBalancesStatus = createAction<WalletBalancesEnums>('wallet/updateBalancesStatus');
-export const updateETHBalances = createAction<string>('wallet/updateETHBalances');
+export const updateWallet = createAction<SupportedWallet>('wallet/updateWallet');
 export const updateNetwork = createAction<string>('wallet/updateNetwork');
+export const updateBalances = createAction<string>('wallet/updateBalances');
 export const updateError = createAction<string | React.ReactNode>('wallet/updateError');
 
 export function useState(): WalletState {
@@ -51,11 +53,14 @@ export const walletReducer = createReducer(initialState, (builder) =>
         .addCase(updateBalancesStatus, (state, action) => {
             state.balancesStatus = action.payload;
         })
-        .addCase(updateETHBalances, (state, action) => {
-            state.balances = action.payload;
+        .addCase(updateWallet, (state, action) => {
+            state.wallet = action.payload;
         })
         .addCase(updateNetwork, (state, action) => {
             state.network = action.payload;
+        })
+        .addCase(updateBalances, (state, action) => {
+            state.balances = action.payload;
         })
         .addCase(updateError, (state, action) => {
             state.error = action.payload;

@@ -1,29 +1,32 @@
-import React, { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Trans } from '@lingui/macro';
 
-import Message, { Color } from '../Message';
 
+import Message, { MessageType } from '../Message';
+
+import useWallet, { SupportedWallet, SUPPORTED_WALLETS, useWeb3ReactCore } from '../../hooks/wallet';
 import usePopover from '../../hooks/popover';
-import useWallet, { useWeb3ReactCore } from '../../hooks/wallet';
 
-import { WalletStatusEnums, useState as useWalletState, useETHBalances } from '../../state/wallet';
+import { WalletStatusEnums, useState as useWalletState } from '../../state/wallet';
 
-import { Font, Flex, Grid, DropWrapper, DropOption } from '../../styled'
 
-import { accountSplit, numberToFixed } from '../../utils';
+import { Grid, Flex, Font, Image, Container, WrappeContainer, OptionWrapper, OptionItemWrapper } from '../../styled';
+import { getAccountSecrecy, numberToFixed } from '../../utils';
 
-import SUPPORTED_WALLETS from './options';
 
 const WalletButton = styled.div`
 display: flex;
 align-items: center;
 justify-content: center;
-padding: 0 12px;
 height: 38px;
 border-radius: 3px;
 background: var(--wallet-button);
 cursor: pointer;
+`;
+
+const WalletButtonText = styled(Font)`
+padding: 0 12px;
 `;
 
 const WalletAddress = styled.div`
@@ -43,91 +46,70 @@ border-radius: 2px;
 background: var(--wallet-network);
 `;
 
-const WalletIcon = styled.div`
-display: flex;
-align-items: center;
-justify-content: center;
-width: 38px;
-height: 38px;
-margin-left: 8px;
-border-radius: 3px;
-background: var(--wallet-button);
-cursor: pointer;
-
-img {
-    width: 24px;
-}
+const WalletOptionItemWrapper = styled(OptionItemWrapper)`
+display: grid;
+grid-template-columns: repeat(2, max-content);
+column-gap: 10px;
+font-size: 14px;
+color: #fff;
+padding: 10px;
 `;
 
-type WalletOptions = 'METAMASK' | 'FORTMATIC' | 'WALLETCONNECT' | 'COINBASE' | 'PORTIS';
-
-const defaultOptions = ['METAMASK', 'FORTMATIC', 'WALLETCONNECT', 'COINBASE', 'PORTIS'];
-
-const WalletInfo: React.FC<{
-    active?: WalletOptions | null
-    handleOpen: (e: any) => void
-}> = ({ active, handleOpen }) => {
+const WalletInfo: React.FC<{ handleOpen: (e: any) => void }> = ({ handleOpen }) => {
     const { account } = useWeb3ReactCore();
-    const { network } = useWalletState();
+    const { wallet, network, balances } = useWalletState();
 
-    const balances = useETHBalances();
+    // console.log(balances);
 
-    return <Flex>
+    return <Grid column={2} columnGap="8px">
 
         <Flex flexDirection="column" alignItems="flex-end">
             <WalletAddress>
-                <Font fontSize="14px" color="#939DA7">{accountSplit(account ?? "")}</Font>
+                <Font size="14px" fontColor="#939DA7">{getAccountSecrecy(account ?? "")}</Font>
             </WalletAddress>
 
             <Flex justifyContent="flex-end" alignItems="center">
                 {network ? <WalletNetwork>
-                    <Font fontSize="12px">{network}</Font>
+                    <Font size="12px">{network}</Font>
                 </WalletNetwork> : ""}
 
                 {balances ?
                     <WalletAccount>
-                        <Font fontSize="12px" color="#939DA7">{numberToFixed(balances) + " ETH"}</Font>
+                        <Font size="12px" fontColor="#939DA7">{numberToFixed(balances) + " ETH"}</Font>
                     </WalletAccount> : ""}
             </Flex>
         </Flex>
 
-        {active ? <WalletIcon onClick={handleOpen}>
-            <img src={SUPPORTED_WALLETS[active].iconURL} />
-        </WalletIcon> : ""}
-    </Flex>
+        {wallet ? <WalletButton onClick={handleOpen} style={{ padding: "0 7px" }}>
+            <Image src={SUPPORTED_WALLETS[wallet].iconURL} width={24} />
+        </WalletButton> : ""}
+    </Grid>
 }
 
-export default function Wallet({ options = defaultOptions }: { options?: any[] }) {
-    const [active, setActive] = useState<WalletOptions | null>(null);
-    const { setAnchorEl, Popover } = usePopover();
-    const { status } = useWalletState();
+const Wallet = () => {
+    const [options] = useState<SupportedWallet[]>(['METAMASK', 'FORTMATIC', 'WALLETCONNECT', 'COINBASE', 'PORTIS']);
 
     const tryActivation = useWallet();
-
-    useEffect(() => {
-        if (status === WalletStatusEnums.SUCEESS && !active) setActive("METAMASK");
-        if (status === WalletStatusEnums.OFFLINE && active) setActive(null);
-    }, [status]);
+    const { setAnchorEl, Popover } = usePopover();
+    const { status, wallet } = useWalletState();
 
     return <>
         {status === WalletStatusEnums.OFFLINE &&
             <WalletButton onClick={(e) => setAnchorEl(e.currentTarget)}>
-                <Font fontSize="14px">
+                <WalletButtonText size="14px">
                     <Trans>连接您的钱包</Trans>
-                </Font>
+                </WalletButtonText>
             </WalletButton>}
 
         {status === WalletStatusEnums.LOADING &&
             <WalletButton>
-                <Font fontSize="14px">
+                <WalletButtonText size="14px">
                     <Trans>正在连接...</Trans>
-                </Font>
+                </WalletButtonText>
             </WalletButton>}
 
         {status === WalletStatusEnums.SUCEESS &&
-            <WalletInfo
-                {...{ active, handleOpen(e) { setAnchorEl(e.currentTarget) } }}
-            />}
+            <WalletInfo {...{ handleOpen(e) { setAnchorEl(e.currentTarget) } }} />}
 
         <Popover
             style={{ marginTop: 5 }}
@@ -140,53 +122,105 @@ export default function Wallet({ options = defaultOptions }: { options?: any[] }
                 horizontal: 'right',
             }}
         >
-            <DropWrapper>
+            <OptionWrapper>
                 {options.map(item => {
                     const option = SUPPORTED_WALLETS[item];
 
-                    return <DropOption
+                    return <WalletOptionItemWrapper
                         key={item}
-                        className={item === active ? "active" : ""}
+                        className={item === wallet ? "active" : ""}
                         onClick={() => {
-                            setActive(item);
                             setAnchorEl(null);
-                            tryActivation(option.connector);
+                            tryActivation(option.connector, item);
                         }}
                     >
-                        <Grid template="auto auto" columGap="10px">
-                            <img src={option.iconURL} alt="" style={{ width: 20 }} />
-                            {option.name}
-                        </Grid>
-                    </DropOption>
+                        <Image src={option.iconURL} width={20} />
+                        {option.name}
+                    </WalletOptionItemWrapper>
                 })}
-            </DropWrapper>
+            </OptionWrapper>
         </Popover>
     </>
 }
 
-export function WalletManager() {
+const WalletBoxList = styled(Flex)`
+flex-wrap: wrap;
+justify-content: space-between;
+align-items: center;
+`;
+
+const WalletBoxItem = styled(Grid)`
+justify-items: center;
+align-content: center;
+width: 180px;
+height: 100px;
+background: var(--wallet-box);
+border-radius: 3px;
+transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+cursor: pointer;
+
+&:hover {
+    background: var(--wallet-box-hover);
+}
+
+@media screen and (max-width: 768px) {
+    width: 48%;
+    height: 90px;
+    margin: 5px 0;
+}
+`;
+
+export const WalletBox = () => {
+    const [options] = useState<SupportedWallet[]>(['METAMASK', 'FORTMATIC', 'WALLETCONNECT', 'COINBASE', 'PORTIS']);
+    const tryActivation = useWallet();
+
+    return <Container>
+        <WrappeContainer>
+            <Font size="20px" style={{ marginBottom: 10 }}><Trans>Connect wallet</Trans></Font>
+            <Font size="14px" fontColor="#939DA7" style={{ marginBottom: 28 }}><Trans>Manage your positions using advanced actions.</Trans></Font>
+            <WalletBoxList>
+                {options.map(item => {
+                    const option = SUPPORTED_WALLETS[item];
+
+                    return <WalletBoxItem
+                        rowGap="8px"
+                        key={item}
+                        onClick={() => {
+                            tryActivation(option.connector, item);
+                        }}
+                    >
+                        <Image src={option.iconURL} width={30} />
+                        {option.name}
+                    </WalletBoxItem>
+                })}
+            </WalletBoxList>
+        </WrappeContainer>
+    </Container>
+}
+
+export const WalletManager = () => {
     const { account, active } = useWeb3ReactCore();
     const { status, error } = useWalletState();
 
     const [message, setMessage] = useState<string | React.ReactNode>("");
-    const [severity, setSeverity] = useState<Color | null>(null);
+    const [severity, setSeverity] = useState<MessageType | null>(null);
     const [open, setOpen] = useState(false);
 
-    const showMessage = (severity: Color, message: string | React.ReactNode) => {
+    const showMessage = (severity: MessageType, message: string | React.ReactNode) => {
         setOpen(true);
         setSeverity(severity);
         setMessage(message);
     }
 
     useEffect(() => {
-        if (status && active) {
-            showMessage("success", <Font fontSize="16px" lineHeight="24px" align="center" ><Trans>MetaMask 账户已连接</Trans> <br /> {account}</Font>);
+        if (status && active && account) {
+            showMessage("success", <Font size="16px" lineHeight="24px" align="center" ><Trans>MetaMask 账户已连接</Trans> <br /> {account}</Font>);
         }
-    }, [active]);
+    }, [status, active, account]);
 
     useEffect(() => {
         if (!status && error) {
-            showMessage("error", <Font fontSize="16px" lineHeight="24px" align="center" >{error}</Font>);
+            showMessage("error", <Font size="16px" lineHeight="24px" align="center" >{error}</Font>);
         }
     }, [status, error]);
 
@@ -199,3 +233,6 @@ export function WalletManager() {
         />
     </div>
 }
+
+
+export default Wallet;

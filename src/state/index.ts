@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { save, load } from 'redux-localstorage-simple';
 
+import { configReducer as config } from './config';
 import { walletReducer as wallet } from './wallet';
 import { userReducer as user } from './user';
 import { marketReducer as market } from './market';
@@ -12,6 +13,7 @@ const PERSISTED_KEYS: string[] = ['lang'];
 
 const store = configureStore({
     reducer: {
+        config,
         wallet,
         user,
         market,

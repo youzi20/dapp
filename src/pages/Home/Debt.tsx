@@ -1,54 +1,55 @@
-import { useState, useEffect, useMemo } from "react";
-import styled from "styled-components";
-import { Trans, t } from "@lingui/macro";
+import { useEffect, useMemo, useState } from 'react';
+import { Trans, t } from '@lingui/macro';
+import { MaxUint256 } from '@ethersproject/constants';
 
-import { message } from "../../components/Message";
-import Modal from "../../components/Modal";
+import { ButtonStatus } from '../../components/Button';
+import { message } from '../../components/Message';
+import Modal from '../../components/Modal';
+import APYSelect from '../../components/ApySelect';
 
-import { useReload } from "../../hooks/contract/reload";
+import useHandle from '../../hooks/handle';
+import { StatusEnums, useTokenBalances, useAllowance } from '../../hooks/contract/erc20';
 import { useBorrow, usePayback } from '../../hooks/contract/handle';
-import { StatusEnums as TokenStatusEnums, useTokenBalances } from '../../hooks/contract/erc20';
-import { useReloadAfter, useDebtAfter } from "../../hooks/after";
 
+import { useAppDispatch } from '../../state/hooks';
+import { updateConfigReload } from '../../state/config';
+import { WalletBalancesEnums, useState as useWalletState } from '../../state/wallet';
 import { useUserInfo } from "../../state/user";
-import { useBorrowCoins, useBorrowMap, useCoinAddress, useTokenInfo } from '../../state/market';
-import { useState as useWalletState, WalletStatusEnums } from '../../state/wallet';
-import { useState as useSaverState } from '../../state/saver';
-import { useState as useAfterState } from '../../state/after';
+import { useTokenInfo, useBorrowMap, useBorrowCoins } from '../../state/market';
 
-import { Font, TipsStyle } from '../../styled';
+import { Font, TipsBoxWrapper } from '../../styled';
+import { getParseWei, fullNumber, numberToFixed } from '../../utils';
+import { TIPS_WARNING_SVG } from '../../utils/images';
 
-import { fullNumber } from "../../utils";
-import { TIPS_WARNING_SVG } from "../../utils/images";
-import { HandleType } from "../../types";
+import Handle, { HandleContext, HandleAbove, HandleInput, HandleSelect, ValueRender, SelectOptionItem, ApproveButton, HandleButton } from './Handle';
 
-import Handle from "./Handle";
-import { TabPanelGrid, InputMax, SelectOptionItem, APYSelect } from './styled';
+export const Borrow = () => {
+    const dispatch = useAppDispatch();
 
-export const Borrow = ({ handle }: { handle: HandleType }) => {
-    const [token, setToken] = useState<string>();
-    const [amount, setAmount] = useState<string>();
-    const [loadingButton, setLoadingButton] = useState<boolean>();
-    const [open, setOpen] = useState<boolean>(false);
+    const { state, setState } = useHandle("Borrow");
+
+    const { status, theme, amount, token, tokenAddress, tokenDecimals, handleButton } = state;
+    const { setStatus, setMax, setAmount, setToken } = setState;
+
+    const [open, setOpen] = useState(false);
     const [apy, setApy] = useState<number>();
 
-    const { optimalType } = useSaverState();
+    const [buttonStatus, setButtonStatus] = useState<ButtonStatus>();
+    const [confirmStatus, setConfirmStatus] = useState<ButtonStatus>();
 
-    const { price, stableBorrowRateEnabled } = useTokenInfo(token) ?? {};
     const { availableBorrowsETH } = useUserInfo() ?? {};
+    const { price, stableBorrowRateEnabled } = useTokenInfo(token) ?? {};
+
     const borrowCoins = useBorrowCoins() ?? [];
 
-    const address = useCoinAddress(token);
-    useDebtAfter(handle, amount, token, address);
-    const { type } = useAfterState();
+    const max = useMemo(() => availableBorrowsETH && price ? fullNumber(availableBorrowsETH / price * 0.99) : undefined, [availableBorrowsETH, price]);
 
-    const max = useMemo(() => availableBorrowsETH && price ? fullNumber(availableBorrowsETH / price) : "0", [availableBorrowsETH, price]);
+    // console.log(borrowCoins, token, tokenAddress, tokenDecimals, availableBorrowsETH, price);
 
-    const borrow = useBorrow(address, amount, apy);
-    const reload = useReload();
+    const borrow = useBorrow(tokenAddress, getParseWei(numberToFixed(amount, tokenDecimals), tokenDecimals), apy);
 
-    const borrowHandle = () => {
-        setLoadingButton(true);
+    const handleClick = () => {
+        setConfirmStatus("loading");
 
         borrow().then((res: any) => {
             console.log(res);
@@ -56,196 +57,203 @@ export const Borrow = ({ handle }: { handle: HandleType }) => {
                 console.log(res);
                 message.success(t`操作成功`);
 
-                setLoadingButton(false);
+                dispatch(updateConfigReload());
                 setOpen(false);
-                setAmount(undefined);
-                reload();
             }).catch((error: any) => {
-                setLoadingButton(false);
-                message.error(error.message);
                 console.error(error);
+                message.error(error.message);
+
+                setConfirmStatus(undefined);
             });
         }).catch((error: any) => {
-            setLoadingButton(false);
-            message.error(error.message);
             console.error(error);
+            message.error(error.message);
+
+            setConfirmStatus(undefined);
         });
     }
 
-    const handleClick = () => {
-        if (!token || !amount) return;
-
+    const onClick = () => {
         setOpen(true);
+        setButtonStatus("loading");
+        setStatus && setStatus("disabled");
+    }
+
+    const onCancel = () => {
+        setOpen(false);
+        setButtonStatus(undefined);
+        setStatus && setStatus("default");
     }
 
     useEffect(() => {
-        if (borrowCoins?.length && !token) setToken(borrowCoins[0]);
-    }, [borrowCoins]);
+        setMax(max);
+        
+        return () => { }
+    }, [max]);
 
-    useEffect(() => {
-        if (type !== handle) setAmount(undefined);
-    }, [type]);
-
-    return <>
+    return <HandleContext.Provider value={{
+        status, theme, max, amount, token, tokenAddress, handleButton,
+        setStatus, setAmount, setToken
+    }}>
         <Handle
-            type="Borrow"
-            max={max}
-            labelText={<Trans>借币：</Trans>}
-            labelTips={<Trans>从Aave中借贷。在借款前您需要储蓄资产作为抵押物。</Trans>}
-            rightText={<InputMax max={max} />}
-            coins={borrowCoins}
-            inputValue={amount ?? ""}
-            selectValue={token ?? ""}
-            buttonProps={{
-                text: t`借币`,
-                theme: "buy",
-                disabled: optimalType === 2,
-                disabledTips: t`已开启全自动化模式，禁用该操作`,
-                click: handleClick
-            }}
-            onInputChange={setAmount}
-            onSelectChange={setToken}
+            above={<HandleAbove />}
+            body={<>
+                <HandleInput
+                    labelText={<Trans>借币</Trans>}
+                    labelTips={<Trans>从Aave中借贷。在借款前您需要储蓄资产作为抵押物。</Trans>}
+                />
+                <HandleSelect dataSource={borrowCoins ?? []} />
+            </>}
+            button={<HandleButton status={buttonStatus} onClick={onClick}>
+                <Trans>借币</Trans>
+            </HandleButton>}
         />
-
         <Modal
             open={open}
-            width={470}
-            title="Select your interest rate"
-            cancelButtonProps={{
-                onClick() {
-                    setOpen(false);
-                }
-            }}
-            confirmButtonProps={{
-                text: t`借币`,
-                loading: loadingButton,
-                onClick: borrowHandle
-            }}
+            width="430px"
+            title={t`Select your interest rate`}
+            onCancel={onCancel}
+            onConfirm={handleClick}
+            cancelStatus={confirmStatus === "loading" ? "disabled" : "default"}
+            confirmStatus={confirmStatus}
+            confirmText={t`借币`}
         >
-            <Font fontSize="14px" color="#939DA7" lineHeight="21px" style={{ maxWidth: 380, margin: "0 auto" }}>
+            <Font size="14px" fontColor="#939DA7" lineHeight="21px" style={{ maxWidth: 380, margin: "0 auto" }}>
                 <Trans>
-                    <Font color="#939DA7" fontWeight="700" style={{ display: "inline" }}>Stable</Font> would be a good choice if you need to plan around a non-volatile rate over a longer period of time.
+                    <Font fontColor="#939DA7" weight="700" style={{ display: "inline" }}>Stable</Font> would be a good choice if you need to plan around a non-volatile rate over a longer period of time.
                     <br />
                     <br />
-                    <Font color="#939DA7" fontWeight="700" style={{ display: "inline" }}>Variable</Font> is based on the supply and demand for the selected asset on Aave and is re-calculated every second, meaning the rate will be lower when there is less demand for the asset.
+                    <Font fontColor="#939DA7" weight="700" style={{ display: "inline" }}>Variable</Font> is based on the supply and demand for the selected asset on Aave and is re-calculated every second, meaning the rate will be lower when there is less demand for the asset.
                     <br />
                     <br />
                     You can also switch between the two rates at any point in the future.
                 </Trans>
             </Font>
             {!stableBorrowRateEnabled &&
-                <TipsStyle theme="rgb(145 114 44)">
+                <TipsBoxWrapper theme="rgb(145 114 44)">
                     <img src={TIPS_WARNING_SVG} alt="" />
-                    <Font fontSize="14px"><Trans>This asset is unsupported for stable rate borrow</Trans></Font>
-                </TipsStyle>}
+                    <Font size="14px"><Trans>This asset is unsupported for stable rate borrow</Trans></Font>
+                </TipsBoxWrapper>}
+
             <APYSelect stable={!stableBorrowRateEnabled} onChange={setApy} />
         </Modal>
-    </>
+    </HandleContext.Provider>
 }
 
+export const Payback = () => {
+    const dispatch = useAppDispatch();
 
-export const Payback = ({ handle }: { handle: HandleType }) => {
-    const [token, setToken] = useState<string>();
-    const [amount, setAmount] = useState<string>();
-    const [loadingButton, setLoadingButton] = useState<boolean>();
+    const { state, setState } = useHandle("Payback");
 
-    const { optimalType } = useSaverState();
+    const { status, theme, amount, token, tokenLoanType, tokenAddress, tokenDecimals, handleButton } = state;
+    const { setStatus, setMax, setAmount, setToken, setTokenLoanType } = setState;
 
-    const [symbol, apy] = token ? token.split("_") : [];
-
-    const address = useCoinAddress(symbol);
-    useDebtAfter(handle, amount, token, address);
-
-    const { type } = useAfterState();
+    const [buttonStatus, setButtonStatus] = useState<ButtonStatus>();
 
     const borrowMap = useBorrowMap();
-    const boorowCoins = useMemo(() => borrowMap ? Object.entries(borrowMap).map(([key, item]) => ({ value: key, name: item.symbol, loanType: item.loanType })) : [], [borrowMap]);
+    const boorowCoins = useMemo(() => borrowMap ? Object.values(borrowMap).map((item) => ({ value: item.symbol, name: item.symbol, loanType: item.loanType })) : [], [borrowMap]);
 
-    const { status: ethStatus, balances: ethBalances } = useWalletState();
-    const { status: supplyStatus, balance: supplayBalances, reload: reloadTokenBalances } = useTokenBalances(symbol === "ETH" ? undefined : symbol);
+    const tokenInfo = useMemo(() => token && borrowMap ? borrowMap[`${token}_${tokenLoanType}`] : undefined, [token, borrowMap]);
+
+
+    const { status: tokenStatus, balances: tokenBalances } = useTokenBalances(token !== "ETH" ? tokenAddress : undefined, tokenDecimals);
+    const { balancesStatus: ethStatus, balances: ethBalances } = useWalletState();
+
+    const { allowance } = useAllowance(token !== "ETH" ? tokenAddress : undefined);
 
     const max = useMemo(() => {
-        if (token == "ETH" && ethBalances) {
-            return fullNumber(ethBalances);
-        } else if (token !== "ETH" && supplayBalances) {
-            return fullNumber(supplayBalances);
+        let balances: string | undefined;
+
+        if (token === "ETH" && WalletBalancesEnums.FINISH === ethStatus) {
+            balances = ethBalances;
+        } else if (StatusEnums.FINISH === tokenStatus) {
+            balances = tokenBalances;
         }
-        return "0";
-    }, [token, ethBalances, supplayBalances]);
 
-    const loading = token === "ETH" ? ethStatus === WalletStatusEnums.LOADING : supplyStatus === TokenStatusEnums.LOADING;
+        if (tokenInfo && balances) {
+            const { amount } = tokenInfo;
 
-    const payback = usePayback(address, amount, apy ? Number(apy) - 1 : undefined);
-    const reload = useReload();
+            // console.log("Payback", balances, amount);
+
+            if (Number(balances) - Number(amount) > 0) return amount;
+            else return balances
+        }
+
+        return;
+    }, [token, tokenInfo, status, ethStatus, tokenStatus, ethBalances]);
+
+    const approve = useMemo(() => {
+        if (allowance && token !== "ETH" && Number(allowance) < Number(amount)) return true;
+        else return false
+    }, [allowance, amount, token]);
+
+    // console.log(borrowMap, token, tokenAddress, tokenDecimals, allowance, approve);
+
+    const payback = usePayback(tokenAddress, amount === max ? MaxUint256 : getParseWei(amount, tokenDecimals), tokenLoanType ? tokenLoanType - 1 : undefined);
 
     const handleClick = () => {
-        setLoadingButton(true);
+        setButtonStatus("loading");
+        setStatus && setStatus("disabled");
 
-        payback().then((res: any) => {
-            console.log(res);
-            res.wait().then((res: any) => {
+        payback()
+            .then((res: any) => {
                 console.log(res);
-                message.success(t`操作成功`);
+                res.wait()
+                    .then((res: any) => {
+                        console.log(res);
+                        message.success(t`操作成功`);
 
-                setLoadingButton(false);
-                setAmount(undefined);
-                reload();
-                reloadTokenBalances();
-            }).catch((error: any) => {
-                setLoadingButton(false);
-                message.error(error.message);
+                        dispatch(updateConfigReload());
+                        setButtonStatus(undefined);
+                        setStatus && setStatus("default");
+                    })
+                    .catch((error: any) => {
+                        console.error(error);
+                        message.error(error.message);
+
+                        setButtonStatus(undefined);
+                        setStatus && setStatus("default");
+                    });
+            })
+            .catch((error: any) => {
                 console.error(error);
+                message.error(error.message);
+
+                setButtonStatus(undefined);
+                setStatus && setStatus("default");
             });
-        }).catch((error: any) => {
-            setLoadingButton(false);
-            message.error(error.message);
-            console.error(error);
-        });
     }
 
     useEffect(() => {
-        if (boorowCoins?.length && !token) setToken(boorowCoins[0].value);
-    }, [boorowCoins]);
+        setMax(max);
 
-    useEffect(() => {
-        if (type !== handle) setAmount(undefined);
-    }, [type]);
+        return () => { }
+    }, [max]);
 
-    return <Handle
-        isAuthorize
-        type="Payback"
-        max={max}
-        labelText={<Trans>还币：</Trans>}
-        labelTips={<Trans>还贷资产。</Trans>}
-        rightText={loading ? t`加载中~` : <InputMax max={max} />}
-        coins={boorowCoins}
-        inputValue={amount}
-        selectValue={token ?? ""}
-        selectOptionItemRender={<SelectOptionItem />}
-        buttonProps={{
-            text: t`还币`,
-            theme: "sell",
-            loading: loadingButton,
-            disabled: optimalType === 2,
-            disabledTips: t`已开启全自动化模式，禁用该操作`,
-            click: handleClick
-        }}
-        onInputChange={setAmount}
-        onSelectChange={setToken}
-    />
+    return <HandleContext.Provider value={{
+        status, theme, approve, max, amount, token, tokenLoanType, tokenAddress, handleButton,
+        setStatus, setAmount, setToken, setTokenLoanType
+    }}>
+        <Handle
+            above={<HandleAbove />}
+            body={<>
+                <HandleInput
+                    labelText={<Trans>还币</Trans>}
+                    labelTips={<Trans>还贷资产。</Trans>}
+                />
+                <HandleSelect
+                    dataSource={boorowCoins ?? []}
+                    valueRender={<ValueRender />}
+                    optionItemRender={<SelectOptionItem />}
+                />
+            </>}
+            button={<>
+                {approve && <ApproveButton />}
+                <HandleButton status={buttonStatus} onClick={handleClick}>
+                    <Trans>还币</Trans>
+                </HandleButton>
+            </>}
+            buttonColumn={approve ? 2 : 1}
+        />
+    </HandleContext.Provider>
 }
-
-const Debt = () => {
-    const reload = useReloadAfter();
-
-    useEffect(() => {
-        reload();
-    }, []);
-
-    return <TabPanelGrid>
-        <Borrow handle="Borrow" />
-        <Payback handle="Payback" />
-    </TabPanelGrid>
-}
-
-export default Debt;

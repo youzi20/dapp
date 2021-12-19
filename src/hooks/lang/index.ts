@@ -1,5 +1,5 @@
-import { useMemo, useRef } from "react";
-import { useUserLocale } from "../../state/lang";
+import { useMemo, useRef } from 'react';
+import { useUserLocale } from '../../state/lang';
 
 
 

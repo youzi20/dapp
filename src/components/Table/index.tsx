@@ -8,9 +8,8 @@ import { Font } from '../../styled';
 interface TableProps {
     dataSource: { [k: string]: any }[]
     loading?: boolean
-    afterBg?: string
-    afterColor?: string
     afterSource?: any
+    afterTheme?: string[]
 }
 
 type TextAlign = "left" | "center" | "right";
@@ -35,21 +34,18 @@ export interface TableContextProps {
 // @ts-ignore
 const TableContext = createContext<TableContextProps>({});
 
-const TableWrapper = styled.div`
-    border-radius: 4px;
-    background: var(--table);
-    overflow: hidden;
+const TableSlider = styled.div`
+width: 100%;
+overflow-x: auto;
+overflow-y: hidden;
 `;
 
-const TableRow = styled.div<{ border?: string }>`
-display: flex;
-justify-content: space-between;
-align-items: center;
-padding: 10px 20px;
-transition: all 0.3s ease;
+const TableWrapper = styled.div`
+border-radius: 4px;
+background: var(--table);
 
-&:not(:last-child) {
-    border-bottom: 1px solid ${({ border }) => border ?? "var(--table-line)"};
+@media screen and (max-width: 768px) {
+    display: inline-block;
 }
 `;
 
@@ -66,8 +62,18 @@ font-weight: 500;
 color: #fff;
 line-height: 36px;
 background-color: var(--table-body);
+`;
 
+const TableRow = styled.div<{ border?: string }>`
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 10px 20px;
+transition: all 0.3s ease;
 
+&:not(:last-child) {
+    border-bottom: 1px solid ${({ border }) => border ?? "var(--table-line)"};
+}
 `;
 
 const TableColumnWrapper = styled.div<{ width?: string, align?: TextAlign }>`
@@ -77,34 +83,40 @@ ${({ align }) => align && `text-align: ${align};`}
 `;
 
 const Table: React.FC<TableProps> = (props) => {
-    const { dataSource, afterBg, afterColor, afterSource, loading = false, children } = props;
+    const { dataSource, afterTheme, afterSource, loading = false, children } = props;
 
     const { after, ...other } = afterSource ?? {};
 
-    return <TableWrapper>
-        <TableHeader>
-            <TableContext.Provider value={{ header: true }}>
-                <TableRow>{children}</TableRow>
-            </TableContext.Provider>
-        </TableHeader>
-        <TableBody>
-            {loading ? <EmptyLoading /> :
-                afterSource ? <TableAfter bg={afterBg} border={afterColor}>
-                    <TableContext.Provider value={{ item: other, index: 0 }}>
-                        <TableRow border={afterColor}>{children}</TableRow>
-                    </TableContext.Provider>
-                    <TableContext.Provider value={{ item: after, index: 1, after: true }}>
-                        <TableRow border={afterColor}>{children}</TableRow>
-                    </TableContext.Provider>
-                </TableAfter> :
+    const [afterBg, afterColor] = afterTheme ?? [];
 
-                    !dataSource?.length ? <EmptyNoData /> :
-                        dataSource.map((item, index) =>
-                            <TableContext.Provider value={{ item, index }} key={index}>
-                                <TableRow>{children}</TableRow>
-                            </TableContext.Provider>)}
-        </TableBody>
-    </TableWrapper>
+    return <TableSlider>
+        <TableWrapper>
+            <TableHeader>
+                <TableContext.Provider value={{ header: true }}>
+                    <TableRow>{children}</TableRow>
+                </TableContext.Provider>
+            </TableHeader>
+            <TableBody>
+                {loading ?
+                    <EmptyLoading /> :
+                    afterSource ?
+                        <TableAfter bg={afterBg} border={afterColor}>
+                            <TableContext.Provider value={{ item: other, index: 0 }}>
+                                <TableRow border={afterColor}>{children}</TableRow>
+                            </TableContext.Provider>
+                            <TableContext.Provider value={{ item: after, index: 1, after: true }}>
+                                <TableRow border={afterColor}>{children}</TableRow>
+                            </TableContext.Provider>
+                        </TableAfter> :
+
+                        !dataSource?.length ? <EmptyNoData /> :
+                            dataSource.map((item, index) =>
+                                <TableContext.Provider value={{ item, index }} key={index}>
+                                    <TableRow>{children}</TableRow>
+                                </TableContext.Provider>)}
+            </TableBody>
+        </TableWrapper>
+    </TableSlider>
 }
 
 export const TableAfter = styled.div<{ bg?: string, border?: string }>`
@@ -118,7 +130,7 @@ export const TableColumn: React.FC<TableColumnProps> = (props) => {
 
     if (header) {
         return <TableColumnWrapper {...{ width, align }}>
-            <Font color="rgba(255,255,255,0.8)" fontSize="14px" fontWeight="500">{title}</Font>
+            <Font fontColor="rgba(255,255,255,0.8)" size="14px" weight="500">{title}</Font>
         </TableColumnWrapper>
     };
 

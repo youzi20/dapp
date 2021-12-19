@@ -1,39 +1,52 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
-import Title, { TitleAction } from '../../components/Title';
+import { useMobile } from '../../state/config';
+import { UserStatusEnums, useState as useUserState } from '../../state/user';
+import { MarketStatusEnums, useState as useMatketState, } from '../../state/market';
 
-import { useReset } from '../../hooks/contract/reload';
-
-import { useState as useWalletState } from '../../state/wallet';
-
-import { Content } from '../../styled';
+import { Container, Font } from '../../styled';
 
 
-import UserInfo from './UserInfo';
-import Control from './Control';
-import MarketInfo from './MarketInfo';
+import Loading from '../Loading';
+import CreateWallet from '../CreateWallet';
+import Account from './Account';
+import Market from './Market';
+import Contorl from './Contorl';
+import MobileContorl from './MobileContorl';
+
+import WalletConnect from '../WalletConnect';
 
 const Home = () => {
-    const reset = useReset();
+    const isMobile = useMobile();
+    // const [data, setData] = useState();
 
-    const { status } = useWalletState();
+    const { status } = useUserState()
+    const { loanStatus } = useMatketState();
 
-    useEffect(() => {
-        if (!status) {
-            reset();
-        }
-    }, [status]);
+    // useEffect(() => {
+    //     // @ts-ignore
+    //     setData(navigator.userAgent);
+    // }, []);
 
     return <div>
-        <Content>
-            <Title action={<TitleAction />} />
+        <WalletConnect>
+            <Container>
+                {/* <Font>{data}</Font> */}
 
-            <UserInfo />
-            <Control />
-            <MarketInfo />
-        </Content>
+                {status === UserStatusEnums.CREATE && <CreateWallet />}
+
+                {status === UserStatusEnums.SUCCESS && loanStatus === MarketStatusEnums.LOADING && <Loading />}
+
+                {loanStatus === MarketStatusEnums.SUCCESS && <>
+                    <Account />
+                    {isMobile ? <MobileContorl /> : <Contorl />}
+                </>}
+
+                <Market />
+
+            </Container>
+        </WalletConnect>
     </div>
 }
-
 
 export default Home;
