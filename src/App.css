@@ -14,24 +14,10 @@
 	margin: 100px 0;
 }
 
-.wallet-group {
-	display: flex;
-	gap: 20px;
-}
-
-.wallet-button {
-	display: inline-flex;
-	justify-content: center;
-	align-items: center;
-	width: 150px;
-	height: 40px;
-	border-radius: 6px;
-	background: #efefef;
-	cursor: pointer;
-}
-
-.wallet-button:hover {
-	background: #e2e8f0;
+.wallet-address {
+  text-align: center;
+  padding: 0 20px;
+  word-break: break-all;
 }
 
 .wallet-network {

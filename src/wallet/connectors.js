@@ -33,7 +33,7 @@ const INFURA_NETWORK_URLS = {
     [SupportedChainId.ROPSTEN]: `https://ropsten.infura.io/v3/${INFURA_KEY}`,
     [SupportedChainId.GOERLI]: `https://goerli.infura.io/v3/${INFURA_KEY}`,
     [SupportedChainId.KOVAN]: `https://kovan.infura.io/v3/${INFURA_KEY}`,
-    // [SupportedChainId.BINANCE]: `https://bsc-dataseed1.ninicoin.io`,
+    [SupportedChainId.BINANCE]: `https://bsc-dataseed1.ninicoin.io`,
 }
 
 export const BACKFILLABLE_WALLETS = [WalletKey.INJECTED, WalletKey.COINBASE_WALLET, WalletKey.WALLET_CONNECT]
