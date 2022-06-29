@@ -17,6 +17,7 @@ export const SupportedChainId = {
     RINKEBY: 4,
     GOERLI: 5,
     KOVAN: 42,
+    BINANCE: 56
 }
 
 export const WalletKey = {
@@ -35,7 +36,8 @@ const INFURA_NETWORK_URLS = {
     [SupportedChainId.RINKEBY]: `https://rinkeby.infura.io/v3/${INFURA_KEY}`,
     [SupportedChainId.ROPSTEN]: `https://ropsten.infura.io/v3/${INFURA_KEY}`,
     [SupportedChainId.GOERLI]: `https://goerli.infura.io/v3/${INFURA_KEY}`,
-    [SupportedChainId.KOVAN]: `https://kovan.infura.io/v3/${INFURA_KEY}`
+    [SupportedChainId.KOVAN]: `https://kovan.infura.io/v3/${INFURA_KEY}`,
+    [SupportedChainId.BINANCE]: `https://bsc-dataseed1.ninicoin.io`,
 }
 
 export const BACKFILLABLE_WALLETS = [WalletKey.INJECTED, WalletKey.COINBASE_WALLET, WalletKey.WALLET_CONNECT]
