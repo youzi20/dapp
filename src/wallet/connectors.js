@@ -136,14 +136,16 @@ function getConnectorListItemForWallet(wallet) {
 
 export function useConnectors(selectedWallet) {
     return useMemo(() => {
-        const connectors = [{ connector: gnosisSafe, hooks: gnosisSafeHooks }]
+        // const connectors = [{ connector: gnosisSafe, hooks: gnosisSafeHooks }]
+        const connectors = []
+        
         if (selectedWallet) {
             connectors.push(getConnectorListItemForWallet(selectedWallet))
         }
         connectors.push(
             ...SELECTABLE_WALLETS.filter((wallet) => wallet !== selectedWallet).map(getConnectorListItemForWallet)
         )
-        connectors.push({ connector: network, hooks: networkHooks })
+        // connectors.push({ connector: network, hooks: networkHooks })
 
         const web3ReactConnectors = connectors.map(({ connector, hooks }) => [
             connector,

