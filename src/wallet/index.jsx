@@ -57,7 +57,9 @@ const Wallet = () => {
         if (isActive && chainId) {
             const res = await contractAddress(chainId);
 
-            setContractInfo({ contract: res.contract, token: res.token });
+            if (res) {
+                setContractInfo({ contract: res.contract, token: res.token });
+            }
         }
     }
 
