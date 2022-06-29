@@ -3,6 +3,8 @@ import { useMemo } from 'react'
 
 
 import { initializeConnector } from '@web3-react/core'
+import { GnosisSafe } from '@web3-react/gnosis-safe'
+import { Network } from '@web3-react/network'
 import { MetaMask } from '@web3-react/metamask'
 import { WalletConnect } from '@web3-react/walletconnect'
 import { CoinbaseWallet } from '@web3-react/coinbase-wallet'
@@ -15,7 +17,6 @@ export const SupportedChainId = {
     RINKEBY: 4,
     GOERLI: 5,
     KOVAN: 42,
-    BINANCE: 56,
 }
 
 export const WalletKey = {
@@ -23,6 +24,8 @@ export const WalletKey = {
     WALLET_CONNECT: 'WALLET_CONNECT',
     COINBASE_WALLET: 'COINBASE_WALLET',
     COINBASE_LINK: 'COINBASE_LINK',
+    NETWORK: 'NETWORK',
+    GNOSIS_SAFE: 'GNOSIS_SAFE',
 }
 
 const INFURA_KEY = process.env.REACT_APP_INFURA_KEY
@@ -32,8 +35,7 @@ const INFURA_NETWORK_URLS = {
     [SupportedChainId.RINKEBY]: `https://rinkeby.infura.io/v3/${INFURA_KEY}`,
     [SupportedChainId.ROPSTEN]: `https://ropsten.infura.io/v3/${INFURA_KEY}`,
     [SupportedChainId.GOERLI]: `https://goerli.infura.io/v3/${INFURA_KEY}`,
-    [SupportedChainId.KOVAN]: `https://kovan.infura.io/v3/${INFURA_KEY}`,
-    [SupportedChainId.BINANCE]: `https://bsc-dataseed1.ninicoin.io`,
+    [SupportedChainId.KOVAN]: `https://kovan.infura.io/v3/${INFURA_KEY}`
 }
 
 export const BACKFILLABLE_WALLETS = [WalletKey.INJECTED, WalletKey.COINBASE_WALLET, WalletKey.WALLET_CONNECT]
@@ -51,6 +53,10 @@ export function getWalletForConnector(connector) {
             return WalletKey.COINBASE_WALLET
         case walletConnect:
             return WalletKey.WALLET_CONNECT
+        case gnosisSafe:
+            return WalletKey.GNOSIS_SAFE
+        case network:
+            return WalletKey.NETWORK
         default:
             throw Error('unsupported connector')
     }
@@ -64,6 +70,10 @@ export function getConnectorForWallet(wallet) {
             return coinbaseWallet
         case WalletKey.WALLET_CONNECT:
             return walletConnect
+        case WalletKey.GNOSIS_SAFE:
+            return gnosisSafe
+        case WalletKey.NETWORK:
+            return network
     }
 }
 
@@ -75,8 +85,18 @@ export function getHooksForWallet(wallet) {
             return coinbaseWalletHooks
         case WalletKey.WALLET_CONNECT:
             return walletConnectHooks
+        case WalletKey.GNOSIS_SAFE:
+            return gnosisSafeHooks
+        case WalletKey.NETWORK:
+            return networkHooks
     }
 }
+
+export const [gnosisSafe, gnosisSafeHooks] = initializeConnector((actions) => new GnosisSafe({ actions }))
+
+export const [network, networkHooks] = initializeConnector(
+    (actions) => new Network({ actions, urlMap: INFURA_NETWORK_URLS, defaultChainId: 1 })
+)
 
 export const [injected, injectedHooks] = initializeConnector((actions) => new MetaMask({ actions, onError }))
 
@@ -114,13 +134,14 @@ function getConnectorListItemForWallet(wallet) {
 
 export function useConnectors(selectedWallet) {
     return useMemo(() => {
-        const connectors = []
+        const connectors = [{ connector: gnosisSafe, hooks: gnosisSafeHooks }]
         if (selectedWallet) {
             connectors.push(getConnectorListItemForWallet(selectedWallet))
         }
         connectors.push(
             ...SELECTABLE_WALLETS.filter((wallet) => wallet !== selectedWallet).map(getConnectorListItemForWallet)
         )
+        connectors.push({ connector: network, hooks: networkHooks })
 
         const web3ReactConnectors = connectors.map(({ connector, hooks }) => [
             connector,

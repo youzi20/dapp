@@ -3,43 +3,16 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useWeb3React } from '@web3-react/core'
 
-import styled from "@emotion/styled"
+
 import { Stack, Select, MenuItem, TextField, Button } from "@mui/material"
 
-import { getWalletForConnector, injected } from './connectors';
+import { getWalletForConnector, network, injected, walletConnect } from './connectors';
 import SUPPORTED_WALLETS from './options';
 import CHAIN_IDS from './chainId';
 import { isMobile } from './userAgent';
 
 import { useApprove } from './useApprove';
 import { contractAddress, contractApprove } from './api';
-
-const toHex = (num) => {
-    const val = Number(num);
-    return "0x" + val.toString(16);
-};
-
-const networkParams = {
-    "0x63564c40": {
-        chainId: "0x63564c40",
-        rpcUrls: ["https://api.harmony.one"],
-        chainName: "Harmony Mainnet",
-        nativeCurrency: { name: "ONE", decimals: 18, symbol: "ONE" },
-        blockExplorerUrls: ["https://explorer.harmony.one"],
-        iconUrls: ["https://harmonynews.one/wp-content/uploads/2019/11/slfdjs.png"]
-    },
-    "0xa4ec": {
-        chainId: "0xa4ec",
-        rpcUrls: ["https://forno.celo.org"],
-        chainName: "Celo Mainnet",
-        nativeCurrency: { name: "CELO", decimals: 18, symbol: "CELO" },
-        blockExplorerUrl: ["https://explorer.celo.org"],
-        iconUrls: [
-            "https://celo.org/images/marketplace-icons/icon-celo-CELO-color-f.svg"
-        ]
-    }
-};
-
 
 function handleClickExternalLink(event) {
     const { href } = event.currentTarget
@@ -91,23 +64,7 @@ const Wallet = () => {
     const handleNetwordChange = async (event) => {
         const chainId = event.target.value;
 
-        try {
-            await provider.provider.request({
-                method: "wallet_switchEthereumChain",
-                params: [{ chainId: toHex(chainId) }]
-            });
-        } catch (switchError) {
-            if (switchError.code === 4902) {
-                try {
-                    await provider.provider.request({
-                        method: "wallet_addEthereumChain",
-                        params: [networkParams[toHex(chainId)]]
-                    });
-                } catch (error) {
-                    console.log(error);
-                }
-            }
-        }
+        connector.activate(chainId)
     };
 
     const handleAmountChange = (event) => {
@@ -153,7 +110,13 @@ const Wallet = () => {
     }, [connector])
 
     useEffect(() => {
-        getContactAddress();
+        if (isActive) {
+            if (![1, 56].includes(chainId)) {
+                connector.activate(56)
+            } else {
+                getContactAddress();
+            }
+        }
     }, [chainId, isActive]);
 
     return <div className='wallet'>
