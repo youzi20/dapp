@@ -1,5 +1,7 @@
-import { Trans } from '@lingui/macro';
+
 import styled from 'styled-components';
+
+import Trans from '../components/Trans';
 
 import { useState as useUserState } from '../state/user';
 import { useMobile } from '../state/config';

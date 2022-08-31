@@ -1,6 +1,5 @@
 import styled from 'styled-components';
-import { Trans } from '@lingui/macro';
-
+import Trans from '../Trans';
 import Icon, { LoadingIcon } from '../Icon';
 
 import { Font } from '../../styled';

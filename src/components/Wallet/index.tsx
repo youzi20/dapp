@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Trans } from '@lingui/macro';
 
-
+import Trans from '../Trans';
 import Message, { MessageType } from '../Message';
 
 import useWallet, { SupportedWallet, SUPPORTED_WALLETS, useWeb3ReactCore } from '../../hooks/wallet';
