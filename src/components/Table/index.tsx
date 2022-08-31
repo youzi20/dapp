@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react';
 import styled from 'styled-components';
-import Trans from '../Trans';
+import { Trans } from '@lingui/macro';
 import { EmptyLoading, EmptyNoData } from '../Empty';
 import { Font } from '../../styled';
 

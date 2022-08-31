@@ -1,5 +1,6 @@
-import Trans from '../components/Trans';
-import { EmptyLoading } from '../components/Empty';
+import { Trans } from '@lingui/macro';
+
+ import { EmptyLoading } from '../components/Empty';
 
 import { Container, Font } from '../styled';
 

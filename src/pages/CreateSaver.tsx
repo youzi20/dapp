@@ -1,4 +1,4 @@
-import Trans from '../components/Trans';
+import { Trans } from '@lingui/macro';
 import Button from '../components/Button';
 
 import { Font, WrappeContainer } from '../styled';
